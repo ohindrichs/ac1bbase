@@ -88,20 +88,22 @@ class CLASS:
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				classdef += '#include "' + typ + '.h"\n'		
-		classdef += 'class BaseIO;\n'		
+		classdef += 'class BaseIO;\n\n'		
 		classdef +=  'class ' + self.name
-		if len(self.ClassDes) != 0:
-			classdef += ' : ' + self.ClassDes
-		
 		classdef += '\n {\n'
+		classdef += '\tfriend class BaseIO;\n'
 		classdef += '\tprivate:\n'
+		classdef += '\t\tstatic BaseIO* baseio;\n'
 		classdef += '\t\tUInt_t number_;\n'
 		classdef += '\t\tData_' + self.name + '* data_;\n'
 		
 		classdef += '\tpublic:\n'
 		
-		classdef += '\t\t'+ self.name + '() = delete;\n'
 		classdef += '\t\t'+ self.name + '(Data_' + self.name + '* data, UInt_t number);\n'
+		if self.sizehint != 0: 
+			classdef += '\t\t'+ self.name + '(UInt_t number);\n'
+		classdef += '\t\tvoid Init();\n'
+		#Getters
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
@@ -113,7 +115,17 @@ class CLASS:
 			for mem in des:
 				classdef += '\t\t' + typ + ' ' + mem[0] + '(UInt_t n) const;\n'
 				classdef += '\t\t' + 'UInt_t' + ' Num_' + mem[0] + '() const;\n'
-
+		#Setters
+		for typ, des in self.datamember.iteritems():
+			if typ in CLASS.TYPS:
+				typ = CLASS.TYPS[typ]
+				for mem in des:
+					classdef += '\t\tvoid ' + mem + '('+typ+' _'+mem+');\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ in CLASS.TYPS:
+				typ = CLASS.TYPS[typ]
+				for mem in des:
+					classdef += '\t\tvoid ' + mem[0] + '('+typ+' _'+mem[0]+', UInt_t n);\n'
 		classdef += ' };\n'
 		classdef += '#endif\n'		
 		print classdef
@@ -123,24 +135,42 @@ class CLASS:
 		classcode = ''
 		classcode += '#include "BaseIO.h"\n'		
 		classcode += '#include "' + self.name + '.h"\n'		
+		classcode += 'BaseIO* '+self.name+'::baseio = 0;\n'
 		classcode += self.name+'::'+self.name + '(Data_' + self.name + '* data, UInt_t number) : \nnumber_(number),\ndata_(data)\n'
 		classcode += '{\n'
-		
+		classcode += '\tInit();\n'
 		classcode += '}\n\n'
-		
+		if self.sizehint != 0: 
+			classcode += self.name+'::'+self.name + '(UInt_t number) : \nnumber_(number),\ndata_(&(baseio->'+self.name+'_container_))\n'
+			classcode += '{\n'
+			classcode += '\tInit();\n'
+			classcode += '}\n\n'
+		classcode += 'void ' + self.name+'::Init()\n'
+		classcode += '{\n'
+		classcode += '\tif(baseio->IsWritable())\n'
+		classcode += '\t{\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ in CLASS.TYPS:
+				typ = CLASS.TYPS[typ]
+				for mem in des:
+					classcode += '\t\tif(number_ == 0) {data_->' + mem[0] + '_num_[number_] = 0;}\n'
+					classcode += '\t\telse {data_->' + mem[0] + '_num_[number_] = data_->' + mem[0] + '_num_[number_-1];}\n'
+		classcode += '\t}\n'
+		classcode += '}\n\n'
+		#Getters	
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += typ + ' ' + self.name + '::' + mem + '() const\n'
 					classcode += '{\n'
-					classcode += 'return data_->' + mem +'_[number_];\n' 
+					classcode += '\treturn data_->' + mem +'_[number_];\n' 
 					classcode += '}\n\n'
 			else:
 				for mem in des:
 					classcode += typ + ' ' + self.name + '::' + mem + '() const\n'
 					classcode += '{\n'
-					classcode += 'return '+typ+'(&(data_->' + mem +'_), number_);\n' 
+					classcode += '\treturn '+typ+'(&(data_->' + mem +'_), number_);\n' 
 					classcode += '}\n\n'
 
 		for typ, des in self.datavecs.iteritems():
@@ -149,23 +179,42 @@ class CLASS:
 				for mem in des:
 					classcode += 'UInt_t ' + self.name + '::Num_' + mem[0] + '() const\n'
 					classcode += '{\n'
-					classcode += 'return number_ == 0 ? data_->' + mem[0] +'_num_[number_] : data_->' + mem[0] +'_num_[number_] - data_->' + mem[0] +'_num_[number_-1];\n' 
+					classcode += '\treturn number_ == 0 ? data_->' + mem[0] +'_num_[number_] : data_->' + mem[0] +'_num_[number_] - data_->' + mem[0] +'_num_[number_-1];\n' 
 					classcode += '}\n\n'
 					classcode += typ + ' ' + self.name + '::' +  mem[0] + '(UInt_t n) const\n'
 					classcode += '{\n'
-					classcode += 'return number_ == 0 ? data_->' + mem[0] +'_[n] : data_->' + mem[0] +'_[data_->' + mem[0] +'_num_[number_-1]  + n];\n' 
+					classcode += '\treturn number_ == 0 ? data_->' + mem[0] +'_[n] : data_->' + mem[0] +'_[data_->' + mem[0] +'_num_[number_-1]  + n];\n' 
 					classcode += '}\n\n'
 			else:
 				for mem in des:
 					classcode += 'UInt_t ' +self.name +'::Num_' + mem[0] + '() const\n'
 					classcode += '{\n'
-					classcode += 'return number_ == 0 ? data_->' + mem[0] +'_num_[number_] : data_->' + mem[0] +'_num_[number_] - data_->' + mem[0] +'_num_[number_-1];\n' 
+					classcode += '\treturn number_ == 0 ? data_->' + mem[0] +'_num_[number_] : data_->' + mem[0] +'_num_[number_] - data_->' + mem[0] +'_num_[number_-1];\n' 
 					classcode += '}\n\n'
 					classcode += typ + ' ' + self.name + '::' + mem[0] + '(UInt_t n) const\n'
 					classcode += '{\n'
-					classcode += 'return number_ == 0 ? '+typ+'(&(data_->' + mem[0] +'_), n) : '+typ+'(&(data_->' + mem[0] +'_), data_->' + mem[0] + '_num_[number_-1]  + n);\n' 
+					classcode += '\treturn number_ == 0 ? '+typ+'(&(data_->' + mem[0] +'_), n) : '+typ+'(&(data_->' + mem[0] +'_), data_->' + mem[0] + '_num_[number_-1]  + n);\n' 
 					classcode += '}\n\n'
-				
+		#Setters
+		for typ, des in self.datamember.iteritems():
+			if typ in CLASS.TYPS:
+				typ = CLASS.TYPS[typ]
+				for mem in des:
+					classcode += 'void ' + self.name + '::' + mem + '('+typ+' _'+mem+')\n'
+					classcode += '{\n'
+					classcode += '\tdata_->' + mem + '_[number_] = _'+mem+';\n'
+					classcode += '}\n\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ in CLASS.TYPS:
+				typ = CLASS.TYPS[typ]
+				for mem in des:
+					classcode += 'void ' + self.name + '::' + mem[0] + '('+typ+' _'+mem[0]+', UInt_t n)\n'
+					classcode += '{\n'
+					classcode += '\tif(number_ == 0) {data_->' + mem[0] + '_[n] = _' + mem[0] +';}\n'
+					classcode += '\telse {data_->' + mem[0] + '_[data_->' + mem[0] + '_num_[number_-1] +n] = _' + mem[0] + ';}\n'
+					classcode += '\tdata_->' + mem[0] + '_num_[number_]++;\n'
+					classcode += '\tdata_->' + mem[0] + '_count_++;\n'
+					classcode += '}\n\n'
 		print classcode
 		return classcode
 
@@ -179,7 +228,7 @@ class CLASS:
 			if typ not in CLASS.TYPS:
 				classdef += '#include "Data_' + typ + '.h"\n'		
 
-		classdef +=  'class ' + 'Data_' + self.name
+		classdef += '\nclass ' + 'Data_' + self.name
 		classdef += '\n {\n'
 		classdef += '\tfriend class ' + self.name +';\n'
 		classdef += '\tfriend class BaseIO;\n'
@@ -259,6 +308,12 @@ class CLASS:
 				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\tdelete[] ' + mem + '_;\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ in CLASS.TYPS:
+				ntyp = CLASS.TYPS[typ]
+				for mem in des:
+					classcode += '\tdelete[] ' + mem[0] + '_;\n'
+					classcode += '\tdelete[] ' + mem[0] + '_num_;\n'
 		classcode += '}\n\n'
 		#SetUp Tree Writing
 		classcode += 'void Data_'+self.name+'::SetUpWrite(TTree* tree)\n'
@@ -364,12 +419,14 @@ for n,c in classes.iteritems():
 		classdef += '\tfriend class ' + c.name + ';\n' 	
 classdef += '\tprivate:\n'	
 classdef += '\t\tenum Mode {WRITE, READ};\n'	
+classdef += '\t\tbool writable_;\n'	
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\t\tData_' + c.name + ' ' + c.name + '_container_;\n' 	
 classdef += '\t\tTTree* tree_;\n'	
 classdef += '\tpublic:\n'
 classdef += '\t\tBaseIO(std::string treename, Mode m);\n'
+classdef += '\t\tbool IsWritable() const;\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\t\tUInt_t Num' + c.name + 's();\n' 	
@@ -385,19 +442,24 @@ for n,c in classes.iteritems():
 		classcode += c.name + '_container_(' + str(c.sizehint) + ', "' + c.name +'"),\n' 	
 classcode += 'tree_(new TTree(treename.c_str(), treename.c_str(), 1))\n'
 classcode += '{\n'
+for n,c in classes.iteritems():
+	classcode += c.name+'::baseio = this;\n'
 classcode += '\tif(m == WRITE)\n'
 classcode += '\t{\n'
+classcode += '\twritable_ = true;\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpWrite(tree_);\n' 	
 classcode += '\t}\n'
 classcode += '\tif(m == READ)\n'
 classcode += '\t{\n'
+classcode += '\twritable_ = false;\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpRead(tree_);\n' 	
 classcode += '\t}\n'
 classcode += '}\n\n'
+classcode += 'bool BaseIO::IsWritable() const {return writable_;}\n' 	
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += 'UInt_t BaseIO::Num' + c.name + 's()\n' 	
@@ -407,7 +469,7 @@ for n,c in classes.iteritems():
 		classcode += c.name+' BaseIO::Get' + c.name + '(UInt_t n)\n' 	
 		classcode += '{\n'
 		classcode += '\treturn ' + c.name + '(&' + c.name + '_container_, n);\n'
-		classcode += '}\n'
+		classcode += '}\n\n'
 classcode += ''
 classcode += ''
 classcode += ''
