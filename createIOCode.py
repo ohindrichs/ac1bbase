@@ -155,7 +155,7 @@ class CLASS:
 				for mem in des:
 					classcode += '\t\tif(number_ == 0) {data_->' + mem[0] + '_num_[number_] = 0;}\n'
 					classcode += '\t\telse {data_->' + mem[0] + '_num_[number_] = data_->' + mem[0] + '_num_[number_-1];}\n'
-		classcode += '\t\tdata_->count_ = number_;\n'
+		classcode += '\t\tdata_->count_ = number_+1;\n'
 		classcode += '\t}\n'
 		classcode += '}\n\n'
 		#Getters	
@@ -343,6 +343,10 @@ class CLASS:
 				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\ttree->Branch((prefix_ + "_' +mem+'").c_str(), ' + mem + '_, (prefix_ + "_' + mem + '[" + prefix_ + "_count]/'+typ+ '").c_str());\n'
+		for typ, des in self.datamember.iteritems():
+			if typ not in CLASS.TYPS:
+				for mem in des:
+					classcode += '\t' + mem +'_.SetUpWrite(tree);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				ntyp = CLASS.TYPS[typ]
@@ -355,7 +359,6 @@ class CLASS:
 				for mem in des:
 					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_, (prefix_ + "_' + mem[0] + '_num[" + prefix_ + "_count]/i").c_str());\n'
 					classcode += '\t' + mem[0] +'_.SetUpWrite(tree);\n'
-					
 		classcode += '}\n\n'
 		#SetUp Tree Reading
 		classcode += 'void Data_'+self.name+'::SetUpRead(TTree* tree)\n'
@@ -366,6 +369,10 @@ class CLASS:
 				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem+'").c_str(), ' + mem + '_);\n'
+		for typ, des in self.datamember.iteritems():
+			if typ not in CLASS.TYPS:
+				for mem in des:
+					classcode += '\t' + mem +'_.SetUpRead(tree);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				ntyp = CLASS.TYPS[typ]
@@ -488,6 +495,7 @@ classcode += '}\n\n'
 classcode += 'bool BaseIO::IsWritable() const {return writable_;}\n' 	
 classcode += 'void BaseIO::Fill()' 
 classcode += '{\n'
+classcode += '\ttree_->Print();\n'
 classcode += '\ttree_->Fill();\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
