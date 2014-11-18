@@ -155,6 +155,7 @@ class CLASS:
 				for mem in des:
 					classcode += '\t\tif(number_ == 0) {data_->' + mem[0] + '_num_[number_] = 0;}\n'
 					classcode += '\t\telse {data_->' + mem[0] + '_num_[number_] = data_->' + mem[0] + '_num_[number_-1];}\n'
+		classcode += '\t\tdata_->count_ = number_;\n'
 		classcode += '\t}\n'
 		classcode += '}\n\n'
 		#Getters	
@@ -228,11 +229,13 @@ class CLASS:
 			if typ not in CLASS.TYPS:
 				classdef += '#include "Data_' + typ + '.h"\n'		
 
+		classdef += '\nclass BaseIO;\n'
 		classdef += '\nclass ' + 'Data_' + self.name
 		classdef += '\n {\n'
 		classdef += '\tfriend class ' + self.name +';\n'
 		classdef += '\tfriend class BaseIO;\n'
 		classdef += '\tprivate:\n'
+		classdef += '\t\tstatic BaseIO* baseio;\n'
 		classdef += '\t\tUInt_t size_;\n'
 		classdef += '\t\tstd::string prefix_;\n'
 		classdef += '\t\t' + 'UInt_t count_;\n'
@@ -258,6 +261,7 @@ class CLASS:
 					classdef += '\t\t' + 'UInt_t*' + ' ' + mem[0] + '_num_;\n'
 					classdef += '\t\t' + typ + ' ' + mem[0] + '_' + ';\n'
 		classdef += '\tpublic:\n'
+		classdef += '\t\tvoid Fill();\n'
 		classdef += '\t\t' + 'Data_' + self.name + '(UInt_t size, std::string prefix);\n'
 		classdef += '\t\t' + '~Data_' + self.name + '();\n'
 		classdef += '\t\tvoid SetUpWrite(TTree* tree);\n'
@@ -274,6 +278,7 @@ class CLASS:
 		classcode += '#include "Data_' + self.name + '.h"\n'
 		classcode += '#include "TTree.h"\n'
 
+		classcode += 'BaseIO* Data_'+self.name+'::baseio = 0;\n'
 		classcode += 'Data_'+self.name+'::Data_'+self.name + '(UInt_t size, std::string prefix = "") : \nsize_(size),\nprefix_(prefix)\n'
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
@@ -314,6 +319,20 @@ class CLASS:
 				for mem in des:
 					classcode += '\tdelete[] ' + mem[0] + '_;\n'
 					classcode += '\tdelete[] ' + mem[0] + '_num_;\n'
+		classcode += '}\n\n'
+		#Fill
+		classcode += 'void Data_' + self.name + '::Fill()\n'
+		classcode += '{\n'
+		classcode += '\tcount_ = 0;\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ in CLASS.TYPS:
+				ntyp = CLASS.TYPS[typ]
+				for mem in des:
+					classcode += '\t' + mem[0] + '_count_ = 0;\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ not in CLASS.TYPS:
+				for mem in des:
+					classcode += '\t' + mem[0] +'_.Fill();\n'
 		classcode += '}\n\n'
 		#SetUp Tree Writing
 		classcode += 'void Data_'+self.name+'::SetUpWrite(TTree* tree)\n'
@@ -418,15 +437,18 @@ for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\tfriend class ' + c.name + ';\n' 	
 classdef += '\tprivate:\n'	
-classdef += '\t\tenum Mode {WRITE, READ};\n'	
 classdef += '\t\tbool writable_;\n'	
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\t\tData_' + c.name + ' ' + c.name + '_container_;\n' 	
 classdef += '\t\tTTree* tree_;\n'	
 classdef += '\tpublic:\n'
+classdef += '\t\tenum Mode {WRITE, READ};\n'	
 classdef += '\t\tBaseIO(std::string treename, Mode m);\n'
 classdef += '\t\tbool IsWritable() const;\n'
+classdef += 'void Fill();\n'
+classdef += 'UInt_t GetEntries();\n'
+classdef += 'void GetEntry(UInt_t n);\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\t\tUInt_t Num' + c.name + 's();\n' 	
@@ -444,12 +466,16 @@ classcode += 'tree_(new TTree(treename.c_str(), treename.c_str(), 1))\n'
 classcode += '{\n'
 for n,c in classes.iteritems():
 	classcode += c.name+'::baseio = this;\n'
+	classcode += 'Data_' + c.name+'::baseio = this;\n'
 classcode += '\tif(m == WRITE)\n'
 classcode += '\t{\n'
 classcode += '\twritable_ = true;\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpWrite(tree_);\n' 	
+for n,c in classes.iteritems():
+	if c.sizehint != 0:
+		classcode += '\t' + c.name + '_container_.Fill();\n'
 classcode += '\t}\n'
 classcode += '\tif(m == READ)\n'
 classcode += '\t{\n'
@@ -460,6 +486,15 @@ for n,c in classes.iteritems():
 classcode += '\t}\n'
 classcode += '}\n\n'
 classcode += 'bool BaseIO::IsWritable() const {return writable_;}\n' 	
+classcode += 'void BaseIO::Fill()' 
+classcode += '{\n'
+classcode += '\ttree_->Fill();\n'
+for n,c in classes.iteritems():
+	if c.sizehint != 0:
+		classcode += '\t' + c.name + '_container_.Fill();\n'
+classcode += '}\n'
+classcode += 'UInt_t BaseIO::GetEntries() {return tree_->GetEntries();}\n'
+classcode += 'void BaseIO::GetEntry(UInt_t n) {tree_->GetEntry(n);}\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += 'UInt_t BaseIO::Num' + c.name + 's()\n' 	
