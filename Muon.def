@@ -1,0 +1,25 @@
+BeginClass: Muon[100] : public TLorentzVector
+ExternInit: TLorentzVector(py, py, pz)
+D: px, py, pz, v[10]
+I: VertexNumber, NHits
+MemberClass Track: InnerTrack
+EndClass
+
+
+BeginClass: Track[1000] : public TLorentzVector
+ExternInit: TLorentzVector(py, py, pz)
+D: px, py, pz
+I: Vertex, NHits, PN[5]
+MemberClass Cluster: TrackCluster[20]
+EndClass
+
+BeginClass: Cluster[0]
+D: NC[4], Vx, Vy, Vz
+EndClass
+
+
+
+
+
+
+
