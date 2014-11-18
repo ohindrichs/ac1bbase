@@ -324,6 +324,10 @@ class CLASS:
 		classcode += 'void Data_' + self.name + '::Fill()\n'
 		classcode += '{\n'
 		classcode += '\tcount_ = 0;\n'
+		for typ, des in self.datamember.iteritems():
+			if typ not in CLASS.TYPS:
+				for mem in des:
+					classcode += '\t' + mem +'_.Fill();\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				ntyp = CLASS.TYPS[typ]

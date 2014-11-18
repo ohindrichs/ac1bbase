@@ -1,0 +1,13 @@
+BeginClass: Muon[10]
+D: px, py, pz, v[10]
+I: VertexNumber, NHits
+MemberClass Track: InnerTrack
+EndClass
+
+BeginClass: Track[10]
+D: px, py, pz, HP[10]
+I: Vertex, NHits
+EndClass
+
+
+
