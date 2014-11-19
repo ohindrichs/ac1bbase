@@ -27,11 +27,11 @@ def cleandatavecs(string):
 	return res
 
 class CLASS:
-	TYPS = {'D' : 'Double_t', 'F' : 'Float_t' , 'I' : 'Int_t', 'i' : 'UInt_t', 'L' : 'Long64_t', 'l' : 'ULong64_t', 'B' : 'Char_t', 'b': 'UChar_t'}
+	TYPS = {'D' : 'Double_t', 'F' : 'Float_t' , 'I' : 'Int_t', 'i' : 'UInt_t', 'L' : 'Long64_t', 'l' : 'ULong64_t', 'B' : 'Char_t', 'b': 'UChar_t', 'S' : 'Short_t', 's' : 'UShort_t', 'O': 'Bool_t'}
 	def __init__(self, name, config):
 		print name
 		print config
-		self.sizehint = 1
+		self.sizehint = 0
 		self.ExternInit = ''
 		self.ClassDes = ''
 		self.datamember = {}
@@ -475,14 +475,16 @@ for n,c in classes.iteritems():
 		classdef += '\t\tData_' + c.name + ' ' + c.name + '_container_;\n' 	
 classdef += '\t\tbool writable_;\n'	
 classdef += '\t\tTTree* tree_;\n'	
-classdef += '\t\tTFile* file_;\n'	
+classdef += '\t\tTTree* copytree_;\n'	
+classdef += '\t\tstd::string treename_;\n'	
 classdef += '\tpublic:\n'
-classdef += '\t\tBaseIO(std::string filename, std::string treename, bool writable);\n'
+classdef += '\t\tBaseIO(std::string treename, bool writable);\n'
 classdef += '\t\t~BaseIO();\n'
+classdef += '\t\tvoid SetFile(TFile* file);\n'
 classdef += '\t\tbool IsWritable() const;\n'
-classdef += 'void Fill();\n'
-classdef += 'UInt_t GetEntries();\n'
-classdef += 'void GetEntry(UInt_t n);\n'
+classdef += '\t\tvoid Fill();\n'
+classdef += '\t\tUInt_t GetEntries();\n'
+classdef += '\t\tvoid GetEntry(UInt_t n);\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\t\tUInt_t Num' + c.name + 's();\n' 	
@@ -493,19 +495,28 @@ classdef += '#endif\n'
 
 classcode = ''
 classcode += '#include "BaseIO.h"\n'
-classcode += 'BaseIO::BaseIO(std::string filename, std::string treename, bool writable) : \n'
+classcode += 'BaseIO::BaseIO(std::string treename, bool writable) : \n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += c.name + '_container_(' + str(c.sizehint) + ', "' + c.name +'"),\n' 	
-classcode += 'writable_(writable)\n'
+classcode += 'writable_(writable),\n'
+classcode += 'tree_(0),\n'
+classcode += 'copytree_(0),\n'
+classcode += 'treename_(treename)\n'
 classcode += '{\n'
 for n,c in classes.iteritems():
 	classcode += c.name+'::baseio = this;\n'
 	classcode += '\tData_' + c.name+'::baseio = this;\n'
+classcode += '}\n\n'
+classcode += 'BaseIO::~BaseIO()\n'
+classcode += '{\n'
+classcode += '}\n\n'
+classcode += 'void BaseIO::SetFile(TFile* file)\n'
+classcode += '{\n'
 classcode += '\tif(writable_)\n'
 classcode += '\t{\n'
-classcode += '\t\tfile_ = TFile::Open(filename.c_str(), "recreate");\n'
-classcode += '\t\ttree_ = new TTree(treename.c_str(), treename.c_str(), 1);\n'
+classcode += '\tfile->cd();\n'
+classcode += '\ttree_ = new TTree(treename_.c_str(), treename_.c_str(), 1);\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpWrite(tree_);\n' 	
@@ -513,25 +524,17 @@ for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.Fill();\n'
 classcode += '\t}\n'
-classcode += '\tif(!writable)\n'
+classcode += '\telse\n'
 classcode += '\t{\n'
-classcode += '\t\tfile_ = TFile::Open(filename.c_str(), "read");\n'
-classcode += '\t\tfile_->GetObject(treename.c_str(), tree_);\n'
+classcode += '\t\tfile->GetObject(treename_.c_str(), tree_);\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpRead(tree_);\n' 	
 classcode += '\t}\n'
-classcode += '\ttree_->Print();\n'
-classcode += '}\n\n'
-classcode += 'BaseIO::~BaseIO()\n'
-classcode += '{\n'
-classcode += '\tfile_->Write();\n'
-classcode += '\tfile_->Close();\n'
 classcode += '}\n\n'
 classcode += 'bool BaseIO::IsWritable() const {return writable_;}\n' 	
 classcode += 'void BaseIO::Fill()' 
 classcode += '{\n'
-classcode += '\ttree_->Print();\n'
 classcode += '\ttree_->Fill();\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
