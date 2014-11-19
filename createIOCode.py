@@ -100,8 +100,7 @@ class CLASS:
 		classdef += '\tpublic:\n'
 		
 		classdef += '\t\t'+ self.name + '(Data_' + self.name + '* data, UInt_t number);\n'
-		if self.sizehint != 0: 
-			classdef += '\t\t'+ self.name + '(UInt_t number);\n'
+		classdef += '\t\t'+ self.name + '(const '+self.name+'& _' + self.name.lower() +');\n'
 		classdef += '\t\tvoid Init();\n'
 		#Getters
 		for typ, des in self.datamember.iteritems():
@@ -140,11 +139,9 @@ class CLASS:
 		classcode += '{\n'
 		classcode += '\tInit();\n'
 		classcode += '}\n\n'
-		if self.sizehint != 0: 
-			classcode += self.name+'::'+self.name + '(UInt_t number) : \nnumber_(number),\ndata_(&(baseio->'+self.name+'_container_))\n'
-			classcode += '{\n'
-			classcode += '\tInit();\n'
-			classcode += '}\n\n'
+		classcode += self.name+'::'+self.name + '(const '+self.name+'& _' + self.name.lower() +') : \nnumber_('+' _' + self.name.lower()+'.number_),\ndata_('+' _' + self.name.lower()+'.data_)\n'
+		classcode += '{\n'
+		classcode += '}\n\n'
 		classcode += 'void ' + self.name+'::Init()\n'
 		classcode += '{\n'
 		classcode += '\tif(baseio->IsWritable())\n'
