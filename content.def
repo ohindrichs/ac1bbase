@@ -1,16 +1,23 @@
-BeginClass: Muon[10]
-D: px, py, pz, v[10]
-I: VertexNumber, NHits
+BeginClass: Muon[50]
+F: px, py, pz, v[10]
+I: VertexNumber, Test
 MemberClass Track: InnerTrack
 EndClass
 
-BeginClass: Track[10]
-D: px, py, pz, HP[10]
-I: Vertex
+BeginClass: Track[500]
+F: px, py, pz, HP[5]
 MemberClass Pos: HitPos[20]
 EndClass
 
 BeginClass: Pos
 D: x, y, z
+EndClass
+
+BeginClass: HLTInfo[1]
+MemberClass String: HLTNames[200]
+EndClass
+
+BeginClass: String
+B: str[100]
 EndClass
 

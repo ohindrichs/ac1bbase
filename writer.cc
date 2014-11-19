@@ -23,9 +23,9 @@ for(int i = 0 ; i < 100 ; ++i)
 	mu.v(100., 1);
 	mu.v(100., 2);
 	Track mt = mu.InnerTrack();
-	mt.px(-8);
-	mt.py(-6);
-	mt.pz(-4);
+	mt.px(15.5);
+	mt.py(13.4);
+	mt.pz(14.2);
 	mt.HP(0.5, 0);
 	mt.HP(0.6, 1);
 	mt.HP(0.7, 2);
@@ -34,9 +34,9 @@ for(int i = 0 ; i < 100 ; ++i)
 	mu.py(13.);
 	mu.pz(14.);
 	mt = mu.InnerTrack();
-	mt.px(-7);
-	mt.py(-5);
-	mt.pz(-3);
+	mt.px(15.5);
+	mt.py(13.4);
+	mt.pz(14.2);
 	mt.HP(-0.5, 0);
 	mt.HP(-0.6, 1);
 	mt.HP(-0.7, 2);

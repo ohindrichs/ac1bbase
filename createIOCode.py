@@ -399,7 +399,14 @@ class CLASS:
 
 		return classcode
 
+
+#if len(sys.argv) != 2:
+#	print 'Usage: *.def outputdir'
+#	exit()
+
 configfile = sys.argv[1]
+directory = sys.argv[2]
+
 
 classes = {}
 
@@ -423,7 +430,6 @@ for l in configf:
 	classconfig.append(l)
 
 
-directory = 'BaseIO'
 objects = []
 
 for c in classes:
