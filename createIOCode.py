@@ -268,6 +268,7 @@ class CLASS:
 		classdef += '\t\t' + '~Data_' + self.name + '();\n'
 		classdef += '\t\tvoid SetUpWrite(TTree* tree);\n'
 		classdef += '\t\tvoid SetUpRead(TTree* tree);\n'
+		classdef += '\t\tvoid Load(TTree* tree, bool load);\n'
 		
 		classdef += ' };\n'
 		classdef += '#endif\n'		
@@ -385,6 +386,31 @@ class CLASS:
 					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_);\n'
 					classcode += '\t' + mem[0] +'_.SetUpRead(tree);\n'
 		classcode += '}\n\n'
+		#SetUp Load
+		classcode += 'void Data_'+self.name+'::Load(TTree* tree, bool load)\n'
+		classcode += '{\n'
+		classcode += '\ttree->SetBranchStatus((prefix_ + "_count").c_str(), load);\n'
+		for typ, des in self.datamember.iteritems():
+			if typ in CLASS.TYPS:
+				for mem in des:
+					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem+'").c_str(), load);\n'
+		for typ, des in self.datamember.iteritems():
+			if typ not in CLASS.TYPS:
+				for mem in des:
+					classcode += '\t' + mem +'_.Load(tree, load);\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ in CLASS.TYPS:
+				for mem in des:
+					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'_count").c_str(), load);\n'
+					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'_num").c_str(), load);\n'
+					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'").c_str(), load);\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ not in CLASS.TYPS:
+				for mem in des:
+					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'_num").c_str(), load);\n'
+					classcode += '\t' + mem[0] +'_.Load(tree, load);\n'
+		classcode += '}\n\n'
+
 
 		print classcode
 		return classcode
@@ -461,6 +487,7 @@ for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\t\tUInt_t Num' + c.name + 's();\n' 	
 		classdef += '\t\t'+c.name+' Get' + c.name + '(UInt_t n);\n' 	
+		classdef += '\t\tvoid Load' + c.name + '(bool load);\n' 	
 classdef += '};\n'	
 classdef += '#endif\n'
 
@@ -474,7 +501,7 @@ classcode += 'writable_(writable)\n'
 classcode += '{\n'
 for n,c in classes.iteritems():
 	classcode += c.name+'::baseio = this;\n'
-	classcode += 'Data_' + c.name+'::baseio = this;\n'
+	classcode += '\tData_' + c.name+'::baseio = this;\n'
 classcode += '\tif(writable_)\n'
 classcode += '\t{\n'
 classcode += '\t\tfile_ = TFile::Open(filename.c_str(), "recreate");\n'
@@ -521,6 +548,10 @@ for n,c in classes.iteritems():
 		classcode += c.name+' BaseIO::Get' + c.name + '(UInt_t n)\n' 	
 		classcode += '{\n'
 		classcode += '\treturn ' + c.name + '(&' + c.name + '_container_, n);\n'
+		classcode += '}\n'
+		classcode += 'void BaseIO::Load' + c.name + '(bool load)\n' 	
+		classcode += '{\n'
+		classcode += '\t' + c.name + '_container_.Load(tree_, load);\n'
 		classcode += '}\n\n'
 classcode += ''
 classcode += ''
