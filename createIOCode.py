@@ -312,12 +312,10 @@ class CLASS:
 		classcode += '{\n'
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\tdelete[] ' + mem + '_;\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\tdelete[] ' + mem[0] + '_;\n'
 					classcode += '\tdelete[] ' + mem[0] + '_num_;\n'
@@ -332,7 +330,6 @@ class CLASS:
 					classcode += '\t' + mem +'_.Fill();\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\t' + mem[0] + '_count_ = 0;\n'
 		for typ, des in self.datavecs.iteritems():
@@ -346,7 +343,6 @@ class CLASS:
 		classcode += '\ttree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());\n'
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\ttree->Branch((prefix_ + "_' +mem+'").c_str(), ' + mem + '_, (prefix_ + "_' + mem + '[" + prefix_ + "_count]/'+typ+ '").c_str());\n'
 		for typ, des in self.datamember.iteritems():
@@ -355,7 +351,6 @@ class CLASS:
 					classcode += '\t' + mem +'_.SetUpWrite(tree);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'_count").c_str(), &' + mem[0] + '_count_, (prefix_ + "_' + mem[0] + '_count/i").c_str());\n'
 					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_, (prefix_ + "_' + mem[0] + '_num[" + prefix_ + "_count]/i").c_str());\n'
@@ -372,7 +367,6 @@ class CLASS:
 		classcode += '\ttree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);\n'
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem+'").c_str(), ' + mem + '_);\n'
 		for typ, des in self.datamember.iteritems():
@@ -381,7 +375,6 @@ class CLASS:
 					classcode += '\t' + mem +'_.SetUpRead(tree);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
 				for mem in des:
 					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'_count").c_str(), &' + mem[0] + '_count_);\n'
 					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_);\n'
@@ -389,7 +382,7 @@ class CLASS:
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_);\n'
+					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_);\n'
 					classcode += '\t' + mem[0] +'_.SetUpRead(tree);\n'
 		classcode += '}\n\n'
 
@@ -501,6 +494,7 @@ for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpRead(tree_);\n' 	
 classcode += '\t}\n'
+classcode += '\ttree_->Print();\n'
 classcode += '}\n\n'
 classcode += 'BaseIO::~BaseIO()\n'
 classcode += '{\n'
