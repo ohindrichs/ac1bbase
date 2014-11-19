@@ -73,14 +73,14 @@ class CLASS:
 
 	def writeclassdef(self):
 		classdef = ''
-		classdef += '#ifndef CLASS_' + self.name.upper() + '\n'		
-		classdef += '#define CLASS_' + self.name.upper() + '\n'		
-		classdef += '#include "Data_' + self.name + '.h"\n'		
-		for typ, des in self.datamember.iteritems():
-			if typ not in CLASS.TYPS:
-				#classdef += '#include "' + typ + '.h"\n'		
-				classdef += 'class ' + typ + ';\n'		
-		classdef += 'class BaseIO;\n\n'		
+#		classdef += '#ifndef CLASS_' + self.name.upper() + '\n'		
+#		classdef += '#define CLASS_' + self.name.upper() + '\n'		
+#		classdef += '#include "Data_' + self.name + '.h"\n'		
+#		for typ, des in self.datamember.iteritems():
+#			if typ not in CLASS.TYPS:
+#				classdef += 'class ' + typ + ';\n'		
+#		classdef += 'class BaseIO;\n\n'		
+
 		classdef +=  'class ' + self.name
 		classdef += '\n {\n'
 		classdef += '\tfriend class BaseIO;\n'
@@ -118,16 +118,16 @@ class CLASS:
 				for mem in des:
 					classdef += '\t\tvoid ' + mem[0] + '('+typ+' _'+mem[0]+', UInt_t n);\n'
 		classdef += ' };\n'
-		classdef += '#endif\n'		
+#		classdef += '#endif\n'		
 		return classdef
 
 	def writeclasscode(self):
 		classcode = ''
-		classcode += '#include "BaseIO.h"\n'		
-		classcode += '#include "' + self.name + '.h"\n'		
-		for typ, des in self.datamember.iteritems():
-			if typ not in CLASS.TYPS:
-				classcode += '#include "' + typ + '.h"\n'		
+#		classcode += '#include "BaseIO.h"\n'		
+#		classcode += '#include "' + self.name + '.h"\n'		
+#		for typ, des in self.datamember.iteritems():
+#			if typ not in CLASS.TYPS:
+#				classcode += '#include "' + typ + '.h"\n'		
 		classcode += 'BaseIO* '+self.name+'::baseio = 0;\n'
 		classcode += self.name+'::'+self.name + '(Data_' + self.name + '* data, UInt_t number) : \nnumber_(number),\ndata_(data)\n'
 		classcode += '{\n'
@@ -213,16 +213,16 @@ class CLASS:
 
 	def writedataclassdef(self):
 		classdef = ''
-		classdef += '#ifndef CLASS_DATA_' + self.name.upper() + '\n'		
-		classdef += '#define CLASS_DATA_' + self.name.upper() + '\n'		
-		classdef += '#include <string>\n'		
-		classdef += '#include "TTree.h"\n'		
-		for typ, des in self.datamember.iteritems():
-			if typ not in CLASS.TYPS:
-				#classdef += '#include "Data_' + typ + '.h"\n'		
-				classdef += 'class Data_' + typ + ';\n'		
+#		classdef += '#ifndef CLASS_DATA_' + self.name.upper() + '\n'		
+#		classdef += '#define CLASS_DATA_' + self.name.upper() + '\n'		
+#		classdef += '#include <string>\n'		
+#		classdef += '#include "TTree.h"\n'		
+#		for typ, des in self.datamember.iteritems():
+#			if typ not in CLASS.TYPS:
+#				#classdef += '#include "Data_' + typ + '.h"\n'		
+#				classdef += 'class Data_' + typ + ';\n'		
+#		classdef += '\nclass BaseIO;\n'
 
-		classdef += '\nclass BaseIO;\n'
 		classdef += '\nclass ' + 'Data_' + self.name
 		classdef += '\n {\n'
 		classdef += '\tfriend class ' + self.name +';\n'
@@ -262,17 +262,17 @@ class CLASS:
 		classdef += '\t\tvoid Load(TTree* tree, bool load);\n'
 		
 		classdef += ' };\n'
-		classdef += '#endif\n'		
+#		classdef += '#endif\n'		
 		return classdef
 
 	def writedataclasscode(self):
 		#constructor
 		classcode = ''
-		classcode += '#include "Data_' + self.name + '.h"\n'
-		for typ, des in self.datamember.iteritems():
-			if typ not in CLASS.TYPS:
-				classcode += '#include "Data_' + typ + '.h"\n'		
-
+#		classcode += '#include "Data_' + self.name + '.h"\n'
+#		for typ, des in self.datamember.iteritems():
+#			if typ not in CLASS.TYPS:
+#				classcode += '#include "Data_' + typ + '.h"\n'		
+#
 		classcode += 'BaseIO* Data_'+self.name+'::baseio = 0;\n'
 		classcode += 'Data_'+self.name+'::Data_'+self.name + '(UInt_t size, std::string prefix = "") : \nsize_(size),\nprefix_(prefix)\n'
 		for typ, des in self.datamember.iteritems():
@@ -414,18 +414,11 @@ class CLASS:
 		return classcode
 
 
-#if len(sys.argv) != 2:
-#	print 'Usage: *.def outputdir'
-#	exit()
-
 configfile = sys.argv[1]
 
-directory ='BASEIO'
+headerfilename ='BASEIO.h'
+sourcefilename ='BASEIO.cc'
 
-#if os.path.isdir(directory):
-#	os.system('rm -r ' + directory)
-#
-#os.system('mkdir ' + directory)
 
 classes = {}
 
@@ -448,33 +441,32 @@ for l in configf:
 		continue
 	classconfig.append(l)
 
-
-objects = []
-
-for c in classes:
-	fclass = open(directory + '/' + classes[c].name + '.h', 'w')
-	fclass.write(classes[c].writeclassdef())
-	fclass.close()
-	fclass = open(directory + '/' + classes[c].name + '.cc', 'w')
-	objects.append(classes[c].name + '.o')
-	fclass.write(classes[c].writeclasscode())
-	fclass.close()
-	fclass = open(directory + '/Data_' + classes[c].name + '.h', 'w')
-	fclass.write(classes[c].writedataclassdef())
-	fclass.close()
-	fclass = open(directory + '/Data_' + classes[c].name + '.cc', 'w')
-	fclass.write(classes[c].writedataclasscode())
-	objects.append('Data_' + classes[c].name + '.o')
-	fclass.close()
-
 classdef = ''
 classdef += '#ifndef CLASS_BASEIO\n'	
 classdef += '#define CLASS_BASEIO\n'
 classdef += '#include "TTree.h"\n'
 classdef += '#include "TFile.h"\n'
 classdef += '#include <string>\n'
+classdef += 'class BaseIO;\n'
 for n,c in classes.iteritems():
-	classdef += '#include "' + c.name + '.h"\n'	
+	classdef += 'class Data_' + c.name + ';\n'	
+	classdef += 'class ' + c.name + ';\n'	
+
+classcode = ''
+classcode += '#include "BASEIO.h"\n\n'
+
+for n,c in classes.iteritems():
+	classdef += c.writedataclassdef()
+	classdef += '\n\n'
+	classcode += '//'+ ('Data_'+c.name + ' ')*10 + '\n'
+	classcode += c.writedataclasscode()
+	classcode += '\n\n'
+	classdef += c.writeclassdef()
+	classdef += '\n\n'
+	classcode += '//'+ (c.name + ' == ')*15 + '\n'
+	classcode += c.writeclasscode()
+	classcode += '\n\n'
+
 classdef += 'class BaseIO\n'	
 classdef += '{\n'	
 for n,c in classes.iteritems():
@@ -504,8 +496,6 @@ for n,c in classes.iteritems():
 classdef += '};\n'	
 classdef += '#endif\n'
 
-classcode = ''
-classcode += '#include "BaseIO.h"\n'
 classcode += 'BaseIO::BaseIO(std::string treename, bool writable) : \n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
@@ -567,18 +557,13 @@ for n,c in classes.iteritems():
 		classcode += '{\n'
 		classcode += '\t' + c.name + '_container_.Load(tree_, load);\n'
 		classcode += '}\n\n'
-classcode += ''
-classcode += ''
-classcode += ''
 		
-fclass = open(directory + '/BaseIO.cc', 'w')
-objects.append('BaseIO.o')
-fclass.write(classcode)
-fclass.close()
 
-fclass = open(directory + '/BaseIO.h', 'w')
-fclass.write(classdef)
-fclass.close()
+headerfile = open(headerfilename, 'w')
+headerfile.write(classdef)
+headerfile.close()
+sourcefile = open(sourcefilename, 'w')
+sourcefile.write(classcode)
+sourcefile.close()
 
-print ' '.join(objects) 
 
