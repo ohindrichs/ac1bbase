@@ -405,8 +405,13 @@ class CLASS:
 #	exit()
 
 configfile = sys.argv[1]
-directory = sys.argv[2]
 
+directory ='BASEIO'
+
+if os.path.isdir(directory):
+	os.system('rm -r ' + directory)
+
+os.system('mkdir ' + directory)
 
 classes = {}
 
