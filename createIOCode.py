@@ -32,8 +32,6 @@ class CLASS:
 		print name
 		print config
 		self.sizehint = 0
-		self.ExternInit = ''
-		self.ClassDes = ''
 		self.datamember = {}
 		self.datavecs = {}
 		self.vectorclass = False
@@ -47,12 +45,7 @@ class CLASS:
 			info = linesplit(line)
 			if info[0] == 'BeginClass':
 				vinfo = info[1].split(':')
-			#	if len(vinfo) == 2:
-			#		self.ClassDes = vinfo[1].strip()			
 				continue
-			#if info[0] == 'ExternInit':
-			#	self.ExternInit += info[1]
-			#	continue
 			for TYP in CLASS.TYPS:
 				if info[0] == TYP:
 					if TYP in self.datamember:
@@ -75,8 +68,6 @@ class CLASS:
 				else:
 					self.datavecs[TYP] = cleandatavecs(info[1])
 				continue
-		print self.ExternInit
-		print self.ClassDes
 		print self.datamember
 		print self.datavecs
 
@@ -127,7 +118,6 @@ class CLASS:
 					classdef += '\t\tvoid ' + mem[0] + '('+typ+' _'+mem[0]+', UInt_t n);\n'
 		classdef += ' };\n'
 		classdef += '#endif\n'		
-		print classdef
 		return classdef
 
 	def writeclasscode(self):
@@ -215,7 +205,6 @@ class CLASS:
 					classcode += '\tdata_->' + mem[0] + '_num_[number_]++;\n'
 					classcode += '\tdata_->' + mem[0] + '_count_++;\n'
 					classcode += '}\n\n'
-		print classcode
 		return classcode
 
 	def writedataclassdef(self):
@@ -269,7 +258,6 @@ class CLASS:
 		
 		classdef += ' };\n'
 		classdef += '#endif\n'		
-		print classdef
 		return classdef
 
 	def writedataclasscode(self):
@@ -409,7 +397,6 @@ class CLASS:
 		classcode += '}\n\n'
 
 
-		print classcode
 		return classcode
 
 configfile = sys.argv[1]
@@ -422,12 +409,12 @@ classname = ''
 classconfig = []
 for l in configf:
 	l=l.strip()
+	if l.startswith('#'):
+		continue
 	if l.startswith('BeginClass'):
 		classconfig = [l]
 		l = l.split(':', 1)[1]
-		print l
 		l=l.strip()
-		print l
 		classname = l.split(' ')[0]
 		continue
 	if l.startswith('EndClass'):
@@ -437,12 +424,14 @@ for l in configf:
 
 
 directory = 'BaseIO'
+objects = []
 
 for c in classes:
 	fclass = open(directory + '/' + classes[c].name + '.h', 'w')
 	fclass.write(classes[c].writeclassdef())
 	fclass.close()
 	fclass = open(directory + '/' + classes[c].name + '.cc', 'w')
+	objects.append(classes[c].name + '.o')
 	fclass.write(classes[c].writeclasscode())
 	fclass.close()
 	fclass = open(directory + '/Data_' + classes[c].name + '.h', 'w')
@@ -450,6 +439,7 @@ for c in classes:
 	fclass.close()
 	fclass = open(directory + '/Data_' + classes[c].name + '.cc', 'w')
 	fclass.write(classes[c].writedataclasscode())
+	objects.append('Data_' + classes[c].name + '.o')
 	fclass.close()
 
 classdef = ''
@@ -556,11 +546,9 @@ for n,c in classes.iteritems():
 classcode += ''
 classcode += ''
 classcode += ''
-
-print classdef
-print classcode
 		
 fclass = open(directory + '/BaseIO.cc', 'w')
+objects.append('BaseIO.o')
 fclass.write(classcode)
 fclass.close()
 
@@ -568,4 +556,5 @@ fclass = open(directory + '/BaseIO.h', 'w')
 fclass.write(classdef)
 fclass.close()
 
+print ' '.join(objects) 
 
