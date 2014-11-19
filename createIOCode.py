@@ -78,7 +78,8 @@ class CLASS:
 		classdef += '#include "Data_' + self.name + '.h"\n'		
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
-				classdef += '#include "' + typ + '.h"\n'		
+				#classdef += '#include "' + typ + '.h"\n'		
+				classdef += 'class ' + typ + ';\n'		
 		classdef += 'class BaseIO;\n\n'		
 		classdef +=  'class ' + self.name
 		classdef += '\n {\n'
@@ -124,6 +125,9 @@ class CLASS:
 		classcode = ''
 		classcode += '#include "BaseIO.h"\n'		
 		classcode += '#include "' + self.name + '.h"\n'		
+		for typ, des in self.datamember.iteritems():
+			if typ not in CLASS.TYPS:
+				classcode += '#include "' + typ + '.h"\n'		
 		classcode += 'BaseIO* '+self.name+'::baseio = 0;\n'
 		classcode += self.name+'::'+self.name + '(Data_' + self.name + '* data, UInt_t number) : \nnumber_(number),\ndata_(data)\n'
 		classcode += '{\n'
@@ -156,7 +160,7 @@ class CLASS:
 				for mem in des:
 					classcode += typ + ' ' + self.name + '::' + mem + '() const\n'
 					classcode += '{\n'
-					classcode += '\treturn '+typ+'(&(data_->' + mem +'_), number_);\n' 
+					classcode += '\treturn '+typ+'(data_->' + mem +'_, number_);\n' 
 					classcode += '}\n\n'
 
 		for typ, des in self.datavecs.iteritems():
@@ -183,7 +187,7 @@ class CLASS:
 					classcode += '\t{\n'
 					classcode += '\t\tdata_->' + mem[0] + '_num_[number_]++;\n'
 					classcode += '\t}\n'
-					classcode += '\treturn number_ == 0 ? '+typ+'(&(data_->' + mem[0] +'_), n) : '+typ+'(&(data_->' + mem[0] +'_), data_->' + mem[0] + '_num_[number_-1]  + n);\n' 
+					classcode += '\treturn number_ == 0 ? '+typ+'(data_->' + mem[0] +'_, n) : '+typ+'(data_->' + mem[0] +'_, data_->' + mem[0] + '_num_[number_-1]  + n);\n' 
 					classcode += '}\n\n'
 		#Setters
 		for typ, des in self.datamember.iteritems():
@@ -215,7 +219,8 @@ class CLASS:
 		classdef += '#include "TTree.h"\n'		
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
-				classdef += '#include "Data_' + typ + '.h"\n'		
+				#classdef += '#include "Data_' + typ + '.h"\n'		
+				classdef += 'class Data_' + typ + ';\n'		
 
 		classdef += '\nclass BaseIO;\n'
 		classdef += '\nclass ' + 'Data_' + self.name
@@ -235,7 +240,7 @@ class CLASS:
 			else:
 				typ = 'Data_' + typ
 				for mem in des:
-					classdef += '\t\t' + typ + ' ' + mem + '_;\n'
+					classdef += '\t\t' + typ + '* ' + mem + '_;\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
@@ -247,7 +252,7 @@ class CLASS:
 				typ = 'Data_' + typ
 				for mem in des:
 					classdef += '\t\t' + 'UInt_t*' + ' ' + mem[0] + '_num_;\n'
-					classdef += '\t\t' + typ + ' ' + mem[0] + '_' + ';\n'
+					classdef += '\t\t' + typ + '* ' + mem[0] + '_' + ';\n'
 		classdef += '\tpublic:\n'
 		classdef += '\t\tvoid Fill();\n'
 		classdef += '\t\t' + 'Data_' + self.name + '(UInt_t size, std::string prefix);\n'
@@ -264,18 +269,20 @@ class CLASS:
 		#constructor
 		classcode = ''
 		classcode += '#include "Data_' + self.name + '.h"\n'
-		classcode += '#include "TTree.h"\n'
+		for typ, des in self.datamember.iteritems():
+			if typ not in CLASS.TYPS:
+				classcode += '#include "Data_' + typ + '.h"\n'		
 
 		classcode += 'BaseIO* Data_'+self.name+'::baseio = 0;\n'
 		classcode += 'Data_'+self.name+'::Data_'+self.name + '(UInt_t size, std::string prefix = "") : \nsize_(size),\nprefix_(prefix)\n'
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += ', ' +  mem + '_(size_, prefix_ + "_'+mem+'")\n'
+					classcode += ', ' +  mem + '_(new Data_'+typ+'(size_, prefix_ + "_'+mem+'"))\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += ', ' +  mem[0] + '_(size_*'+str(mem[1])+', prefix_ + "_'+mem[0]+'")\n'
+					classcode += ', ' +  mem[0] + '_(new Data_'+typ+'(size_*'+str(mem[1])+', prefix_ + "_'+mem[0]+'"))\n'
 		classcode += '{\n'
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
@@ -300,10 +307,17 @@ class CLASS:
 			if typ in CLASS.TYPS:
 				for mem in des:
 					classcode += '\tdelete[] ' + mem + '_;\n'
+			else:
+				for mem in des:
+					classcode += '\tdelete ' + mem + '_;\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
 					classcode += '\tdelete[] ' + mem[0] + '_;\n'
+					classcode += '\tdelete[] ' + mem[0] + '_num_;\n'
+			else:
+				for mem in des:
+					classcode += '\tdelete ' + mem[0] + '_;\n'
 					classcode += '\tdelete[] ' + mem[0] + '_num_;\n'
 		classcode += '}\n\n'
 		#Fill
@@ -313,7 +327,7 @@ class CLASS:
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\t' + mem +'_.Fill();\n'
+					classcode += '\t' + mem +'_->Fill();\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
@@ -321,7 +335,7 @@ class CLASS:
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\t' + mem[0] +'_.Fill();\n'
+					classcode += '\t' + mem[0] +'_->Fill();\n'
 		classcode += '}\n\n'
 		#SetUp Tree Writing
 		classcode += 'void Data_'+self.name+'::SetUpWrite(TTree* tree)\n'
@@ -334,7 +348,7 @@ class CLASS:
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\t' + mem +'_.SetUpWrite(tree);\n'
+					classcode += '\t' + mem +'_->SetUpWrite(tree);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
@@ -345,7 +359,7 @@ class CLASS:
 			if typ not in CLASS.TYPS:
 				for mem in des:
 					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_, (prefix_ + "_' + mem[0] + '_num[" + prefix_ + "_count]/i").c_str());\n'
-					classcode += '\t' + mem[0] +'_.SetUpWrite(tree);\n'
+					classcode += '\t' + mem[0] +'_->SetUpWrite(tree);\n'
 		classcode += '}\n\n'
 		#SetUp Tree Reading
 		classcode += 'void Data_'+self.name+'::SetUpRead(TTree* tree)\n'
@@ -358,7 +372,7 @@ class CLASS:
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\t' + mem +'_.SetUpRead(tree);\n'
+					classcode += '\t' + mem +'_->SetUpRead(tree);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
@@ -369,7 +383,7 @@ class CLASS:
 			if typ not in CLASS.TYPS:
 				for mem in des:
 					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_);\n'
-					classcode += '\t' + mem[0] +'_.SetUpRead(tree);\n'
+					classcode += '\t' + mem[0] +'_->SetUpRead(tree);\n'
 		classcode += '}\n\n'
 		#SetUp Load
 		classcode += 'void Data_'+self.name+'::Load(TTree* tree, bool load)\n'
@@ -382,7 +396,7 @@ class CLASS:
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\t' + mem +'_.Load(tree, load);\n'
+					classcode += '\t' + mem +'_->Load(tree, load);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
@@ -393,7 +407,7 @@ class CLASS:
 			if typ not in CLASS.TYPS:
 				for mem in des:
 					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'_num").c_str(), load);\n'
-					classcode += '\t' + mem[0] +'_.Load(tree, load);\n'
+					classcode += '\t' + mem[0] +'_->Load(tree, load);\n'
 		classcode += '}\n\n'
 
 
@@ -408,10 +422,10 @@ configfile = sys.argv[1]
 
 directory ='BASEIO'
 
-if os.path.isdir(directory):
-	os.system('rm -r ' + directory)
-
-os.system('mkdir ' + directory)
+#if os.path.isdir(directory):
+#	os.system('rm -r ' + directory)
+#
+#os.system('mkdir ' + directory)
 
 classes = {}
 
@@ -460,8 +474,7 @@ classdef += '#include "TTree.h"\n'
 classdef += '#include "TFile.h"\n'
 classdef += '#include <string>\n'
 for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classdef += '#include "' + c.name + '.h"\n'	
+	classdef += '#include "' + c.name + '.h"\n'	
 classdef += 'class BaseIO\n'	
 classdef += '{\n'	
 for n,c in classes.iteritems():
