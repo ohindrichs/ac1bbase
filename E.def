@@ -6,8 +6,11 @@ EndClass
 
 BeginClass: Track[10]
 D: px, py, pz, HP[10]
-I: Vertex, NHits
+I: Vertex
+MemberClass Pos: HitPos[20]
 EndClass
 
-
+BeginClass: Pos
+D: x, y, z
+EndClass
 

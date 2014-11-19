@@ -150,11 +150,9 @@ class CLASS:
 		classcode += '\tif(baseio->IsWritable())\n'
 		classcode += '\t{\n'
 		for typ, des in self.datavecs.iteritems():
-			if typ in CLASS.TYPS:
-				typ = CLASS.TYPS[typ]
-				for mem in des:
-					classcode += '\t\tif(number_ == 0) {data_->' + mem[0] + '_num_[number_] = 0;}\n'
-					classcode += '\t\telse {data_->' + mem[0] + '_num_[number_] = data_->' + mem[0] + '_num_[number_-1];}\n'
+			for mem in des:
+				classcode += '\t\tif(number_ == 0) {data_->' + mem[0] + '_num_[number_] = 0;}\n'
+				classcode += '\t\telse {data_->' + mem[0] + '_num_[number_] = data_->' + mem[0] + '_num_[number_-1];}\n'
 		classcode += '\t\tdata_->count_ = number_+1;\n'
 		classcode += '\t}\n'
 		classcode += '}\n\n'
@@ -194,6 +192,10 @@ class CLASS:
 					classcode += '}\n\n'
 					classcode += typ + ' ' + self.name + '::' + mem[0] + '(UInt_t n) const\n'
 					classcode += '{\n'
+					classcode += '\tif(baseio->IsWritable())\n'
+					classcode += '\t{\n'
+					classcode += '\t\tdata_->' + mem[0] + '_num_[number_]++;\n'
+					classcode += '\t}\n'
 					classcode += '\treturn number_ == 0 ? '+typ+'(&(data_->' + mem[0] +'_), n) : '+typ+'(&(data_->' + mem[0] +'_), data_->' + mem[0] + '_num_[number_-1]  + n);\n' 
 					classcode += '}\n\n'
 		#Setters
@@ -438,6 +440,7 @@ classdef = ''
 classdef += '#ifndef CLASS_BASEIO\n'	
 classdef += '#define CLASS_BASEIO\n'
 classdef += '#include "TTree.h"\n'
+classdef += '#include "TFile.h"\n'
 classdef += '#include <string>\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
@@ -448,14 +451,15 @@ for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\tfriend class ' + c.name + ';\n' 	
 classdef += '\tprivate:\n'	
-classdef += '\t\tbool writable_;\n'	
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\t\tData_' + c.name + ' ' + c.name + '_container_;\n' 	
+classdef += '\t\tbool writable_;\n'	
 classdef += '\t\tTTree* tree_;\n'	
+classdef += '\t\tTFile* file_;\n'	
 classdef += '\tpublic:\n'
-classdef += '\t\tenum Mode {WRITE, READ};\n'	
-classdef += '\t\tBaseIO(std::string treename, Mode m);\n'
+classdef += '\t\tBaseIO(std::string filename, std::string treename, bool writable);\n'
+classdef += '\t\t~BaseIO();\n'
 classdef += '\t\tbool IsWritable() const;\n'
 classdef += 'void Fill();\n'
 classdef += 'UInt_t GetEntries();\n'
@@ -469,32 +473,39 @@ classdef += '#endif\n'
 
 classcode = ''
 classcode += '#include "BaseIO.h"\n'
-classcode += 'BaseIO::BaseIO(std::string treename, Mode m) : \n'
+classcode += 'BaseIO::BaseIO(std::string filename, std::string treename, bool writable) : \n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += c.name + '_container_(' + str(c.sizehint) + ', "' + c.name +'"),\n' 	
-classcode += 'tree_(new TTree(treename.c_str(), treename.c_str(), 1))\n'
+classcode += 'writable_(writable)\n'
 classcode += '{\n'
 for n,c in classes.iteritems():
 	classcode += c.name+'::baseio = this;\n'
 	classcode += 'Data_' + c.name+'::baseio = this;\n'
-classcode += '\tif(m == WRITE)\n'
+classcode += '\tif(writable_)\n'
 classcode += '\t{\n'
-classcode += '\twritable_ = true;\n'
+classcode += '\t\tfile_ = TFile::Open(filename.c_str(), "recreate");\n'
+classcode += '\t\ttree_ = new TTree(treename.c_str(), treename.c_str(), 1);\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpWrite(tree_);\n' 	
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
-		classcode += '\t' + c.name + '_container_.Fill();\n'
+		classcode += '\t\t' + c.name + '_container_.Fill();\n'
 classcode += '\t}\n'
-classcode += '\tif(m == READ)\n'
+classcode += '\tif(!writable)\n'
 classcode += '\t{\n'
-classcode += '\twritable_ = false;\n'
+classcode += '\t\tfile_ = TFile::Open(filename.c_str(), "read");\n'
+classcode += '\t\tfile_->GetObject(treename.c_str(), tree_);\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpRead(tree_);\n' 	
 classcode += '\t}\n'
+classcode += '}\n\n'
+classcode += 'BaseIO::~BaseIO()\n'
+classcode += '{\n'
+classcode += '\tfile_->Write();\n'
+classcode += '\tfile_->Close();\n'
 classcode += '}\n\n'
 classcode += 'bool BaseIO::IsWritable() const {return writable_;}\n' 	
 classcode += 'void BaseIO::Fill()' 
