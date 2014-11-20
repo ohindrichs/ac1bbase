@@ -416,8 +416,8 @@ class CLASS:
 
 configfile = sys.argv[1]
 
-headerfilename ='BASEIO.h'
-sourcefilename ='BASEIO.cc'
+headerfilename = sys.argv[2] + '.h'
+sourcefilename = sys.argv[2] + '.cc'
 
 
 classes = {}
@@ -453,7 +453,6 @@ for n,c in classes.iteritems():
 	classdef += 'class ' + c.name + ';\n'	
 
 classcode = ''
-classcode += '#include "BASEIO.h"\n\n'
 
 for n,c in classes.iteritems():
 	classdef += c.writedataclassdef()
@@ -562,8 +561,16 @@ for n,c in classes.iteritems():
 headerfile = open(headerfilename, 'w')
 headerfile.write(classdef)
 headerfile.close()
+
 sourcefile = open(sourcefilename, 'w')
-sourcefile.write(classcode)
+sourcefile.write('#include "BASEIO.h"\n\n' + classcode)
 sourcefile.close()
 
+headerfile = open('../'+headerfilename, 'w')
+headerfile.write(classdef)
+headerfile.close()
+
+sourcefile = open('../'+sourcefilename, 'w')
+sourcefile.write('#include "RootMaker/MyRootMaker/interface/BASEIO.h"\n\n' + classcode)
+sourcefile.close()
 

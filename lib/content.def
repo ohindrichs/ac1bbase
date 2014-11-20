@@ -1,23 +1,102 @@
-BeginClass: Muon[50]
-F: px, py, pz, v[10]
-I: VertexNumber, Test
-MemberClass Track: InnerTrack
+BeginClass: IOEventInfo[1]
+i: ProcessingErrors, EventNumber, LumiSectionNumber, RunNumber, TimeUnix, TimeMuSec
+b: TriggerHLT[150]
+F: AK5PFRho, AK5PFSigma 
 EndClass
 
-BeginClass: Track[500]
-F: px, py, pz, HP[5]
-MemberClass Pos: HitPos[20]
+BeginClass: IOBeamSpot[1]
+F: Vx, Vy, Vz, XWidth, YWidth, ZWidth
 EndClass
 
-BeginClass: Pos
+BeginClass: IOMET[1]
+F: pfmetpx, pfmetpy
+F: pfmetpxcorr, pfmetpycorr
+EndClass
+
+BeginClass: IOTrack[500]
+F: px, py, pz, ChiQ, NDOF, Dxy, DxyUnc, Dz, DzUnc, DeDx
+I: VertexNumber
+B: Charge
+b: NHits, NPixelHits, NMissingHits, NPixelLayers, NStripLayers 
+EndClass
+
+BeginClass: PrimaryVertex[200]
+F: Vx, Vy, Vz, ChiQ, NDOF, SumPtQ
+b: NumTracks
+EndClass
+
+BeginClass: IOMuon[50]
+F: px, py, pz, PtUnc, ChiQ, NDOF, ECalEnergy, HCalEnergy
+I: VertexNumber, Charge, NumChamber, NumChambersWithSegments, NumValidMuonHits, NumMatchedStations
+i: TriggerMatching
+MemberClass IOTrack: InnerTrack 
+MemberClass PFIsolation: PFR3, PFR4
+MemberClass DetIsolation: DetR3, DetR4
+EndClass
+
+BeginClass: IOPFJet[100]
+F: px, py, pz, e, HCalEnergy, ECalEnergy, TrackEnergy
+F: ChargedEnergy, NeutralEnergy, HadronEnergy, PhotonEnergy, ElectronEnergy, MuonEnergy
+I: NumCharged, NumNeutral, NumHadron, NumPhoton, NumElectron, NumMuon
+F: ChargedPtMomPA, ChargedPtMomPB, ConstPtMomPA, ConstPtMomPB
+F: PtWrongPrimaryVertex 
+F: EnergyCorrection, EnergyCorrectionUnc
+I: MCFlavor
+EndClass
+
+BeginClass: IOElectron[100]
+F: px, py, pz
+I: VertexNumber, Trigger
+MemberClass IOTrack: GSFTrack
+MemberClass IOPosition: ECalPos
+F: DeltaEtaSCTrack, DeltaPhiSCTrack, ESCOverETrack
+F: E1x5, E2x5, E5x5, R9
+F: SigmaIEtaIEta, SigmaIPhiIPhi, SigmaIEtaIPhi
+F: EHCalTowerOverECal
+MemberClass PFIsolation: PFR3, PFR4
+MemberClass DetIsolation: DetR3, DetR4
+MemberClass IOSuperCluster: SC
+EndClass
+
+BeginClass: GenInfo[1]
+F: Weight, x1, x2, RenScale, FacScale
+I: PDGID1, PDGID2
+F: METx, METy
+I: NumPUInteractions, NumPUInteractionsBefore, NumPUInteractionsAfter
+F: NumTrueInteractions
+EndClass
+
+BeginClass: AllGenParticle[10000]
+F: px, py, pz, e, vx, vy, vz
+I: PDGID, Status, Mother[100], Daughter[100]
+EndClass
+
+BeginClass: SelectedGenParticle[10000]
+F: px, py, pz, e, vx, vy, vz
+I: PDGID, Status, Info, Mother, IndirectMother
+EndClass
+
+BeginClass: PFIsolation
+F: Charged, Neutral, Hadron, Photon
+I: NumCharged, NumNeutral, NumHadron, NumPhoton
+EndClass
+
+BeginClass: DetIsolation
+F: Track, ECal, HCal
+I: NumTrack, NumECal, NumHCal
+EndClass
+
+BeginClass: IOPosition
 D: x, y, z
 EndClass
 
-BeginClass: HLTInfo[1]
-MemberClass String: HLTNames[200]
+BeginClass: IOSuperCluster
+MemberClass IOPosition: Pos
+F: Energy, RawEnergy
+F: PhiWidth, EtaWidth
 EndClass
 
-BeginClass: String
+BeginClass: IOString
 B: str[100]
 EndClass
 
