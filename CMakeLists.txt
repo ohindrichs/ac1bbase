@@ -10,8 +10,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_BUILD_TYPE Debug)
 
 find_package(ROOT REQUIRED)
-find_package(LHAPDF REQUIRED)
-include_directories(${ROOT_INCLUDE_DIR} ${LHAPDF_INCLUDE_DIR})
+#find_package(LHAPDF REQUIRED)
+include_directories(${ROOT_INCLUDE_DIR})
 
 add_subdirectory(lib)
 #add_subdirectory(libextra)
