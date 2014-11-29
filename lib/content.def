@@ -17,7 +17,7 @@ BeginClass: IOTrack[500]
 F: px, py, pz, ChiQ, NDOF, Dxy, DxyUnc, Dz, DzUnc, DeDx
 I: VertexNumber
 B: Charge
-b: NHits, NPixelHits, NMissingHits, NPixelLayers, NStripLayers 
+b: NStripHits, NPixelHits, NMissingHits, NMissingInnerHits, NPixelLayers, NStripLayers 
 EndClass
 
 BeginClass: PrimaryVertex[200]
@@ -27,34 +27,32 @@ EndClass
 
 BeginClass: IOMuon[50]
 F: px, py, pz, PtUnc, ChiQ, NDOF, ECalEnergy, HCalEnergy
-I: VertexNumber, Charge, NumChamber, NumChambersWithSegments, NumValidMuonHits, NumMatchedStations
+I: VertexNumber, Charge, NumChambers, NumChambersWithSegments, NumValidMuonHits, NumMatchedStations
 i: TriggerMatching
-MemberClass IOTrack: InnerTrack 
-MemberClass PFIsolation: PFR3, PFR4
-MemberClass DetIsolation: DetR3, DetR4
+MemberClass IOTrack: InnerTrack[1] 
+MemberClass PFIsolation: PFR3
+#MemberClass DetIsolation: DetR3, DetR4
 EndClass
 
 BeginClass: IOPFJet[100]
-F: px, py, pz, e, HCalEnergy, ECalEnergy, TrackEnergy
-F: ChargedEnergy, NeutralEnergy, HadronEnergy, PhotonEnergy, ElectronEnergy, MuonEnergy
-I: NumCharged, NumNeutral, NumHadron, NumPhoton, NumElectron, NumMuon
-F: ChargedPtMomPA, ChargedPtMomPB, ConstPtMomPA, ConstPtMomPB
-F: PtWrongPrimaryVertex 
+F: px, py, pz, e, Area
+F: ChargedHadronEnergy, NeutralHadronEnergy, PhotonEnergy, ElectronEnergy, MuonEnergy, ForwardEM, ForwardHad
+I: NumChargedHadrons, NumNeutralHadrons, NumPhotons, NumElectrons, NumMuons, NumForwardEMs, NumForwardHads
+F: ChargedPtMomPA, ChargedPtMomPB, ConstituentPtMomPA, ConstituentPtMomPB
+F: PtFractionWrongPrimaryVertex, MaxChargedPtFraction, MaxPtFraction
 F: EnergyCorrection, EnergyCorrectionUnc
-I: MCFlavor
 EndClass
 
 BeginClass: IOElectron[100]
 F: px, py, pz
-I: VertexNumber, Trigger
+I: Trigger
 MemberClass IOTrack: GSFTrack
-MemberClass IOPosition: ECalPos
-F: DeltaEtaSCTrack, DeltaPhiSCTrack, ESCOverETrack
+F: DeltaEtaSCTrack, DeltaPhiSCTrack, ESCOverETrack, ECalEnergy
 F: E1x5, E2x5, E5x5, R9
 F: SigmaIEtaIEta, SigmaIPhiIPhi, SigmaIEtaIPhi
-F: EHCalTowerOverECal
-MemberClass PFIsolation: PFR3, PFR4
-MemberClass DetIsolation: DetR3, DetR4
+F: EHCalTowerOverECalD1, EHCalTowerOverECalD2
+i: Info
+MemberClass PFIsolation: PFR3
 MemberClass IOSuperCluster: SC
 EndClass
 
@@ -78,20 +76,20 @@ EndClass
 
 BeginClass: PFIsolation
 F: Charged, Neutral, Hadron, Photon
-I: NumCharged, NumNeutral, NumHadron, NumPhoton
+#I: NumCharged, NumNeutral, NumHadron, NumPhoton
 EndClass
 
-BeginClass: DetIsolation
-F: Track, ECal, HCal
-I: NumTrack, NumECal, NumHCal
-EndClass
+#BeginClass: DetIsolation
+#F: Track, ECal, HCal
+#I: NumTrack, NumECal, NumHCal
+#EndClass
 
-BeginClass: IOPosition
-D: x, y, z
-EndClass
+#BeginClass: IOPosition
+#D: x, y, z
+#EndClass
 
 BeginClass: IOSuperCluster
-MemberClass IOPosition: Pos
+F: x, y, z
 F: Energy, RawEnergy
 F: PhiWidth, EtaWidth
 EndClass

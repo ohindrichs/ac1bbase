@@ -442,11 +442,12 @@ for l in configf:
 	classconfig.append(l)
 
 classdef = ''
-classdef += '#ifndef CLASS_BASEIO\n'	
-classdef += '#define CLASS_BASEIO\n'
+classdef += '#ifndef CLASS_'+sys.argv[2]+'\n'	
+classdef += '#define CLASS_'+sys.argv[2]+'\n'
 classdef += '#include "TTree.h"\n'
 classdef += '#include "TFile.h"\n'
 classdef += '#include <string>\n'
+classdef += 'namespace ' + sys.argv[2] + '{\n'
 classdef += 'class BaseIO;\n'
 for n,c in classes.iteritems():
 	classdef += 'class Data_' + c.name + ';\n'	
@@ -454,6 +455,7 @@ for n,c in classes.iteritems():
 
 classcode = ''
 
+classcode += 'namespace ' + sys.argv[2] + '{\n'
 for n,c in classes.iteritems():
 	classdef += c.writedataclassdef()
 	classdef += '\n\n'
@@ -485,6 +487,7 @@ classdef += '\t\t~BaseIO();\n'
 classdef += '\t\tvoid SetFile(TFile* file);\n'
 classdef += '\t\tbool IsWritable() const;\n'
 classdef += '\t\tvoid Fill();\n'
+classdef += '\t\tvoid StartFilling();\n'
 classdef += '\t\tUInt_t GetEntries();\n'
 classdef += '\t\tvoid GetEntry(UInt_t n);\n'
 for n,c in classes.iteritems():
@@ -493,6 +496,7 @@ for n,c in classes.iteritems():
 		classdef += '\t\t'+c.name+' Get' + c.name + '(UInt_t n);\n' 	
 		classdef += '\t\tvoid Load' + c.name + '(bool load);\n' 	
 classdef += '};\n'	
+classdef += '}\n'
 classdef += '#endif\n'
 
 classcode += 'BaseIO::BaseIO(std::string treename, bool writable) : \n'
@@ -536,6 +540,9 @@ classcode += 'bool BaseIO::IsWritable() const {return writable_;}\n'
 classcode += 'void BaseIO::Fill()' 
 classcode += '{\n'
 classcode += '\ttree_->Fill();\n'
+classcode += '}\n'
+classcode += 'void BaseIO::StartFilling()' 
+classcode += '{\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t' + c.name + '_container_.Fill();\n'
@@ -556,6 +563,7 @@ for n,c in classes.iteritems():
 		classcode += '{\n'
 		classcode += '\t' + c.name + '_container_.Load(tree_, load);\n'
 		classcode += '}\n\n'
+classcode += '}\n'
 		
 
 headerfile = open(headerfilename, 'w')
@@ -563,7 +571,7 @@ headerfile.write(classdef)
 headerfile.close()
 
 sourcefile = open(sourcefilename, 'w')
-sourcefile.write('#include "BASEIO.h"\n\n' + classcode)
+sourcefile.write('#include "'+headerfilename+'"\n\n' + classcode)
 sourcefile.close()
 
 headerfile = open('../'+headerfilename, 'w')
@@ -571,6 +579,6 @@ headerfile.write(classdef)
 headerfile.close()
 
 sourcefile = open('../'+sourcefilename, 'w')
-sourcefile.write('#include "RootMaker/MyRootMaker/interface/BASEIO.h"\n\n' + classcode)
+sourcefile.write('#include "../interface/'+headerfilename+'"\n\n' + classcode)
 sourcefile.close()
 

@@ -1,0 +1,12 @@
+BeginClass: IOLumiInfo[1]
+i: RunNumber, BlockNumber
+F: LumiValue, LumiValueUnc, AveragePU
+i: EventsProcessed, EventsFiltered
+i: HLTPrescaleColumn, L1AlgoPrescaleColumn, L1TechPrescaleColumn
+MemberClass IOString: FileNames[1000]
+EndClass
+
+BeginClass: IOString
+B: str[100]
+EndClass
+

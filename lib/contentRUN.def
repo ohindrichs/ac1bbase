@@ -1,0 +1,17 @@
+BeginClass: IORunInfo[1]
+i: RunNumber
+MemberClass IOString: HLTNames
+MemberClass IOString: HLTNamesMuMatched
+MemberClass IOString: HLTNamesElMatched
+MemberClass IOString: HLTNamesTauMatched
+MemberClass IOString: HLTNamesPhMatched
+MemberClass IOString: HLTNamesJetMatched
+I: HLTPrescaleTable[10000], HLTSeedPrescaleTable[10000], NumHLTs, HLTPrescaleColumns  
+I: L1AlgoPrescaleTable[10000], NumL1Algos, L1AlgoPrescaleColumns  
+I: L1TechPrescaleTable[10000], NumL1Techs, L1TechPrescaleColumns  
+EndClass
+
+BeginClass: IOString
+B: str[100000]
+EndClass
+
