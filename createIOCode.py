@@ -26,7 +26,10 @@ def cleandatavecs(string):
 		res.append([name, length])
 	return res
 
+
+
 class CLASS:
+	ERRORNUM = 0
 	TYPS = {'D' : 'Double_t', 'F' : 'Float_t' , 'I' : 'Int_t', 'i' : 'UInt_t', 'L' : 'Long64_t', 'l' : 'ULong64_t', 'B' : 'Char_t', 'b': 'UChar_t', 'S' : 'Short_t', 's' : 'UShort_t', 'O': 'Bool_t'}
 	def __init__(self, name, config):
 		print name
@@ -196,6 +199,12 @@ class CLASS:
 				for mem in des:
 					classcode += 'void ' + self.name + '::' + mem + '('+typ+' _'+mem+')\n'
 					classcode += '{\n'
+					classcode += '\tif(number_ >= data_->size_)\n'
+					classcode += '\t{\n'
+					CLASS.ERRORNUM+=1
+					classcode += '\t\tbaseio->SetError('+str(CLASS.ERRORNUM)+');//ERROR'+str(CLASS.ERRORNUM)+'\n'
+					classcode += '\t\treturn;\n'
+					classcode += '\t}\n'
 					classcode += '\tdata_->' + mem + '_[number_] = _'+mem+';\n'
 					classcode += '}\n\n'
 		for typ, des in self.datavecs.iteritems():
@@ -204,8 +213,14 @@ class CLASS:
 				for mem in des:
 					classcode += 'void ' + self.name + '::' + mem[0] + '('+typ+' _'+mem[0]+', UInt_t n)\n'
 					classcode += '{\n'
-					classcode += '\tif(number_ == 0) {data_->' + mem[0] + '_[n] = _' + mem[0] +';}\n'
-					classcode += '\telse {data_->' + mem[0] + '_[data_->' + mem[0] + '_num_[number_-1] +n] = _' + mem[0] + ';}\n'
+					classcode += '\tif(number_ != 0){n = data_->' + mem[0] + '_num_[number_-1] +n;}\n'
+					classcode += '\tif(n >= data_->' + mem[0] + '_countmax_)\n'
+					classcode += '\t{\n'
+					CLASS.ERRORNUM+=1
+					classcode += '\t\tbaseio->SetError('+str(CLASS.ERRORNUM)+');//ERROR'+str(CLASS.ERRORNUM)+'\n'
+					classcode += '\t\treturn;\n'
+					classcode += '\t}\n'
+					classcode += '\tdata_->' + mem[0] + '_[n] = _' + mem[0] +';\n'
 					classcode += '\tdata_->' + mem[0] + '_num_[number_]++;\n'
 					classcode += '\tdata_->' + mem[0] + '_count_++;\n'
 					classcode += '}\n\n'
@@ -246,6 +261,7 @@ class CLASS:
 				typ = CLASS.TYPS[typ]
 				for mem in des:
 					classdef += '\t\t' + 'UInt_t '+mem[0]+'_count_;\n'
+					classdef += '\t\t' + 'UInt_t '+mem[0]+'_countmax_;\n'
 					classdef += '\t\t' + 'UInt_t*' + ' ' + mem[0] + '_num_;\n'
 					classdef += '\t\t' + typ + '* ' + mem[0] + '_;\n'
 			else:
@@ -295,6 +311,7 @@ class CLASS:
 				for mem in des:
 					classcode += '\t' + mem[0] + '_num_ = new UInt_t[size_];\n'
 					classcode += '\t' + mem[0] + '_ = new ' + ntyp + '[size_*'+str(mem[1])+'];\n'
+					classcode += '\t' + mem[0]+'_countmax_ = size_*'+str(mem[1])+';\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
@@ -471,13 +488,14 @@ for n,c in classes.iteritems():
 classdef += 'class BaseIO\n'	
 classdef += '{\n'	
 for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classdef += '\tfriend class ' + c.name + ';\n' 	
+	classdef += '\tfriend class ' + c.name + ';\n' 	
 classdef += '\tprivate:\n'	
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classdef += '\t\tData_' + c.name + ' ' + c.name + '_container_;\n' 	
 classdef += '\t\tbool writable_;\n'	
+classdef += '\t\tInt_t error_[1000];\n'	
+classdef += '\t\tUInt_t errorcount_;\n'	
 classdef += '\t\tTTree* tree_;\n'	
 classdef += '\t\tTTree* copytree_;\n'	
 classdef += '\t\tstd::string treename_;\n'	
@@ -487,6 +505,7 @@ classdef += '\t\t~BaseIO();\n'
 classdef += '\t\tvoid SetFile(TFile* file);\n'
 classdef += '\t\tbool IsWritable() const;\n'
 classdef += '\t\tvoid Fill();\n'
+classdef += '\t\tvoid SetError(Int_t errn);\n'
 classdef += '\t\tvoid StartFilling();\n'
 classdef += '\t\tUInt_t GetEntries();\n'
 classdef += '\t\tvoid GetEntry(UInt_t n);\n'
@@ -504,29 +523,34 @@ for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += c.name + '_container_(' + str(c.sizehint) + ', "' + c.name +'"),\n' 	
 classcode += 'writable_(writable),\n'
+classcode += 'errorcount_(0),\n'
 classcode += 'tree_(0),\n'
 classcode += 'copytree_(0),\n'
 classcode += 'treename_(treename)\n'
 classcode += '{\n'
 for n,c in classes.iteritems():
-	classcode += c.name+'::baseio = this;\n'
+	classcode += '\t' + c.name+'::baseio = this;\n'
 	classcode += '\tData_' + c.name+'::baseio = this;\n'
 classcode += '}\n\n'
 classcode += 'BaseIO::~BaseIO()\n'
 classcode += '{\n'
 classcode += '}\n\n'
+classcode += 'void BaseIO::SetError(Int_t errn)\n'
+classcode += '{\n'
+classcode += '\terror_[errorcount_] = errn;\n'
+classcode += '\terrorcount_++;\n'
+classcode += '}\n\n'
 classcode += 'void BaseIO::SetFile(TFile* file)\n'
 classcode += '{\n'
 classcode += '\tif(writable_)\n'
 classcode += '\t{\n'
-classcode += '\tfile->cd();\n'
-classcode += '\ttree_ = new TTree(treename_.c_str(), treename_.c_str(), 1);\n'
+classcode += '\t\tfile->cd();\n'
+classcode += '\t\ttree_ = new TTree(treename_.c_str(), treename_.c_str(), 1);\n'
+classcode += '\t\ttree_->Branch("ERROR_COUNT", &errorcount_, "ERROR_COUNT/i");\n'
+classcode += '\t\ttree_->Branch("ERROR", error_, "ERROR[ERROR_COUNT]/I");\n'
 for n,c in classes.iteritems():
 	if c.sizehint != 0:
 		classcode += '\t\t' + c.name + '_container_.SetUpWrite(tree_);\n' 	
-for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classcode += '\t\t' + c.name + '_container_.Fill();\n'
 classcode += '\t}\n'
 classcode += '\telse\n'
 classcode += '\t{\n'
@@ -581,4 +605,4 @@ headerfile.close()
 sourcefile = open('../'+sourcefilename, 'w')
 sourcefile.write('#include "../interface/'+headerfilename+'"\n\n' + classcode)
 sourcefile.close()
-
+print CLASS.ERRORNUM
