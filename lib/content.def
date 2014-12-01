@@ -1,5 +1,5 @@
 BeginClass: IOEventInfo[1]
-i: ProcessingErrors, EventNumber, LumiSectionNumber, RunNumber, TimeUnix, TimeMuSec
+i: EventNumber, LumiSectionNumber, RunNumber, TimeUnix, TimeMuSec
 b: TriggerHLT[150]
 F: AK5PFRho, AK5PFSigma 
 EndClass

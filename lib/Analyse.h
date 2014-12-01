@@ -1,0 +1,134 @@
+#ifndef ACANALYSE
+#define ACANALYSE
+#include "BASEIO.h"
+#include "Luminosity.h"
+#include "Run.h"
+
+#include <iostream>
+#include <map>
+#include <vector>
+#include <string>
+
+//#include <boost/regex.hpp>
+//#include <boost/algorithm/string.hpp>
+
+class TFile;
+class TriggerSelection;
+
+using namespace std;
+using namespace TMath;
+
+class Analyse : public BASEIO::BaseIO
+{
+	friend class TriggerSelection;
+	private:
+	string fileprefix;
+	vector<string> filenames;
+	vector<Long64_t> filelimits;
+	Long64_t currentmin, currentmax;
+	TFile* currentfile;
+	Int_t printinfo;
+	Long64_t processed;
+	void GetEvent(Long64_t num);
+	Int_t AddFile(string filename);
+
+	//dupcheck
+	bool duplicatecheck;
+	map< UInt_t, map< UInt_t, map< Double_t, UInt_t> > > eventlist;
+
+    //Skimming
+    TTree* skimtree;
+    map< UInt_t, map< UInt_t, UInt_t > > selected;
+    string skimfilename;
+    TFile* skimfile;
+
+	//Lumi calculation
+	map< UInt_t, map< UInt_t, Luminosity > > lumilist;
+	map< UInt_t, RunInfo> runlist;
+	//map<string, TriggerSelection*> triggerselections;
+	bool lumicalculation;
+	bool IsInRange(UInt_t Run, UInt_t LumiBlock);
+	UInt_t minRun;
+	UInt_t minLumi;
+	UInt_t maxRun;
+	UInt_t maxLumi;
+
+	//JSON filter
+	bool jsonfilter;
+	map< UInt_t, map< UInt_t, bool > > jsonlist;
+
+	//Process
+	Int_t batch_myid; 
+	Int_t batch_numjobs; 
+	map< UInt_t, map< UInt_t, bool > > batchselection;
+	bool IsBatchSelected(UInt_t run, UInt_t lumiblock);
+
+	bool GetHLTriggerResult(UInt_t index);
+	public:
+	Analyse(int argc = 0, char** argv = 0, bool batchmode = false);
+	virtual ~Analyse();
+	void Batch_Prepare(UInt_t jobnum, UInt_t totaljobnum); //batch jobnum 1 2 3 ....
+	Int_t Batch_MyId() const {return(batch_myid);} 
+	Int_t Batch_NumJobs() const {return(batch_numjobs);} 
+	Long64_t GetNumAddedEvents() const {return(filelimits[filelimits.size()-1]);};
+	string GetCurrentFileName() const {if(currentfile != 0) {return(currentfile->GetName());} else {return("NO FILE OPENED");}}
+
+	//virtual dummies:
+	//executed for each event in the loop
+	virtual Int_t AnalyseEvent(){return(1);};
+	//executed once at the beginning of a the loop
+	virtual void BeginLoop(){};
+	//executed once at the end of a loop
+	virtual void EndLoop(){};
+
+	//use this to start your analysis
+	Long64_t Loop(Long64_t start = 0, Long64_t end = -1);
+	//Number of Processed Events
+	Long64_t Processed() const {return(processed);}
+
+	//setting output: -1 no output, the p-th events are printed
+	void SetPrintInfo(Int_t p = -1) {printinfo = p;}
+
+	//tool to check for duplicated events
+	void EnableDuplicateCheck(bool switchval = true) {duplicatecheck = switchval;}
+	UInt_t CheckDuplicate() {return(eventlist[Run()][LumiBlock()][Number()]);}
+
+	//Skiming
+	//Int_t PrepareSkimming(string filename);
+	//Int_t SkimEvent();
+
+	//trigger information
+	TriggerSelection* AddTriggerSelection(string id, vector<string> triggernames, bool useprescaled = false);
+	TriggerSelection* GetTriggerSelection(string id);
+
+	//Lumi calculation
+	int AddLumiFile(string filename, bool updatefiles);
+	Int_t IsLumiAvailable();
+	Double_t GetInstLumi() const;
+	Double_t GetAvgPU() const; 
+//	Double_t GetLumi(Int_t format = 0);
+//	void PrintPrescaleInfo(string triggername);
+//	void PrintPrescaleInfoB(string triggername);
+//	void PrintLumiOfRuns();
+//	void PrintLumiOfLumiSectionsInRun(UInt_t runnumber);
+//	//very special don't use!
+	Int_t SetLumi(UInt_t run, UInt_t block, Float_t lumival, Float_t avgpu = -1);
+	void ResetLumiValues();
+	void WriteLumiFile(string filename, string mode = "recreate");
+//	//Use JSON filter
+	bool LoadJSON(string filename);
+//	
+//	bool IsData() const {return(NumTruePileUpInteractions() == -1);}
+//	bool IsMC() const {return(NumTruePileUpInteractions() != -1);}
+
+//Event data
+	UInt_t Run() {return(GetIOEventInfo(0).RunNumber());}
+	UInt_t LumiBlock() {return(GetIOEventInfo(0).LumiSectionNumber());}
+	UInt_t Number() {return(GetIOEventInfo(0).EventNumber());}
+
+};
+
+extern Analyse* GLAN;
+
+Long64_t mem_usage();
+#endif
