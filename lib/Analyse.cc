@@ -301,7 +301,7 @@ void Analyse::WriteLumiFile(string filename, string mode)
 {
 	TFile* file = TFile::Open(filename.c_str(), mode.c_str());
 	BASEIOLUMI::BaseIO baseiolumi("URLUMI", true);
-	BASEIORUN::BaseIO baseiorun("URLUMI", true);
+	BASEIORUN::BaseIO baseiorun("URRUN", true);
 
 	baseiorun.SetFile(file);
 	baseiolumi.SetFile(file);
@@ -580,7 +580,7 @@ void Analyse::ResetLumiValues()
 //	cout << triggerindexcur << " " << triggernamecur << ", " << runcur << ":" << lumicur << " - " << runlast << ":" << lumilast << ", prescale: " << precur << ", column: " << triggertablecur  << ", lumi: " << lumi << "/pb"<< endl; 
 //}
 
-Double_t Analyse::GetInstLumi() const
+Double_t Analyse::GetInstLumi()
 {
 	map<UInt_t, map<UInt_t, Luminosity> >::const_iterator a = lumilist.find(Run());
 	if(a == lumilist.end()) return(-1.);
@@ -589,7 +589,7 @@ Double_t Analyse::GetInstLumi() const
 	return(b->second.LumiValue());
 }
 
-Double_t Analyse::GetAvgPU() const
+Double_t Analyse::GetAvgPU()
 {
 	map<UInt_t, map<UInt_t, Luminosity> >::const_iterator a = lumilist.find(Run());
 	if(a == lumilist.end()) return(-1.);
@@ -667,30 +667,30 @@ Double_t Analyse::GetAvgPU() const
 //	}
 //return(lumi+zerolumi);
 //}
-//
-//bool Analyse::IsInRange(UInt_t theRun, UInt_t theLumiBlock)
-//{
-//	if(theRun < maxRun && theRun > minRun) 
-//	{
-//		return(true);
-//	}
-//	else if(maxRun != minRun && theRun == maxRun && theLumiBlock <= maxLumi)
-//	{
-//		return(true);
-//	}
-//	else if(maxRun != minRun && theRun == minRun && theLumiBlock >= minLumi)
-//	{
-//		return(true);
-//	}
-//	else if(maxRun == minRun && theRun == minRun && theLumiBlock <= maxLumi && theLumiBlock >= minLumi)
-//	{
-//		return(true);
-//	}
-//	else 
-//	{
-//		return(false);
-//	}
-//}
+
+bool Analyse::IsInRange(UInt_t theRun, UInt_t theLumiBlock)
+{
+	if(theRun < maxRun && theRun > minRun) 
+	{
+		return(true);
+	}
+	else if(maxRun != minRun && theRun == maxRun && theLumiBlock <= maxLumi)
+	{
+		return(true);
+	}
+	else if(maxRun != minRun && theRun == minRun && theLumiBlock >= minLumi)
+	{
+		return(true);
+	}
+	else if(maxRun == minRun && theRun == minRun && theLumiBlock <= maxLumi && theLumiBlock >= minLumi)
+	{
+		return(true);
+	}
+	else 
+	{
+		return(false);
+	}
+}
 
 //void Analyse::PrintLumiOfRuns()
 //{

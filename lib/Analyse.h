@@ -1,6 +1,6 @@
 #ifndef ACANALYSE
 #define ACANALYSE
-#include "BASEIO.h"
+#include <BASEIO.h>
 #include "Luminosity.h"
 #include "Run.h"
 
@@ -104,8 +104,8 @@ class Analyse : public BASEIO::BaseIO
 	//Lumi calculation
 	int AddLumiFile(string filename, bool updatefiles);
 	Int_t IsLumiAvailable();
-	Double_t GetInstLumi() const;
-	Double_t GetAvgPU() const; 
+	Double_t GetInstLumi();
+	Double_t GetAvgPU(); 
 //	Double_t GetLumi(Int_t format = 0);
 //	void PrintPrescaleInfo(string triggername);
 //	void PrintPrescaleInfoB(string triggername);

@@ -4,10 +4,11 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/BASEIOLUMI.h ${CMAKE_CURRE
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-set(ATSrcs Analyse.h Analyse.cc Luminosity.h Luminosity.cc Run.cc Run.h TriggerSelection.h TriggerSelection.cc iohelper.cc iohelper.h ${CMAKE_CURRENT_BINARY_DIR}/BASEIO.h ${CMAKE_CURRENT_BINARY_DIR}/BASEIO.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIORUN.h ${CMAKE_CURRENT_BINARY_DIR}/BASEIORUN.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIOLUMI.h ${CMAKE_CURRENT_BINARY_DIR}/BASEIOLUMI.cc)
+set(ATheads Muon.h Analyse.h Luminosity.h Run.h TriggerSelection.h iohelper.h ${PROJECT_BINARY_DIR}/lib/BASEIO.h ${PROJECT_BINARY_DIR}/lib/BASEIORUN.h ${PROJECT_BINARY_DIR}/lib/BASEIOLUMI.h)
+set(ATSrcs Muon.cc Analyse.cc Luminosity.cc Run.cc TriggerSelection.cc iohelper.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIO.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIORUN.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIOLUMI.cc)
 
-add_library(AnalysisTool SHARED ${ATSrcs})
+add_library(AnalysisTool SHARED ${ATSrcs} ${ATheads})
 target_link_libraries(AnalysisTool ${ROOT_LIBRARIES})
 
 install(TARGETS AnalysisTool DESTINATION lib)
-install(FILES BASEIO/*.h iohelper.h DESTINATION include/AnalysisTool/)
+install(FILES ${ATheads} DESTINATION include/AnalysisTool/)
