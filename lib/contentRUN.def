@@ -6,9 +6,7 @@ MemberClass IOString: HLTNamesElMatched
 MemberClass IOString: HLTNamesTauMatched
 MemberClass IOString: HLTNamesPhMatched
 MemberClass IOString: HLTNamesJetMatched
-I: HLTPrescaleTable[10000], HLTSeedPrescaleTable[10000], NumHLTs, HLTPrescaleColumns  
-I: L1AlgoPrescaleTable[10000], NumL1Algos, L1AlgoPrescaleColumns  
-I: L1TechPrescaleTable[10000], NumL1Techs, L1TechPrescaleColumns  
+I: HLTPrescaleTable[10000], HLTSeedAlgoPrescaleTable[10000], HLTSeedTechPrescaleTable[10000], NumHLTs, HLTPrescaleColumns  
 EndClass
 
 BeginClass: IOString

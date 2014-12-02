@@ -50,6 +50,11 @@ Analyse::~Analyse()
 		WriteLumiFile(skimfilename, "update");		
 		TTree::SetMaxTreeSize(maxsize);
 	}
+	if(currentfile != 0)
+	{
+		delete currentfile;
+	}
+cout << "~Analyse()" << endl;
 }
 
 Int_t Analyse::AddFile(string filename)
@@ -174,7 +179,7 @@ void Analyse::Batch_Prepare(UInt_t jobnum, UInt_t totaljobnum)
 			}
 		}
 	}
-	GetEvent(0);
+	//GetEvent(0);
 }
 
 Long64_t Analyse::Loop(Long64_t start, Long64_t end)
@@ -439,30 +444,30 @@ void Analyse::ResetLumiValues()
 //	return(-1);
 //}
 
-//Int_t Analyse::GetHLTriggerIndex(string triggername) const
-//{
-//	if(runlist.find(Run()) != runlist.end())
-//	{
-//		return(runlist.at(Run()).HLTIndex(triggername));
-//	}
-//	else
-//	{
-//		cerr << "ERROR GetHLTriggerIndex: Trigger " << triggername << " not found." << endl; 
-//		return(-1);
-//	}
-//}
+Int_t Analyse::GetHLTriggerIndex(string triggername)
+{
+	if(runlist.find(Run()) != runlist.end())
+	{
+		return(runlist.at(Run()).HLTIndex(triggername));
+	}
+	else
+	{
+		cerr << "ERROR GetHLTriggerIndex: Trigger " << triggername << " not found." << endl; 
+		return(-1);
+	}
+}
 
-//TriggerSelection* Analyse::AddTriggerSelection(string id, vector<string> triggernames, bool useprescaled)
-//{
-//	TriggerSelection* triggerselection = new TriggerSelection(this, triggernames, useprescaled);
-//	triggerselections[id] = triggerselection;
-//	return(triggerselection);
-//}
-//
-//TriggerSelection* Analyse::GetTriggerSelection(string id)
-//{
-//	return(triggerselections[id]);
-//}
+TriggerSelection* Analyse::AddTriggerSelection(string id, vector<string> triggernames, bool useprescaled)
+{
+	TriggerSelection* triggerselection = new TriggerSelection(this, triggernames, useprescaled);
+	triggerselections[id] = triggerselection;
+	return(triggerselection);
+}
+
+TriggerSelection* Analyse::GetTriggerSelection(string id)
+{
+	return(triggerselections[id]);
+}
 
 //string Analyse::GetHLTriggerName(UInt_t index) const
 //{
@@ -477,18 +482,18 @@ void Analyse::ResetLumiValues()
 //	}
 //}
 
-//Int_t Analyse::GetHLTPrescale(UInt_t triggerindex) const
-//{
-//	if(IsLumiAvailable())
-//	{
-//		Int_t triggertable = lumilist.at(Run()).at(LumiBlock()).HLTTable();
-//		return(runlist.find(Run())->second.HLTPrescale(triggerindex, triggertable));
-//	}
-//	else
-//	{
-//		return(-1);
-//	}
-//}
+Int_t Analyse::GetHLTPrescale(UInt_t triggerindex)
+{
+	if(IsLumiAvailable())
+	{
+		Int_t triggertable = lumilist.at(Run()).at(LumiBlock()).HLTTable();
+		return(runlist.find(Run())->second.HLTPrescale(triggerindex, triggertable));
+	}
+	else
+	{
+		return(-1);
+	}
+}
 
 //void Analyse::PrintPrescaleInfo(string triggername)
 //{

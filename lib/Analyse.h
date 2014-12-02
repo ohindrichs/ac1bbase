@@ -3,6 +3,7 @@
 #include <BASEIO.h>
 #include "Luminosity.h"
 #include "Run.h"
+#include "TriggerSelection.h"
 
 #include <iostream>
 #include <map>
@@ -13,7 +14,6 @@
 //#include <boost/algorithm/string.hpp>
 
 class TFile;
-class TriggerSelection;
 
 using namespace std;
 using namespace TMath;
@@ -21,6 +21,10 @@ using namespace TMath;
 class Analyse : public BASEIO::BaseIO
 {
 	friend class TriggerSelection;
+	friend class TriggerObject;
+	friend class Muon;
+	friend class Electron;
+	friend class Jet;
 	private:
 	string fileprefix;
 	vector<string> filenames;
@@ -45,7 +49,7 @@ class Analyse : public BASEIO::BaseIO
 	//Lumi calculation
 	map< UInt_t, map< UInt_t, Luminosity > > lumilist;
 	map< UInt_t, RunInfo> runlist;
-	//map<string, TriggerSelection*> triggerselections;
+	map<string, TriggerSelection*> triggerselections;
 	bool lumicalculation;
 	bool IsInRange(UInt_t Run, UInt_t LumiBlock);
 	UInt_t minRun;
@@ -64,6 +68,8 @@ class Analyse : public BASEIO::BaseIO
 	bool IsBatchSelected(UInt_t run, UInt_t lumiblock);
 
 	bool GetHLTriggerResult(UInt_t index);
+	Int_t GetHLTriggerIndex(string triggername);
+	Int_t GetHLTPrescale(UInt_t triggerindex);
 	public:
 	Analyse(int argc = 0, char** argv = 0, bool batchmode = false);
 	virtual ~Analyse();
@@ -102,7 +108,7 @@ class Analyse : public BASEIO::BaseIO
 	TriggerSelection* GetTriggerSelection(string id);
 
 	//Lumi calculation
-	int AddLumiFile(string filename, bool updatefiles);
+	int AddLumiFile(string filename, bool updatefiles = false);
 	Int_t IsLumiAvailable();
 	Double_t GetInstLumi();
 	Double_t GetAvgPU(); 

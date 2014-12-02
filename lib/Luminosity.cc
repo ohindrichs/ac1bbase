@@ -27,13 +27,37 @@ Luminosity::Luminosity() :
 	counter_(0) 
 {}
 
-bool Luminosity::operator ==(const bool test) {bool val = true; if(lumival_ == -1){val = false;} return(test == val);}
+bool Luminosity::operator ==(const bool test) 
+{
+	bool val = true;
+	if(lumival_ == -1)
+	{
+		val = false;
+	} 
+	return(test == val);
+}
+
+Luminosity& Luminosity::operator +=(Luminosity& other)
+{
+	numeventsfiltered_ += other.NumEvents();
+	numeventsprocessed_ += other.NumEventsOrig();
+	AddFiles(other.GetFiles());
+	return(*this);
+}
 
 void Luminosity::AddFile(const string& newfile)
 {
 	if(find(filenames_.begin(), filenames_.end(), newfile) == filenames_.end())
 	{
 		filenames_.push_back(newfile);
+	}
+}
+
+void Luminosity::AddFiles(const vector<string>& newfiles)
+{
+	for(const string& fn : newfiles)
+	{
+		AddFile(fn);
 	}
 }
 
@@ -60,7 +84,6 @@ Float_t Luminosity::ProcessedLumi() const
 {
 	return(ProcessedFraction()*LumiValue());
 }
-
 
 void Luminosity::FillOutPut(BASEIOLUMI::IOLumiInfo& lumiinfo)
 {

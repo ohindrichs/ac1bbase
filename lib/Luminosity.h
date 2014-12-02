@@ -17,7 +17,7 @@ class Luminosity
 		Float_t avgpu_;
 		UInt_t numeventsfiltered_;
 		UInt_t numeventsprocessed_;
-		UInt_t hltcolumn_;
+		Int_t hltcolumn_;
 		UInt_t counter_;
 		vector<string> filenames_;
 	public:
@@ -25,8 +25,9 @@ class Luminosity
 		Luminosity(const BASEIOLUMI::IOLumiInfo& lumiinfo); 
 		bool operator ==(const bool test);
 		void operator ++() {counter_++;}
-		//Luminosity& operator +=(Luminosity& other) {numevents += other.NumEvents(); numeventsorig += other.NumEventsOrig(); AddFiles(other.GetFiles()); return(*this);}
+		Luminosity& operator +=(Luminosity& other);
 		void AddFile(const string& newfile);
+		void AddFiles(const vector<string>& newfiles);
 		void ClearFiles() {filenames_.clear();};
 		UInt_t NumFiles() const {return(filenames_.size());}
 		const vector<string>& GetFiles() const {return(filenames_);}

@@ -2,7 +2,7 @@ BeginClass: IOLumiInfo[1]
 i: RunNumber, BlockNumber
 F: LumiValue, LumiValueUnc, AveragePU
 i: EventsProcessed, EventsFiltered
-i: HLTPrescaleColumn, L1AlgoPrescaleColumn, L1TechPrescaleColumn
+I: HLTPrescaleColumn
 MemberClass IOString: FileNames[1000]
 EndClass
 

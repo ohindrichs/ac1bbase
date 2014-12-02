@@ -14,7 +14,9 @@ class RunInfo
 		vector<string> hltnames;
 		Int_t hltnum;
 		Int_t hlttablesnum;
-		vector<vector<UInt_t> > hltprescales;
+		vector<vector<Int_t> > hltprescales;
+		vector<vector<Int_t> > hltseedalgoprescales;
+		vector<vector<Int_t> > hltseedtechprescales;
 		vector<string> hltmunames;
 		vector<string> hltelnames;
 		vector<string> hltphotonnames;
@@ -32,7 +34,9 @@ class RunInfo
 		const vector<string>& HLTTauAllNames() const {return(hltphotonnames);}
 		const vector<string>& HLTPhotonAllNames() const {return(hlttaunames);}
 		const vector<string>& HLTJetAllNames() const {return(hltjetnames);}
-		UInt_t HLTPrescale(UInt_t trigger, UInt_t table) const {if(trigger < NumHLT() && table < NumHLTColumns()){return(hltprescales[trigger][table]);}else{return(1);}}
+		Int_t HLTPrescale(UInt_t trigger, UInt_t table) const;
+		Int_t HLTSeedAlgoPrescale(UInt_t trigger, UInt_t table) const;
+		Int_t HLTSeedTechPrescale(UInt_t trigger, UInt_t table) const;
 		string HLTName(UInt_t trigger) const {return(hltnames[trigger]);}
 		vector<string> MatchTriggerNames(string name);
 		Int_t HLTIndex(string name) const;

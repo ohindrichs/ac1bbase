@@ -15,11 +15,15 @@ hlttablesnum(runinfo.HLTPrescaleColumns())
 	splitstring(BASEIORUN::String(runinfo.HLTNamesPhMatched()).Get(), hltphotonnames);
 	splitstring(BASEIORUN::String(runinfo.HLTNamesJetMatched()).Get(), hltjetnames);
 	hltprescales.resize(NumHLT());
+	hltseedalgoprescales.resize(NumHLT());
+	hltseedtechprescales.resize(NumHLT());
 	for(UInt_t i = 0 ; i < NumHLT() ; i++)
 	{
 		for(UInt_t j = 0 ; j < NumHLTColumns() ; j++)
 		{
 			hltprescales[i].push_back(runinfo.HLTPrescaleTable(i+NumHLT()*j));
+			hltseedalgoprescales[i].push_back(runinfo.HLTSeedAlgoPrescaleTable(i+NumHLT()*j));
+			hltseedtechprescales[i].push_back(runinfo.HLTSeedTechPrescaleTable(i+NumHLT()*j));
 		}
 	}
 }
@@ -47,6 +51,42 @@ Int_t RunInfo::HLTIndex(string name) const
 	return(-1);
 }
 
+Int_t RunInfo::HLTPrescale(UInt_t trigger, UInt_t table) const 
+{
+	if(trigger < NumHLT() && table < NumHLTColumns())
+	{
+		return(hltprescales[trigger][table]);
+	}
+	else
+	{
+		return(1);
+	}
+}
+
+Int_t RunInfo::HLTSeedTechPrescale(UInt_t trigger, UInt_t table) const 
+{
+	if(trigger < NumHLT() && table < NumHLTColumns())
+	{
+		return(hltseedtechprescales[trigger][table]);
+	}
+	else
+	{
+		return(1);
+	}
+}
+
+Int_t RunInfo::HLTSeedAlgoPrescale(UInt_t trigger, UInt_t table) const 
+{
+	if(trigger < NumHLT() && table < NumHLTColumns())
+	{
+		return(hltseedalgoprescales[trigger][table]);
+	}
+	else
+	{
+		return(1);
+	}
+}
+
 void RunInfo::FillOutPut(BASEIORUN::IORunInfo& runinfo) const
 {
 	runinfo.RunNumber(RunNumber());
@@ -58,4 +98,13 @@ void RunInfo::FillOutPut(BASEIORUN::IORunInfo& runinfo) const
 	BASEIORUN::String(runinfo.HLTNamesTauMatched()).Set(combinestring(hlttaunames));
 	BASEIORUN::String(runinfo.HLTNamesPhMatched()).Set(combinestring(hltphotonnames));
 	BASEIORUN::String(runinfo.HLTNamesJetMatched()).Set(combinestring(hltjetnames));
+	for(UInt_t i = 0 ; i < NumHLT() ; i++)
+	{
+		for(UInt_t j = 0 ; j < NumHLTColumns() ; j++)
+		{
+			runinfo.HLTPrescaleTable(i+NumHLT()*j, hltprescales[i][j]);
+			runinfo.HLTSeedAlgoPrescaleTable(i+NumHLT()*j, hltseedalgoprescales[i][j]);
+			runinfo.HLTSeedTechPrescaleTable(i+NumHLT()*j, hltseedtechprescales[i][j]);
+		}
+	}
 }

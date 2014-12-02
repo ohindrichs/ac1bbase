@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(AnalysisPackage)
-set(CMAKE_C_FLAGS "-Wall")
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall")
+set(CMAKE_C_FLAGS "-Wall -g")
+set(CMAKE_CXX_FLAGS "-std=c++11 -g -Wall")
 #set(CMAKE_CXX_FLAGS "-O2 -g -std=c++11 -Wall -pedantic")
 
 
@@ -20,7 +20,7 @@ add_subdirectory(apps)
 #add_subdirectory(AnalysisVBS4j2l)
 #add_subdirectory(AnalysisVBS4j2l_TMVA)
 #add_subdirectory(AnalysisZZ_TMVA)
-#add_subdirectory(SkimmerZZ)
+add_subdirectory(example)
 #add_subdirectory(external)
 #set_source_files_properties(AnalysisToolUseThis PROPERTIES GENERATED true)
 add_custom_target(AnalysisToolUseThis ALL DEPENDS AnalysisToolUseThis.in COMMAND sed -e 's,[@]prefix[@],${CMAKE_INSTALL_PREFIX},g' -e 's,[@]VERSION[@],${AP_VERSION},g' < AnalysisToolUseThis.in > ${CMAKE_BINARY_DIR}/AnalysisToolUseThis WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
