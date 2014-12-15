@@ -220,7 +220,7 @@ class CLASS:
 					classcode += '\t\tbaseio->SetError('+str(CLASS.ERRORNUM)+');//ERROR'+str(CLASS.ERRORNUM)+'\n'
 					classcode += '\t\treturn;\n'
 					classcode += '\t}\n'
-					classcode += '\tif(n <= data_->' + mem[0] + '_count_)\n'
+					classcode += '\tif(n != data_->' + mem[0] + '_count_)\n'
 					classcode += '\t{\n'
 					classcode += '\t\tcerr << "Index already filled" << endl;\n'
 					classcode += '\t\treturn;\n'
