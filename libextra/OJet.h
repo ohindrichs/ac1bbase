@@ -14,8 +14,8 @@ class OJet : public Jet
 	public:
 		OJet(IOPFJet jet);
 		bool Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons) const;
-		TLorentzVector* GenParticle() const {return(genp_);}
-		void SetGen(GenBasicParticle* genp) {genp_ = genp;}
+		GenBasicParticle* GenParticle() const {return(genp_);}
+		void SetGen(GenBasicParticle* genp);
 		bool CalculateMCFlavour();
 		int GetMCFlavour() const {return(mcflavour);}
 		

@@ -1,8 +1,9 @@
 #include "BASEIO.h"
 #include "OJet.h"
 #include "GenBasicParticle.h"
+#include "Analyse.h"
 
-OJet::OJet(IOPFJet jet) : Jet(jet), mygen(0), mcflavour(10000001)
+OJet::OJet(IOPFJet jet) : Jet(jet), genp_(0), mcflavour(10000001)
 {}
 
 bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons) const
@@ -25,22 +26,15 @@ bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electron
 bool OJet::CalculateMCFlavour()
 {
 	double ptmax = 0.;
-	if(GLAN->Num_AllGenParticles() != 0)
+	for(UInt_t i = 0 ; i < GLAN->NumAllGenParticles() ; i++)
 	{
-		for(UInt_t i = 0 ; i < GLAN->Num_AllGenParticles() ; i++)
-		{
-			GenBasicParticle mp(GLAN->AllGenParticles(i));
-			if(Abs(mp.PDGId()) > 6 && mp.PDGId() != 21)	continue;
-			if(mp.Pt() < 0.01) continue;
-			if(DeltaR(mp) > 0.4) continue;
-			if(mp.Pt() < ptmax)	continue;
-			ptmax = mp.Pt();
-			mcflavour = mp.PDGId();
-		}
-	}
-	else
-	{
-		return false;
+		GenBasicParticle mp(GLAN->GetAllGenParticle(i));
+		if(Abs(mp.PDGID()) > 6 && mp.PDGID() != 21)	continue;
+		if(mp.Pt() < 0.01) continue;
+		if(DeltaR(mp) > 0.4) continue;
+		if(mp.Pt() < ptmax)	continue;
+		ptmax = mp.Pt();
+		mcflavour = mp.PDGID();
 	}
 	return true;
 }

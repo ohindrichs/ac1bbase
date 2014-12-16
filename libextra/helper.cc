@@ -25,7 +25,6 @@ string FNnoext(string filename)
 	return filename.substr(0, filename.find_first_of("."));
 }
 
-
 double ProbToSigma(double prob)
 {
 	return(TMath::Sqrt(2.) * TMath::ErfInverse(prob));
@@ -35,8 +34,6 @@ double SigmaToProb(double sigma)
 {
 	return(TMath::Erf(sigma/TMath::Sqrt(2.)));
 }
-
-
 
 TH1DCollection::TH1DCollection(string _prefix) : prefix(_prefix) {}
 
@@ -62,7 +59,7 @@ TH1D* TH1DCollection::Get(string name)
 {
 	map<string, TH1D*>::iterator it_pl = hmap.find(name);
 	if(it_pl != hmap.end()) return it_pl->second; 
-	cerr << "TH1DCollection: Request for unknown hist: " << prefix << endl;
+	cerr << "TH1DCollection: Request for unknown hist: " << prefix << " " << name << endl;
 	return 0;
 }
 
@@ -88,7 +85,7 @@ TH2D* TH2DCollection::Get(string name)
 {
 	map<string, TH2D*>::iterator it_pl = hmap.find(name);
 	if(it_pl != hmap.end()) return it_pl->second; 
-	cerr << "TH2DCollection: Request for unknown hist: " << prefix << endl;
+	cerr << "TH2DCollection: Request for unknown hist: " << prefix << " " << name << endl;
 	return 0;
 }
 

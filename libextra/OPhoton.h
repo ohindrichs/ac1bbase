@@ -1,30 +1,24 @@
 #ifndef OPHOTONH
 #define OPHOTONH
-#include <Analyse.h> 
+#include <Photon.h> 
 
 using namespace std;
 
+class GenBasicParticle;
+
 class OPhoton : public Photon
 {
-		GenBasicParticle* mygen;
-	public:
-		OPhoton(Photon ph);
-		OPhoton(){}
+	private:
+		GenBasicParticle* genp_;
 		double EAcharged() const;
 		double EAneutral() const;
 		double EAphoton() const;
-		Float_t CorIsoPFR3Photon() const;
-		Float_t CorIsoPFR3Neutral() const;
-		Float_t CorIsoPFR3Charged() const;
+	public:
+		OPhoton(Photon ph);
 		bool ID(Int_t idtyp = 1) const;
 		bool Clean() const;
-		bool IDEHCalOverECal() const;
-		bool IDSigmaIEtaIEta() const;
-		bool IDPhoton() const;
-		bool IDNeutral() const;
-		bool IDCharged() const;
-		TLorentzVector* MyGen() const {return(mygen);}
-		void SetGen(GenBasicParticle* Mygen) {mygen = Mygen;}
+		GenBasicParticle* GenParticle() const {return(genp_);}
+		void SetGen(GenBasicParticle* genp);
 		
 };
 #endif

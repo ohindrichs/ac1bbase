@@ -25,6 +25,7 @@ class Analyse : public BASEIO::BaseIO
 	friend class Muon;
 	friend class Electron;
 	friend class Jet;
+	friend class Photon;
 	private:
 	string fileprefix;
 	vector<string> filenames;
