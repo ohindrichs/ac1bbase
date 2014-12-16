@@ -262,7 +262,6 @@ void RootMaker::endLuminosityBlock(const edm::LuminosityBlock& iLumiBlock, const
 		lumiinfo.LumiValueUnc(-1);
 	}
 
-	cout << "END BLOCK " << lumi_hltprescaletable << endl; 
 	baseiolumi.Fill();
 }
 
@@ -568,13 +567,11 @@ bool RootMaker::AddMuons(const edm::Event& iEvent)
 		info |= mu->isPFMuon() << 4;
 		info |= (mu->charge() == 1) << 5;
 		muout.Info(info);
-					
 
 		if(mu->pt() >= cMuPtMin && fabs(mu->eta()) <= cMuEtaMax)
 		{
 			NumGood++;
 		}
-
 	}
 
     if(NumGood >= cMuNum) {return true;}
@@ -600,8 +597,8 @@ bool RootMaker::AddPhotons(const edm::Event& iEvent, const edm::EventSetup& iSet
 		for(size_t n = 0 ; n < Photons->size() ; n++)
 		{
 			PhotonRef ph(Photons, n);
-			if(ph->pt() < cPhotonFilterPtMin || TMath::Abs(ph->eta()) < cPhotonFilterEtaMax){continue;}
-			IOPhoton phout = baseio.GetIOPhoton(baseio.NumIOPhotons());
+			if(ph->pt() < cPhotonFilterPtMin || TMath::Abs(ph->eta()) > cPhotonFilterEtaMax){continue;}
+			IOPhoton phout(baseio.GetIOPhoton(baseio.NumIOPhotons()));
 			phout.px(ph->px());
 			phout.py(ph->py());
 			phout.pz(ph->pz());
@@ -630,7 +627,12 @@ bool RootMaker::AddPhotons(const edm::Event& iEvent, const edm::EventSetup& iSet
 			info |= ph->hasConversionTracks() << 3;
 			info |= ph->hasPixelSeed() << 4;
 			info |= (ConversionTools::hasMatchedPromptElectron(ph->superCluster(), Electrons, Conversions, bs_position)) << 5;
+			phout.Info(info);
 			phout.TriggerMatching(GetTrigger(*ph, photontriggers));
+			if(ph->pt() >= cPhotonPtMin && fabs(ph->eta()) <= cPhotonEtaMax)
+			{
+				NumGood++;
+			}
 		}
 	}
 	if(NumGood >= cPhotonNum){return true;}

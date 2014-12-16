@@ -44,6 +44,8 @@ void ExampleDY::SelectRECOParticles()
 
 Int_t ExampleDY::AnalyseEvent()
 {
+	//LoadIOPhoton(false);
+	//LoadIOMuon(false);
 	SMuons.clear();
 
 	AllMuons.clear();
