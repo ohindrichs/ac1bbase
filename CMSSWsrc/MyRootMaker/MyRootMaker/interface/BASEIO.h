@@ -3,9 +3,10 @@
 #include "TTree.h"
 #include "TFile.h"
 #include <string>
+#include <iostream>
+using namespace std;
+namespace BASEIO{
 class BaseIO;
-class Data_IOString;
-class IOString;
 class Data_PrimaryVertex;
 class PrimaryVertex;
 class Data_IOEventInfo;
@@ -18,64 +19,24 @@ class Data_IOMET;
 class IOMET;
 class Data_IOTrack;
 class IOTrack;
-class Data_IOPosition;
-class IOPosition;
+class Data_IOSuperCluster;
+class IOSuperCluster;
 class Data_PFIsolation;
 class PFIsolation;
 class Data_IOElectron;
 class IOElectron;
 class Data_AllGenParticle;
 class AllGenParticle;
-class Data_DetIsolation;
-class DetIsolation;
+class Data_IOPhoton;
+class IOPhoton;
+class Data_IOString;
+class IOString;
 class Data_IOPFJet;
 class IOPFJet;
 class Data_SelectedGenParticle;
 class SelectedGenParticle;
-class Data_IOSuperCluster;
-class IOSuperCluster;
 class Data_IOBeamSpot;
 class IOBeamSpot;
-
-class Data_IOString
- {
-	friend class IOString;
-	friend class BaseIO;
-	private:
-		static BaseIO* baseio;
-		UInt_t size_;
-		std::string prefix_;
-		UInt_t count_;
-		UInt_t str_count_;
-		UInt_t* str_num_;
-		Char_t* str_;
-	public:
-		void Fill();
-		Data_IOString(UInt_t size, std::string prefix);
-		~Data_IOString();
-		void SetUpWrite(TTree* tree);
-		void SetUpRead(TTree* tree);
-		void Load(TTree* tree, bool load);
- };
-
-
-class IOString
- {
-	friend class BaseIO;
-	private:
-		static BaseIO* baseio;
-		UInt_t number_;
-		Data_IOString* data_;
-	public:
-		IOString(Data_IOString* data, UInt_t number);
-		IOString(const IOString& _iostring);
-		void Init();
-		Char_t str(UInt_t n) const;
-		UInt_t Num_str() const;
-		void str(Char_t _str, UInt_t n);
- };
-
-
 
 class Data_PrimaryVertex
  {
@@ -141,7 +102,6 @@ class Data_IOEventInfo
 		UInt_t size_;
 		std::string prefix_;
 		UInt_t count_;
-		UInt_t* ProcessingErrors_;
 		UInt_t* EventNumber_;
 		UInt_t* LumiSectionNumber_;
 		UInt_t* RunNumber_;
@@ -150,6 +110,7 @@ class Data_IOEventInfo
 		Float_t* AK5PFRho_;
 		Float_t* AK5PFSigma_;
 		UInt_t TriggerHLT_count_;
+		UInt_t TriggerHLT_countmax_;
 		UInt_t* TriggerHLT_num_;
 		UChar_t* TriggerHLT_;
 	public:
@@ -173,7 +134,6 @@ class IOEventInfo
 		IOEventInfo(Data_IOEventInfo* data, UInt_t number);
 		IOEventInfo(const IOEventInfo& _ioeventinfo);
 		void Init();
-		UInt_t ProcessingErrors() const;
 		UInt_t EventNumber() const;
 		UInt_t LumiSectionNumber() const;
 		UInt_t RunNumber() const;
@@ -183,7 +143,6 @@ class IOEventInfo
 		Float_t AK5PFSigma() const;
 		UChar_t TriggerHLT(UInt_t n) const;
 		UInt_t Num_TriggerHLT() const;
-		void ProcessingErrors(UInt_t _ProcessingErrors);
 		void EventNumber(UInt_t _EventNumber);
 		void LumiSectionNumber(UInt_t _LumiSectionNumber);
 		void RunNumber(UInt_t _RunNumber);
@@ -278,14 +237,14 @@ class Data_IOMuon
 		UInt_t size_;
 		std::string prefix_;
 		UInt_t count_;
-		Data_PFIsolation* PFR3_;
-		Data_PFIsolation* PFR4_;
 		Int_t* VertexNumber_;
-		Int_t* Charge_;
-		Int_t* NumChamber_;
+		Int_t* NumChambers_;
 		Int_t* NumChambersWithSegments_;
 		Int_t* NumValidMuonHits_;
 		Int_t* NumMatchedStations_;
+		UInt_t* TriggerMatching_;
+		UInt_t* Info_;
+		Data_PFIsolation* PFR4_;
 		Float_t* px_;
 		Float_t* py_;
 		Float_t* pz_;
@@ -294,10 +253,9 @@ class Data_IOMuon
 		Float_t* NDOF_;
 		Float_t* ECalEnergy_;
 		Float_t* HCalEnergy_;
-		UInt_t* TriggerMatching_;
+		Float_t* GH_;
+		UInt_t* InnerTrack_num_;
 		Data_IOTrack* InnerTrack_;
-		Data_DetIsolation* DetR3_;
-		Data_DetIsolation* DetR4_;
 	public:
 		void Fill();
 		Data_IOMuon(UInt_t size, std::string prefix);
@@ -319,14 +277,14 @@ class IOMuon
 		IOMuon(Data_IOMuon* data, UInt_t number);
 		IOMuon(const IOMuon& _iomuon);
 		void Init();
-		PFIsolation PFR3() const;
-		PFIsolation PFR4() const;
 		Int_t VertexNumber() const;
-		Int_t Charge() const;
-		Int_t NumChamber() const;
+		Int_t NumChambers() const;
 		Int_t NumChambersWithSegments() const;
 		Int_t NumValidMuonHits() const;
 		Int_t NumMatchedStations() const;
+		UInt_t TriggerMatching() const;
+		UInt_t Info() const;
+		PFIsolation PFR4() const;
 		Float_t px() const;
 		Float_t py() const;
 		Float_t pz() const;
@@ -335,16 +293,16 @@ class IOMuon
 		Float_t NDOF() const;
 		Float_t ECalEnergy() const;
 		Float_t HCalEnergy() const;
-		UInt_t TriggerMatching() const;
-		IOTrack InnerTrack() const;
-		DetIsolation DetR3() const;
-		DetIsolation DetR4() const;
+		Float_t GH() const;
+		IOTrack InnerTrack(UInt_t n) const;
+		UInt_t Num_InnerTrack() const;
 		void VertexNumber(Int_t _VertexNumber);
-		void Charge(Int_t _Charge);
-		void NumChamber(Int_t _NumChamber);
+		void NumChambers(Int_t _NumChambers);
 		void NumChambersWithSegments(Int_t _NumChambersWithSegments);
 		void NumValidMuonHits(Int_t _NumValidMuonHits);
 		void NumMatchedStations(Int_t _NumMatchedStations);
+		void TriggerMatching(UInt_t _TriggerMatching);
+		void Info(UInt_t _Info);
 		void px(Float_t _px);
 		void py(Float_t _py);
 		void pz(Float_t _pz);
@@ -353,7 +311,7 @@ class IOMuon
 		void NDOF(Float_t _NDOF);
 		void ECalEnergy(Float_t _ECalEnergy);
 		void HCalEnergy(Float_t _HCalEnergy);
-		void TriggerMatching(UInt_t _TriggerMatching);
+		void GH(Float_t _GH);
  };
 
 
@@ -415,9 +373,10 @@ class Data_IOTrack
 		UInt_t count_;
 		Int_t* VertexNumber_;
 		Char_t* Charge_;
-		UChar_t* NHits_;
+		UChar_t* NStripHits_;
 		UChar_t* NPixelHits_;
 		UChar_t* NMissingHits_;
+		UChar_t* NMissingInnerHits_;
 		UChar_t* NPixelLayers_;
 		UChar_t* NStripLayers_;
 		Float_t* px_;
@@ -453,9 +412,10 @@ class IOTrack
 		void Init();
 		Int_t VertexNumber() const;
 		Char_t Charge() const;
-		UChar_t NHits() const;
+		UChar_t NStripHits() const;
 		UChar_t NPixelHits() const;
 		UChar_t NMissingHits() const;
+		UChar_t NMissingInnerHits() const;
 		UChar_t NPixelLayers() const;
 		UChar_t NStripLayers() const;
 		Float_t px() const;
@@ -470,9 +430,10 @@ class IOTrack
 		Float_t DeDx() const;
 		void VertexNumber(Int_t _VertexNumber);
 		void Charge(Char_t _Charge);
-		void NHits(UChar_t _NHits);
+		void NStripHits(UChar_t _NStripHits);
 		void NPixelHits(UChar_t _NPixelHits);
 		void NMissingHits(UChar_t _NMissingHits);
+		void NMissingInnerHits(UChar_t _NMissingInnerHits);
 		void NPixelLayers(UChar_t _NPixelLayers);
 		void NStripLayers(UChar_t _NStripLayers);
 		void px(Float_t _px);
@@ -489,45 +450,57 @@ class IOTrack
 
 
 
-class Data_IOPosition
+class Data_IOSuperCluster
  {
-	friend class IOPosition;
+	friend class IOSuperCluster;
 	friend class BaseIO;
 	private:
 		static BaseIO* baseio;
 		UInt_t size_;
 		std::string prefix_;
 		UInt_t count_;
-		Double_t* x_;
-		Double_t* y_;
-		Double_t* z_;
+		Float_t* x_;
+		Float_t* y_;
+		Float_t* z_;
+		Float_t* Energy_;
+		Float_t* RawEnergy_;
+		Float_t* PhiWidth_;
+		Float_t* EtaWidth_;
 	public:
 		void Fill();
-		Data_IOPosition(UInt_t size, std::string prefix);
-		~Data_IOPosition();
+		Data_IOSuperCluster(UInt_t size, std::string prefix);
+		~Data_IOSuperCluster();
 		void SetUpWrite(TTree* tree);
 		void SetUpRead(TTree* tree);
 		void Load(TTree* tree, bool load);
  };
 
 
-class IOPosition
+class IOSuperCluster
  {
 	friend class BaseIO;
 	private:
 		static BaseIO* baseio;
 		UInt_t number_;
-		Data_IOPosition* data_;
+		Data_IOSuperCluster* data_;
 	public:
-		IOPosition(Data_IOPosition* data, UInt_t number);
-		IOPosition(const IOPosition& _ioposition);
+		IOSuperCluster(Data_IOSuperCluster* data, UInt_t number);
+		IOSuperCluster(const IOSuperCluster& _iosupercluster);
 		void Init();
-		Double_t x() const;
-		Double_t y() const;
-		Double_t z() const;
-		void x(Double_t _x);
-		void y(Double_t _y);
-		void z(Double_t _z);
+		Float_t x() const;
+		Float_t y() const;
+		Float_t z() const;
+		Float_t Energy() const;
+		Float_t RawEnergy() const;
+		Float_t PhiWidth() const;
+		Float_t EtaWidth() const;
+		void x(Float_t _x);
+		void y(Float_t _y);
+		void z(Float_t _z);
+		void Energy(Float_t _Energy);
+		void RawEnergy(Float_t _RawEnergy);
+		void PhiWidth(Float_t _PhiWidth);
+		void EtaWidth(Float_t _EtaWidth);
  };
 
 
@@ -541,10 +514,6 @@ class Data_PFIsolation
 		UInt_t size_;
 		std::string prefix_;
 		UInt_t count_;
-		Int_t* NumCharged_;
-		Int_t* NumNeutral_;
-		Int_t* NumHadron_;
-		Int_t* NumPhoton_;
 		Float_t* Charged_;
 		Float_t* Neutral_;
 		Float_t* Hadron_;
@@ -570,18 +539,10 @@ class PFIsolation
 		PFIsolation(Data_PFIsolation* data, UInt_t number);
 		PFIsolation(const PFIsolation& _pfisolation);
 		void Init();
-		Int_t NumCharged() const;
-		Int_t NumNeutral() const;
-		Int_t NumHadron() const;
-		Int_t NumPhoton() const;
 		Float_t Charged() const;
 		Float_t Neutral() const;
 		Float_t Hadron() const;
 		Float_t Photon() const;
-		void NumCharged(Int_t _NumCharged);
-		void NumNeutral(Int_t _NumNeutral);
-		void NumHadron(Int_t _NumHadron);
-		void NumPhoton(Int_t _NumPhoton);
 		void Charged(Float_t _Charged);
 		void Neutral(Float_t _Neutral);
 		void Hadron(Float_t _Hadron);
@@ -599,12 +560,18 @@ class Data_IOElectron
 		UInt_t size_;
 		std::string prefix_;
 		UInt_t count_;
+		UInt_t* TriggerMatching_;
+		UInt_t* Info_;
+		Data_PFIsolation* PFR3_;
+		Data_IOSuperCluster* SC_;
+		Data_IOTrack* GSFTrack_;
 		Float_t* px_;
 		Float_t* py_;
 		Float_t* pz_;
 		Float_t* DeltaEtaSCTrack_;
 		Float_t* DeltaPhiSCTrack_;
 		Float_t* ESCOverETrack_;
+		Float_t* ECalEnergy_;
 		Float_t* E1x5_;
 		Float_t* E2x5_;
 		Float_t* E5x5_;
@@ -612,16 +579,8 @@ class Data_IOElectron
 		Float_t* SigmaIEtaIEta_;
 		Float_t* SigmaIPhiIPhi_;
 		Float_t* SigmaIEtaIPhi_;
-		Float_t* EHCalTowerOverECal_;
-		Int_t* VertexNumber_;
-		Int_t* Trigger_;
-		Data_IOPosition* ECalPos_;
-		Data_PFIsolation* PFR3_;
-		Data_PFIsolation* PFR4_;
-		Data_IOTrack* GSFTrack_;
-		Data_DetIsolation* DetR3_;
-		Data_DetIsolation* DetR4_;
-		Data_IOSuperCluster* SC_;
+		Float_t* EHCalTowerOverECalD1_;
+		Float_t* EHCalTowerOverECalD2_;
 	public:
 		void Fill();
 		Data_IOElectron(UInt_t size, std::string prefix);
@@ -643,12 +602,18 @@ class IOElectron
 		IOElectron(Data_IOElectron* data, UInt_t number);
 		IOElectron(const IOElectron& _ioelectron);
 		void Init();
+		UInt_t TriggerMatching() const;
+		UInt_t Info() const;
+		PFIsolation PFR3() const;
+		IOSuperCluster SC() const;
+		IOTrack GSFTrack() const;
 		Float_t px() const;
 		Float_t py() const;
 		Float_t pz() const;
 		Float_t DeltaEtaSCTrack() const;
 		Float_t DeltaPhiSCTrack() const;
 		Float_t ESCOverETrack() const;
+		Float_t ECalEnergy() const;
 		Float_t E1x5() const;
 		Float_t E2x5() const;
 		Float_t E5x5() const;
@@ -656,22 +621,17 @@ class IOElectron
 		Float_t SigmaIEtaIEta() const;
 		Float_t SigmaIPhiIPhi() const;
 		Float_t SigmaIEtaIPhi() const;
-		Float_t EHCalTowerOverECal() const;
-		Int_t VertexNumber() const;
-		Int_t Trigger() const;
-		IOPosition ECalPos() const;
-		PFIsolation PFR3() const;
-		PFIsolation PFR4() const;
-		IOTrack GSFTrack() const;
-		DetIsolation DetR3() const;
-		DetIsolation DetR4() const;
-		IOSuperCluster SC() const;
+		Float_t EHCalTowerOverECalD1() const;
+		Float_t EHCalTowerOverECalD2() const;
+		void TriggerMatching(UInt_t _TriggerMatching);
+		void Info(UInt_t _Info);
 		void px(Float_t _px);
 		void py(Float_t _py);
 		void pz(Float_t _pz);
 		void DeltaEtaSCTrack(Float_t _DeltaEtaSCTrack);
 		void DeltaPhiSCTrack(Float_t _DeltaPhiSCTrack);
 		void ESCOverETrack(Float_t _ESCOverETrack);
+		void ECalEnergy(Float_t _ECalEnergy);
 		void E1x5(Float_t _E1x5);
 		void E2x5(Float_t _E2x5);
 		void E5x5(Float_t _E5x5);
@@ -679,9 +639,8 @@ class IOElectron
 		void SigmaIEtaIEta(Float_t _SigmaIEtaIEta);
 		void SigmaIPhiIPhi(Float_t _SigmaIPhiIPhi);
 		void SigmaIEtaIPhi(Float_t _SigmaIEtaIPhi);
-		void EHCalTowerOverECal(Float_t _EHCalTowerOverECal);
-		void VertexNumber(Int_t _VertexNumber);
-		void Trigger(Int_t _Trigger);
+		void EHCalTowerOverECalD1(Float_t _EHCalTowerOverECalD1);
+		void EHCalTowerOverECalD2(Float_t _EHCalTowerOverECalD2);
  };
 
 
@@ -705,9 +664,11 @@ class Data_AllGenParticle
 		Float_t* vy_;
 		Float_t* vz_;
 		UInt_t Mother_count_;
+		UInt_t Mother_countmax_;
 		UInt_t* Mother_num_;
 		Int_t* Mother_;
 		UInt_t Daughter_count_;
+		UInt_t Daughter_countmax_;
 		UInt_t* Daughter_num_;
 		Int_t* Daughter_;
 	public:
@@ -759,54 +720,126 @@ class AllGenParticle
 
 
 
-class Data_DetIsolation
+class Data_IOPhoton
  {
-	friend class DetIsolation;
+	friend class IOPhoton;
 	friend class BaseIO;
 	private:
 		static BaseIO* baseio;
 		UInt_t size_;
 		std::string prefix_;
 		UInt_t count_;
-		Int_t* NumTrack_;
-		Int_t* NumECal_;
-		Int_t* NumHCal_;
-		Float_t* Track_;
-		Float_t* ECal_;
-		Float_t* HCal_;
+		UInt_t* TriggerMatching_;
+		UInt_t* Info_;
+		Data_PFIsolation* PFR3_;
+		Data_IOSuperCluster* SC_;
+		Float_t* px_;
+		Float_t* py_;
+		Float_t* pz_;
+		Float_t* E1x5_;
+		Float_t* E2x5_;
+		Float_t* E3x3_;
+		Float_t* E5x5_;
+		Float_t* MaxCrystalEnergy_;
+		Float_t* SigmaIEtaIEta_;
+		Float_t* SigmaIPhiIPhi_;
+		Float_t* SigmaIEtaIPhi_;
+		Float_t* EHCalTowerOverECalD1_;
+		Float_t* EHCalTowerOverECalD2_;
 	public:
 		void Fill();
-		Data_DetIsolation(UInt_t size, std::string prefix);
-		~Data_DetIsolation();
+		Data_IOPhoton(UInt_t size, std::string prefix);
+		~Data_IOPhoton();
 		void SetUpWrite(TTree* tree);
 		void SetUpRead(TTree* tree);
 		void Load(TTree* tree, bool load);
  };
 
 
-class DetIsolation
+class IOPhoton
  {
 	friend class BaseIO;
 	private:
 		static BaseIO* baseio;
 		UInt_t number_;
-		Data_DetIsolation* data_;
+		Data_IOPhoton* data_;
 	public:
-		DetIsolation(Data_DetIsolation* data, UInt_t number);
-		DetIsolation(const DetIsolation& _detisolation);
+		IOPhoton(Data_IOPhoton* data, UInt_t number);
+		IOPhoton(const IOPhoton& _iophoton);
 		void Init();
-		Int_t NumTrack() const;
-		Int_t NumECal() const;
-		Int_t NumHCal() const;
-		Float_t Track() const;
-		Float_t ECal() const;
-		Float_t HCal() const;
-		void NumTrack(Int_t _NumTrack);
-		void NumECal(Int_t _NumECal);
-		void NumHCal(Int_t _NumHCal);
-		void Track(Float_t _Track);
-		void ECal(Float_t _ECal);
-		void HCal(Float_t _HCal);
+		UInt_t TriggerMatching() const;
+		UInt_t Info() const;
+		PFIsolation PFR3() const;
+		IOSuperCluster SC() const;
+		Float_t px() const;
+		Float_t py() const;
+		Float_t pz() const;
+		Float_t E1x5() const;
+		Float_t E2x5() const;
+		Float_t E3x3() const;
+		Float_t E5x5() const;
+		Float_t MaxCrystalEnergy() const;
+		Float_t SigmaIEtaIEta() const;
+		Float_t SigmaIPhiIPhi() const;
+		Float_t SigmaIEtaIPhi() const;
+		Float_t EHCalTowerOverECalD1() const;
+		Float_t EHCalTowerOverECalD2() const;
+		void TriggerMatching(UInt_t _TriggerMatching);
+		void Info(UInt_t _Info);
+		void px(Float_t _px);
+		void py(Float_t _py);
+		void pz(Float_t _pz);
+		void E1x5(Float_t _E1x5);
+		void E2x5(Float_t _E2x5);
+		void E3x3(Float_t _E3x3);
+		void E5x5(Float_t _E5x5);
+		void MaxCrystalEnergy(Float_t _MaxCrystalEnergy);
+		void SigmaIEtaIEta(Float_t _SigmaIEtaIEta);
+		void SigmaIPhiIPhi(Float_t _SigmaIPhiIPhi);
+		void SigmaIEtaIPhi(Float_t _SigmaIEtaIPhi);
+		void EHCalTowerOverECalD1(Float_t _EHCalTowerOverECalD1);
+		void EHCalTowerOverECalD2(Float_t _EHCalTowerOverECalD2);
+ };
+
+
+
+class Data_IOString
+ {
+	friend class IOString;
+	friend class BaseIO;
+	private:
+		static BaseIO* baseio;
+		UInt_t size_;
+		std::string prefix_;
+		UInt_t count_;
+		UInt_t str_count_;
+		UInt_t str_countmax_;
+		UInt_t* str_num_;
+		Char_t* str_;
+	public:
+		void Fill();
+		Data_IOString(UInt_t size, std::string prefix);
+		~Data_IOString();
+		void SetUpWrite(TTree* tree);
+		void SetUpRead(TTree* tree);
+		void Load(TTree* tree, bool load);
+ };
+
+
+class IOString
+ {
+	friend class BaseIO;
+	private:
+		static BaseIO* baseio;
+		UInt_t number_;
+		Data_IOString* data_;
+	public:
+		IOString(Data_IOString* data, UInt_t number);
+		IOString(const IOString& _iostring);
+		void Init();
+		Char_t str(UInt_t n) const;
+		UInt_t Num_str() const;
+		void str(Char_t _str, UInt_t n);
  };
 
 
@@ -820,31 +853,34 @@ class Data_IOPFJet
 		UInt_t size_;
 		std::string prefix_;
 		UInt_t count_;
-		Int_t* NumCharged_;
-		Int_t* NumNeutral_;
-		Int_t* NumHadron_;
-		Int_t* NumPhoton_;
-		Int_t* NumElectron_;
-		Int_t* NumMuon_;
-		Int_t* MCFlavor_;
+		UInt_t* TriggerMatching_;
+		Int_t* NumChargedHadrons_;
+		Int_t* NumNeutralHadrons_;
+		Int_t* NumPhotons_;
+		Int_t* NumElectrons_;
+		Int_t* NumMuons_;
+		Int_t* NumForwardEMs_;
+		Int_t* NumForwardHads_;
 		Float_t* px_;
 		Float_t* py_;
 		Float_t* pz_;
 		Float_t* e_;
-		Float_t* HCalEnergy_;
-		Float_t* ECalEnergy_;
-		Float_t* TrackEnergy_;
-		Float_t* ChargedEnergy_;
-		Float_t* NeutralEnergy_;
-		Float_t* HadronEnergy_;
+		Float_t* Area_;
+		Float_t* Mass_;
+		Float_t* ChargedHadronEnergy_;
+		Float_t* NeutralHadronEnergy_;
 		Float_t* PhotonEnergy_;
 		Float_t* ElectronEnergy_;
 		Float_t* MuonEnergy_;
+		Float_t* ForwardEM_;
+		Float_t* ForwardHad_;
 		Float_t* ChargedPtMomPA_;
 		Float_t* ChargedPtMomPB_;
-		Float_t* ConstPtMomPA_;
-		Float_t* ConstPtMomPB_;
-		Float_t* PtWrongPrimaryVertex_;
+		Float_t* ConstituentPtMomPA_;
+		Float_t* ConstituentPtMomPB_;
+		Float_t* PtFractionWrongPrimaryVertex_;
+		Float_t* MaxChargedPtFraction_;
+		Float_t* MaxPtFraction_;
 		Float_t* EnergyCorrection_;
 		Float_t* EnergyCorrectionUnc_;
 	public:
@@ -868,58 +904,64 @@ class IOPFJet
 		IOPFJet(Data_IOPFJet* data, UInt_t number);
 		IOPFJet(const IOPFJet& _iopfjet);
 		void Init();
-		Int_t NumCharged() const;
-		Int_t NumNeutral() const;
-		Int_t NumHadron() const;
-		Int_t NumPhoton() const;
-		Int_t NumElectron() const;
-		Int_t NumMuon() const;
-		Int_t MCFlavor() const;
+		UInt_t TriggerMatching() const;
+		Int_t NumChargedHadrons() const;
+		Int_t NumNeutralHadrons() const;
+		Int_t NumPhotons() const;
+		Int_t NumElectrons() const;
+		Int_t NumMuons() const;
+		Int_t NumForwardEMs() const;
+		Int_t NumForwardHads() const;
 		Float_t px() const;
 		Float_t py() const;
 		Float_t pz() const;
 		Float_t e() const;
-		Float_t HCalEnergy() const;
-		Float_t ECalEnergy() const;
-		Float_t TrackEnergy() const;
-		Float_t ChargedEnergy() const;
-		Float_t NeutralEnergy() const;
-		Float_t HadronEnergy() const;
+		Float_t Area() const;
+		Float_t Mass() const;
+		Float_t ChargedHadronEnergy() const;
+		Float_t NeutralHadronEnergy() const;
 		Float_t PhotonEnergy() const;
 		Float_t ElectronEnergy() const;
 		Float_t MuonEnergy() const;
+		Float_t ForwardEM() const;
+		Float_t ForwardHad() const;
 		Float_t ChargedPtMomPA() const;
 		Float_t ChargedPtMomPB() const;
-		Float_t ConstPtMomPA() const;
-		Float_t ConstPtMomPB() const;
-		Float_t PtWrongPrimaryVertex() const;
+		Float_t ConstituentPtMomPA() const;
+		Float_t ConstituentPtMomPB() const;
+		Float_t PtFractionWrongPrimaryVertex() const;
+		Float_t MaxChargedPtFraction() const;
+		Float_t MaxPtFraction() const;
 		Float_t EnergyCorrection() const;
 		Float_t EnergyCorrectionUnc() const;
-		void NumCharged(Int_t _NumCharged);
-		void NumNeutral(Int_t _NumNeutral);
-		void NumHadron(Int_t _NumHadron);
-		void NumPhoton(Int_t _NumPhoton);
-		void NumElectron(Int_t _NumElectron);
-		void NumMuon(Int_t _NumMuon);
-		void MCFlavor(Int_t _MCFlavor);
+		void TriggerMatching(UInt_t _TriggerMatching);
+		void NumChargedHadrons(Int_t _NumChargedHadrons);
+		void NumNeutralHadrons(Int_t _NumNeutralHadrons);
+		void NumPhotons(Int_t _NumPhotons);
+		void NumElectrons(Int_t _NumElectrons);
+		void NumMuons(Int_t _NumMuons);
+		void NumForwardEMs(Int_t _NumForwardEMs);
+		void NumForwardHads(Int_t _NumForwardHads);
 		void px(Float_t _px);
 		void py(Float_t _py);
 		void pz(Float_t _pz);
 		void e(Float_t _e);
-		void HCalEnergy(Float_t _HCalEnergy);
-		void ECalEnergy(Float_t _ECalEnergy);
-		void TrackEnergy(Float_t _TrackEnergy);
-		void ChargedEnergy(Float_t _ChargedEnergy);
-		void NeutralEnergy(Float_t _NeutralEnergy);
-		void HadronEnergy(Float_t _HadronEnergy);
+		void Area(Float_t _Area);
+		void Mass(Float_t _Mass);
+		void ChargedHadronEnergy(Float_t _ChargedHadronEnergy);
+		void NeutralHadronEnergy(Float_t _NeutralHadronEnergy);
 		void PhotonEnergy(Float_t _PhotonEnergy);
 		void ElectronEnergy(Float_t _ElectronEnergy);
 		void MuonEnergy(Float_t _MuonEnergy);
+		void ForwardEM(Float_t _ForwardEM);
+		void ForwardHad(Float_t _ForwardHad);
 		void ChargedPtMomPA(Float_t _ChargedPtMomPA);
 		void ChargedPtMomPB(Float_t _ChargedPtMomPB);
-		void ConstPtMomPA(Float_t _ConstPtMomPA);
-		void ConstPtMomPB(Float_t _ConstPtMomPB);
-		void PtWrongPrimaryVertex(Float_t _PtWrongPrimaryVertex);
+		void ConstituentPtMomPA(Float_t _ConstituentPtMomPA);
+		void ConstituentPtMomPB(Float_t _ConstituentPtMomPB);
+		void PtFractionWrongPrimaryVertex(Float_t _PtFractionWrongPrimaryVertex);
+		void MaxChargedPtFraction(Float_t _MaxChargedPtFraction);
+		void MaxPtFraction(Float_t _MaxPtFraction);
 		void EnergyCorrection(Float_t _EnergyCorrection);
 		void EnergyCorrectionUnc(Float_t _EnergyCorrectionUnc);
  };
@@ -996,54 +1038,6 @@ class SelectedGenParticle
 
 
 
-class Data_IOSuperCluster
- {
-	friend class IOSuperCluster;
-	friend class BaseIO;
-	private:
-		static BaseIO* baseio;
-		UInt_t size_;
-		std::string prefix_;
-		UInt_t count_;
-		Float_t* Energy_;
-		Float_t* RawEnergy_;
-		Float_t* PhiWidth_;
-		Float_t* EtaWidth_;
-		Data_IOPosition* Pos_;
-	public:
-		void Fill();
-		Data_IOSuperCluster(UInt_t size, std::string prefix);
-		~Data_IOSuperCluster();
-		void SetUpWrite(TTree* tree);
-		void SetUpRead(TTree* tree);
-		void Load(TTree* tree, bool load);
- };
-
-
-class IOSuperCluster
- {
-	friend class BaseIO;
-	private:
-		static BaseIO* baseio;
-		UInt_t number_;
-		Data_IOSuperCluster* data_;
-	public:
-		IOSuperCluster(Data_IOSuperCluster* data, UInt_t number);
-		IOSuperCluster(const IOSuperCluster& _iosupercluster);
-		void Init();
-		Float_t Energy() const;
-		Float_t RawEnergy() const;
-		Float_t PhiWidth() const;
-		Float_t EtaWidth() const;
-		IOPosition Pos() const;
-		void Energy(Float_t _Energy);
-		void RawEnergy(Float_t _RawEnergy);
-		void PhiWidth(Float_t _PhiWidth);
-		void EtaWidth(Float_t _EtaWidth);
- };
-
-
-
 class Data_IOBeamSpot
  {
 	friend class IOBeamSpot;
@@ -1103,8 +1097,12 @@ class BaseIO
 	friend class IOMuon;
 	friend class IOMET;
 	friend class IOTrack;
+	friend class IOSuperCluster;
+	friend class PFIsolation;
 	friend class IOElectron;
 	friend class AllGenParticle;
+	friend class IOPhoton;
+	friend class IOString;
 	friend class IOPFJet;
 	friend class SelectedGenParticle;
 	friend class IOBeamSpot;
@@ -1117,10 +1115,13 @@ class BaseIO
 		Data_IOTrack IOTrack_container_;
 		Data_IOElectron IOElectron_container_;
 		Data_AllGenParticle AllGenParticle_container_;
+		Data_IOPhoton IOPhoton_container_;
 		Data_IOPFJet IOPFJet_container_;
 		Data_SelectedGenParticle SelectedGenParticle_container_;
 		Data_IOBeamSpot IOBeamSpot_container_;
 		bool writable_;
+		Int_t error_[1000];
+		UInt_t errorcount_;
 		TTree* tree_;
 		TTree* copytree_;
 		std::string treename_;
@@ -1130,6 +1131,9 @@ class BaseIO
 		void SetFile(TFile* file);
 		bool IsWritable() const;
 		void Fill();
+		void SetError(Int_t errn);
+		UInt_t NumErrors();
+		void StartFilling();
 		UInt_t GetEntries();
 		void GetEntry(UInt_t n);
 		UInt_t NumPrimaryVertexs();
@@ -1156,6 +1160,9 @@ class BaseIO
 		UInt_t NumAllGenParticles();
 		AllGenParticle GetAllGenParticle(UInt_t n);
 		void LoadAllGenParticle(bool load);
+		UInt_t NumIOPhotons();
+		IOPhoton GetIOPhoton(UInt_t n);
+		void LoadIOPhoton(bool load);
 		UInt_t NumIOPFJets();
 		IOPFJet GetIOPFJet(UInt_t n);
 		void LoadIOPFJet(bool load);
@@ -1166,4 +1173,5 @@ class BaseIO
 		IOBeamSpot GetIOBeamSpot(UInt_t n);
 		void LoadIOBeamSpot(bool load);
 };
+}
 #endif

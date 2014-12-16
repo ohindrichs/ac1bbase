@@ -1,98 +1,6 @@
-#include "RootMaker/MyRootMaker/interface/BASEIO.h"
+#include "../interface/BASEIO.h"
 
-//Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString 
-BaseIO* Data_IOString::baseio = 0;
-Data_IOString::Data_IOString(UInt_t size, std::string prefix = "") : 
-size_(size),
-prefix_(prefix)
-{
-	str_num_ = new UInt_t[size_];
-	str_ = new Char_t[size_*100];
-}
-
-Data_IOString::~Data_IOString()
-{
-	delete[] str_;
-	delete[] str_num_;
-}
-
-void Data_IOString::Fill()
-{
-	count_ = 0;
-	str_count_ = 0;
-}
-
-void Data_IOString::SetUpWrite(TTree* tree)
-{
-	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_str_count").c_str(), &str_count_, (prefix_ + "_str_count/i").c_str());
-	tree->Branch((prefix_ + "_str_num").c_str(), str_num_, (prefix_ + "_str_num[" + prefix_ + "_count]/i").c_str());
-	tree->Branch((prefix_ + "_str").c_str(), str_, (prefix_ + "_str[" + prefix_ + "_str_count]/B").c_str());
-}
-
-void Data_IOString::SetUpRead(TTree* tree)
-{
-	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
-	tree->SetBranchAddress((prefix_ + "_str_count").c_str(), &str_count_);
-	tree->SetBranchAddress((prefix_ + "_str_num").c_str(), str_num_);
-	tree->SetBranchAddress((prefix_ + "_str").c_str(), str_);
-}
-
-void Data_IOString::Load(TTree* tree, bool load)
-{
-	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_str_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_str_num").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_str").c_str(), load);
-}
-
-
-
-//IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == 
-BaseIO* IOString::baseio = 0;
-IOString::IOString(Data_IOString* data, UInt_t number) : 
-number_(number),
-data_(data)
-{
-	Init();
-}
-
-IOString::IOString(const IOString& _iostring) : 
-number_( _iostring.number_),
-data_( _iostring.data_)
-{
-}
-
-void IOString::Init()
-{
-	if(baseio->IsWritable())
-	{
-		if(number_ == 0) {data_->str_num_[number_] = 0;}
-		else {data_->str_num_[number_] = data_->str_num_[number_-1];}
-		data_->count_ = number_+1;
-	}
-}
-
-UInt_t IOString::Num_str() const
-{
-	return number_ == 0 ? data_->str_num_[number_] : data_->str_num_[number_] - data_->str_num_[number_-1];
-}
-
-Char_t IOString::str(UInt_t n) const
-{
-	return number_ == 0 ? data_->str_[n] : data_->str_[data_->str_num_[number_-1]  + n];
-}
-
-void IOString::str(Char_t _str, UInt_t n)
-{
-	if(number_ == 0) {data_->str_[n] = _str;}
-	else {data_->str_[data_->str_num_[number_-1] +n] = _str;}
-	data_->str_num_[number_]++;
-	data_->str_count_++;
-}
-
-
-
+namespace BASEIO{
 //Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex 
 BaseIO* Data_PrimaryVertex::baseio = 0;
 Data_PrimaryVertex::Data_PrimaryVertex(UInt_t size, std::string prefix = "") : 
@@ -222,36 +130,71 @@ Float_t PrimaryVertex::SumPtQ() const
 
 void PrimaryVertex::NumTracks(UChar_t _NumTracks)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(1);//ERROR1
+		return;
+	}
 	data_->NumTracks_[number_] = _NumTracks;
 }
 
 void PrimaryVertex::Vx(Float_t _Vx)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(2);//ERROR2
+		return;
+	}
 	data_->Vx_[number_] = _Vx;
 }
 
 void PrimaryVertex::Vy(Float_t _Vy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(3);//ERROR3
+		return;
+	}
 	data_->Vy_[number_] = _Vy;
 }
 
 void PrimaryVertex::Vz(Float_t _Vz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(4);//ERROR4
+		return;
+	}
 	data_->Vz_[number_] = _Vz;
 }
 
 void PrimaryVertex::ChiQ(Float_t _ChiQ)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(5);//ERROR5
+		return;
+	}
 	data_->ChiQ_[number_] = _ChiQ;
 }
 
 void PrimaryVertex::NDOF(Float_t _NDOF)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(6);//ERROR6
+		return;
+	}
 	data_->NDOF_[number_] = _NDOF;
 }
 
 void PrimaryVertex::SumPtQ(Float_t _SumPtQ)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(7);//ERROR7
+		return;
+	}
 	data_->SumPtQ_[number_] = _SumPtQ;
 }
 
@@ -263,7 +206,6 @@ Data_IOEventInfo::Data_IOEventInfo(UInt_t size, std::string prefix = "") :
 size_(size),
 prefix_(prefix)
 {
-	ProcessingErrors_ = new UInt_t[size_];
 	EventNumber_ = new UInt_t[size_];
 	LumiSectionNumber_ = new UInt_t[size_];
 	RunNumber_ = new UInt_t[size_];
@@ -273,11 +215,11 @@ prefix_(prefix)
 	AK5PFSigma_ = new Float_t[size_];
 	TriggerHLT_num_ = new UInt_t[size_];
 	TriggerHLT_ = new UChar_t[size_*150];
+	TriggerHLT_countmax_ = size_*150;
 }
 
 Data_IOEventInfo::~Data_IOEventInfo()
 {
-	delete[] ProcessingErrors_;
 	delete[] EventNumber_;
 	delete[] LumiSectionNumber_;
 	delete[] RunNumber_;
@@ -298,7 +240,6 @@ void Data_IOEventInfo::Fill()
 void Data_IOEventInfo::SetUpWrite(TTree* tree)
 {
 	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_ProcessingErrors").c_str(), ProcessingErrors_, (prefix_ + "_ProcessingErrors[" + prefix_ + "_count]/i").c_str());
 	tree->Branch((prefix_ + "_EventNumber").c_str(), EventNumber_, (prefix_ + "_EventNumber[" + prefix_ + "_count]/i").c_str());
 	tree->Branch((prefix_ + "_LumiSectionNumber").c_str(), LumiSectionNumber_, (prefix_ + "_LumiSectionNumber[" + prefix_ + "_count]/i").c_str());
 	tree->Branch((prefix_ + "_RunNumber").c_str(), RunNumber_, (prefix_ + "_RunNumber[" + prefix_ + "_count]/i").c_str());
@@ -314,7 +255,6 @@ void Data_IOEventInfo::SetUpWrite(TTree* tree)
 void Data_IOEventInfo::SetUpRead(TTree* tree)
 {
 	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
-	tree->SetBranchAddress((prefix_ + "_ProcessingErrors").c_str(), ProcessingErrors_);
 	tree->SetBranchAddress((prefix_ + "_EventNumber").c_str(), EventNumber_);
 	tree->SetBranchAddress((prefix_ + "_LumiSectionNumber").c_str(), LumiSectionNumber_);
 	tree->SetBranchAddress((prefix_ + "_RunNumber").c_str(), RunNumber_);
@@ -330,7 +270,6 @@ void Data_IOEventInfo::SetUpRead(TTree* tree)
 void Data_IOEventInfo::Load(TTree* tree, bool load)
 {
 	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_ProcessingErrors").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_EventNumber").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_LumiSectionNumber").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_RunNumber").c_str(), load);
@@ -368,11 +307,6 @@ void IOEventInfo::Init()
 		else {data_->TriggerHLT_num_[number_] = data_->TriggerHLT_num_[number_-1];}
 		data_->count_ = number_+1;
 	}
-}
-
-UInt_t IOEventInfo::ProcessingErrors() const
-{
-	return data_->ProcessingErrors_[number_];
 }
 
 UInt_t IOEventInfo::EventNumber() const
@@ -420,50 +354,90 @@ UChar_t IOEventInfo::TriggerHLT(UInt_t n) const
 	return number_ == 0 ? data_->TriggerHLT_[n] : data_->TriggerHLT_[data_->TriggerHLT_num_[number_-1]  + n];
 }
 
-void IOEventInfo::ProcessingErrors(UInt_t _ProcessingErrors)
-{
-	data_->ProcessingErrors_[number_] = _ProcessingErrors;
-}
-
 void IOEventInfo::EventNumber(UInt_t _EventNumber)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(8);//ERROR8
+		return;
+	}
 	data_->EventNumber_[number_] = _EventNumber;
 }
 
 void IOEventInfo::LumiSectionNumber(UInt_t _LumiSectionNumber)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(9);//ERROR9
+		return;
+	}
 	data_->LumiSectionNumber_[number_] = _LumiSectionNumber;
 }
 
 void IOEventInfo::RunNumber(UInt_t _RunNumber)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(10);//ERROR10
+		return;
+	}
 	data_->RunNumber_[number_] = _RunNumber;
 }
 
 void IOEventInfo::TimeUnix(UInt_t _TimeUnix)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(11);//ERROR11
+		return;
+	}
 	data_->TimeUnix_[number_] = _TimeUnix;
 }
 
 void IOEventInfo::TimeMuSec(UInt_t _TimeMuSec)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(12);//ERROR12
+		return;
+	}
 	data_->TimeMuSec_[number_] = _TimeMuSec;
 }
 
 void IOEventInfo::AK5PFRho(Float_t _AK5PFRho)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(13);//ERROR13
+		return;
+	}
 	data_->AK5PFRho_[number_] = _AK5PFRho;
 }
 
 void IOEventInfo::AK5PFSigma(Float_t _AK5PFSigma)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(14);//ERROR14
+		return;
+	}
 	data_->AK5PFSigma_[number_] = _AK5PFSigma;
 }
 
 void IOEventInfo::TriggerHLT(UChar_t _TriggerHLT, UInt_t n)
 {
-	if(number_ == 0) {data_->TriggerHLT_[n] = _TriggerHLT;}
-	else {data_->TriggerHLT_[data_->TriggerHLT_num_[number_-1] +n] = _TriggerHLT;}
+	if(number_ != 0){n = data_->TriggerHLT_num_[number_-1] +n;}
+	if(n >= data_->TriggerHLT_countmax_)
+	{
+		baseio->SetError(15);//ERROR15
+		return;
+	}
+	if(n != data_->TriggerHLT_count_)
+	{
+		cerr << "Index already filled" << endl;
+		return;
+	}
+	data_->TriggerHLT_[n] = _TriggerHLT;
 	data_->TriggerHLT_num_[number_]++;
 	data_->TriggerHLT_count_++;
 }
@@ -659,66 +633,131 @@ Float_t GenInfo::NumTrueInteractions() const
 
 void GenInfo::PDGID1(Int_t _PDGID1)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(16);//ERROR16
+		return;
+	}
 	data_->PDGID1_[number_] = _PDGID1;
 }
 
 void GenInfo::PDGID2(Int_t _PDGID2)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(17);//ERROR17
+		return;
+	}
 	data_->PDGID2_[number_] = _PDGID2;
 }
 
 void GenInfo::NumPUInteractions(Int_t _NumPUInteractions)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(18);//ERROR18
+		return;
+	}
 	data_->NumPUInteractions_[number_] = _NumPUInteractions;
 }
 
 void GenInfo::NumPUInteractionsBefore(Int_t _NumPUInteractionsBefore)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(19);//ERROR19
+		return;
+	}
 	data_->NumPUInteractionsBefore_[number_] = _NumPUInteractionsBefore;
 }
 
 void GenInfo::NumPUInteractionsAfter(Int_t _NumPUInteractionsAfter)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(20);//ERROR20
+		return;
+	}
 	data_->NumPUInteractionsAfter_[number_] = _NumPUInteractionsAfter;
 }
 
 void GenInfo::Weight(Float_t _Weight)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(21);//ERROR21
+		return;
+	}
 	data_->Weight_[number_] = _Weight;
 }
 
 void GenInfo::x1(Float_t _x1)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(22);//ERROR22
+		return;
+	}
 	data_->x1_[number_] = _x1;
 }
 
 void GenInfo::x2(Float_t _x2)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(23);//ERROR23
+		return;
+	}
 	data_->x2_[number_] = _x2;
 }
 
 void GenInfo::RenScale(Float_t _RenScale)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(24);//ERROR24
+		return;
+	}
 	data_->RenScale_[number_] = _RenScale;
 }
 
 void GenInfo::FacScale(Float_t _FacScale)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(25);//ERROR25
+		return;
+	}
 	data_->FacScale_[number_] = _FacScale;
 }
 
 void GenInfo::METx(Float_t _METx)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(26);//ERROR26
+		return;
+	}
 	data_->METx_[number_] = _METx;
 }
 
 void GenInfo::METy(Float_t _METy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(27);//ERROR27
+		return;
+	}
 	data_->METy_[number_] = _METy;
 }
 
 void GenInfo::NumTrueInteractions(Float_t _NumTrueInteractions)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(28);//ERROR28
+		return;
+	}
 	data_->NumTrueInteractions_[number_] = _NumTrueInteractions;
 }
 
@@ -729,18 +768,16 @@ BaseIO* Data_IOMuon::baseio = 0;
 Data_IOMuon::Data_IOMuon(UInt_t size, std::string prefix = "") : 
 size_(size),
 prefix_(prefix)
-, PFR3_(new Data_PFIsolation(size_, prefix_ + "_PFR3"))
 , PFR4_(new Data_PFIsolation(size_, prefix_ + "_PFR4"))
-, InnerTrack_(new Data_IOTrack(size_, prefix_ + "_InnerTrack"))
-, DetR3_(new Data_DetIsolation(size_, prefix_ + "_DetR3"))
-, DetR4_(new Data_DetIsolation(size_, prefix_ + "_DetR4"))
+, InnerTrack_(new Data_IOTrack(size_*1, prefix_ + "_InnerTrack"))
 {
 	VertexNumber_ = new Int_t[size_];
-	Charge_ = new Int_t[size_];
-	NumChamber_ = new Int_t[size_];
+	NumChambers_ = new Int_t[size_];
 	NumChambersWithSegments_ = new Int_t[size_];
 	NumValidMuonHits_ = new Int_t[size_];
 	NumMatchedStations_ = new Int_t[size_];
+	TriggerMatching_ = new UInt_t[size_];
+	Info_ = new UInt_t[size_];
 	px_ = new Float_t[size_];
 	py_ = new Float_t[size_];
 	pz_ = new Float_t[size_];
@@ -749,19 +786,20 @@ prefix_(prefix)
 	NDOF_ = new Float_t[size_];
 	ECalEnergy_ = new Float_t[size_];
 	HCalEnergy_ = new Float_t[size_];
-	TriggerMatching_ = new UInt_t[size_];
+	GH_ = new Float_t[size_];
+	InnerTrack_num_ = new UInt_t[size_];
 }
 
 Data_IOMuon::~Data_IOMuon()
 {
-	delete PFR3_;
-	delete PFR4_;
 	delete[] VertexNumber_;
-	delete[] Charge_;
-	delete[] NumChamber_;
+	delete[] NumChambers_;
 	delete[] NumChambersWithSegments_;
 	delete[] NumValidMuonHits_;
 	delete[] NumMatchedStations_;
+	delete[] TriggerMatching_;
+	delete[] Info_;
+	delete PFR4_;
 	delete[] px_;
 	delete[] py_;
 	delete[] pz_;
@@ -770,31 +808,28 @@ Data_IOMuon::~Data_IOMuon()
 	delete[] NDOF_;
 	delete[] ECalEnergy_;
 	delete[] HCalEnergy_;
-	delete[] TriggerMatching_;
+	delete[] GH_;
 	delete InnerTrack_;
-	delete DetR3_;
-	delete DetR4_;
+	delete[] InnerTrack_num_;
 }
 
 void Data_IOMuon::Fill()
 {
 	count_ = 0;
-	PFR3_->Fill();
 	PFR4_->Fill();
 	InnerTrack_->Fill();
-	DetR3_->Fill();
-	DetR4_->Fill();
 }
 
 void Data_IOMuon::SetUpWrite(TTree* tree)
 {
 	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
 	tree->Branch((prefix_ + "_VertexNumber").c_str(), VertexNumber_, (prefix_ + "_VertexNumber[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_Charge").c_str(), Charge_, (prefix_ + "_Charge[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumChamber").c_str(), NumChamber_, (prefix_ + "_NumChamber[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_NumChambers").c_str(), NumChambers_, (prefix_ + "_NumChambers[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_NumChambersWithSegments").c_str(), NumChambersWithSegments_, (prefix_ + "_NumChambersWithSegments[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_NumValidMuonHits").c_str(), NumValidMuonHits_, (prefix_ + "_NumValidMuonHits[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_NumMatchedStations").c_str(), NumMatchedStations_, (prefix_ + "_NumMatchedStations[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_, (prefix_ + "_TriggerMatching[" + prefix_ + "_count]/i").c_str());
+	tree->Branch((prefix_ + "_Info").c_str(), Info_, (prefix_ + "_Info[" + prefix_ + "_count]/i").c_str());
 	tree->Branch((prefix_ + "_px").c_str(), px_, (prefix_ + "_px[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_py").c_str(), py_, (prefix_ + "_py[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_pz").c_str(), pz_, (prefix_ + "_pz[" + prefix_ + "_count]/F").c_str());
@@ -803,23 +838,22 @@ void Data_IOMuon::SetUpWrite(TTree* tree)
 	tree->Branch((prefix_ + "_NDOF").c_str(), NDOF_, (prefix_ + "_NDOF[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_ECalEnergy").c_str(), ECalEnergy_, (prefix_ + "_ECalEnergy[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_HCalEnergy").c_str(), HCalEnergy_, (prefix_ + "_HCalEnergy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_, (prefix_ + "_TriggerMatching[" + prefix_ + "_count]/i").c_str());
-	PFR3_->SetUpWrite(tree);
+	tree->Branch((prefix_ + "_GH").c_str(), GH_, (prefix_ + "_GH[" + prefix_ + "_count]/F").c_str());
 	PFR4_->SetUpWrite(tree);
+	tree->Branch((prefix_ + "_InnerTrack_num").c_str(), InnerTrack_num_, (prefix_ + "_InnerTrack_num[" + prefix_ + "_count]/i").c_str());
 	InnerTrack_->SetUpWrite(tree);
-	DetR3_->SetUpWrite(tree);
-	DetR4_->SetUpWrite(tree);
 }
 
 void Data_IOMuon::SetUpRead(TTree* tree)
 {
 	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
 	tree->SetBranchAddress((prefix_ + "_VertexNumber").c_str(), VertexNumber_);
-	tree->SetBranchAddress((prefix_ + "_Charge").c_str(), Charge_);
-	tree->SetBranchAddress((prefix_ + "_NumChamber").c_str(), NumChamber_);
+	tree->SetBranchAddress((prefix_ + "_NumChambers").c_str(), NumChambers_);
 	tree->SetBranchAddress((prefix_ + "_NumChambersWithSegments").c_str(), NumChambersWithSegments_);
 	tree->SetBranchAddress((prefix_ + "_NumValidMuonHits").c_str(), NumValidMuonHits_);
 	tree->SetBranchAddress((prefix_ + "_NumMatchedStations").c_str(), NumMatchedStations_);
+	tree->SetBranchAddress((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_);
+	tree->SetBranchAddress((prefix_ + "_Info").c_str(), Info_);
 	tree->SetBranchAddress((prefix_ + "_px").c_str(), px_);
 	tree->SetBranchAddress((prefix_ + "_py").c_str(), py_);
 	tree->SetBranchAddress((prefix_ + "_pz").c_str(), pz_);
@@ -828,23 +862,22 @@ void Data_IOMuon::SetUpRead(TTree* tree)
 	tree->SetBranchAddress((prefix_ + "_NDOF").c_str(), NDOF_);
 	tree->SetBranchAddress((prefix_ + "_ECalEnergy").c_str(), ECalEnergy_);
 	tree->SetBranchAddress((prefix_ + "_HCalEnergy").c_str(), HCalEnergy_);
-	tree->SetBranchAddress((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_);
-	PFR3_->SetUpRead(tree);
+	tree->SetBranchAddress((prefix_ + "_GH").c_str(), GH_);
 	PFR4_->SetUpRead(tree);
+	tree->SetBranchAddress((prefix_ + "_InnerTrack_num").c_str(), InnerTrack_num_);
 	InnerTrack_->SetUpRead(tree);
-	DetR3_->SetUpRead(tree);
-	DetR4_->SetUpRead(tree);
 }
 
 void Data_IOMuon::Load(TTree* tree, bool load)
 {
 	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_VertexNumber").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_Charge").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumChamber").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NumChambers").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_NumChambersWithSegments").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_NumValidMuonHits").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_NumMatchedStations").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_TriggerMatching").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_Info").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_px").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_py").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_pz").c_str(), load);
@@ -853,12 +886,10 @@ void Data_IOMuon::Load(TTree* tree, bool load)
 	tree->SetBranchStatus((prefix_ + "_NDOF").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_ECalEnergy").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_HCalEnergy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_TriggerMatching").c_str(), load);
-	PFR3_->Load(tree, load);
+	tree->SetBranchStatus((prefix_ + "_GH").c_str(), load);
 	PFR4_->Load(tree, load);
+	tree->SetBranchStatus((prefix_ + "_InnerTrack_num").c_str(), load);
 	InnerTrack_->Load(tree, load);
-	DetR3_->Load(tree, load);
-	DetR4_->Load(tree, load);
 }
 
 
@@ -882,18 +913,10 @@ void IOMuon::Init()
 {
 	if(baseio->IsWritable())
 	{
+		if(number_ == 0) {data_->InnerTrack_num_[number_] = 0;}
+		else {data_->InnerTrack_num_[number_] = data_->InnerTrack_num_[number_-1];}
 		data_->count_ = number_+1;
 	}
-}
-
-PFIsolation IOMuon::PFR3() const
-{
-	return PFIsolation(data_->PFR3_, number_);
-}
-
-PFIsolation IOMuon::PFR4() const
-{
-	return PFIsolation(data_->PFR4_, number_);
 }
 
 Int_t IOMuon::VertexNumber() const
@@ -901,14 +924,9 @@ Int_t IOMuon::VertexNumber() const
 	return data_->VertexNumber_[number_];
 }
 
-Int_t IOMuon::Charge() const
+Int_t IOMuon::NumChambers() const
 {
-	return data_->Charge_[number_];
-}
-
-Int_t IOMuon::NumChamber() const
-{
-	return data_->NumChamber_[number_];
+	return data_->NumChambers_[number_];
 }
 
 Int_t IOMuon::NumChambersWithSegments() const
@@ -924,6 +942,21 @@ Int_t IOMuon::NumValidMuonHits() const
 Int_t IOMuon::NumMatchedStations() const
 {
 	return data_->NumMatchedStations_[number_];
+}
+
+UInt_t IOMuon::TriggerMatching() const
+{
+	return data_->TriggerMatching_[number_];
+}
+
+UInt_t IOMuon::Info() const
+{
+	return data_->Info_[number_];
+}
+
+PFIsolation IOMuon::PFR4() const
+{
+	return PFIsolation(data_->PFR4_, number_);
 }
 
 Float_t IOMuon::px() const
@@ -966,99 +999,183 @@ Float_t IOMuon::HCalEnergy() const
 	return data_->HCalEnergy_[number_];
 }
 
-UInt_t IOMuon::TriggerMatching() const
+Float_t IOMuon::GH() const
 {
-	return data_->TriggerMatching_[number_];
+	return data_->GH_[number_];
 }
 
-IOTrack IOMuon::InnerTrack() const
+UInt_t IOMuon::Num_InnerTrack() const
 {
-	return IOTrack(data_->InnerTrack_, number_);
+	return number_ == 0 ? data_->InnerTrack_num_[number_] : data_->InnerTrack_num_[number_] - data_->InnerTrack_num_[number_-1];
 }
 
-DetIsolation IOMuon::DetR3() const
+IOTrack IOMuon::InnerTrack(UInt_t n) const
 {
-	return DetIsolation(data_->DetR3_, number_);
-}
-
-DetIsolation IOMuon::DetR4() const
-{
-	return DetIsolation(data_->DetR4_, number_);
+	if(baseio->IsWritable())
+	{
+		data_->InnerTrack_num_[number_]++;
+	}
+	return number_ == 0 ? IOTrack(data_->InnerTrack_, n) : IOTrack(data_->InnerTrack_, data_->InnerTrack_num_[number_-1]  + n);
 }
 
 void IOMuon::VertexNumber(Int_t _VertexNumber)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(29);//ERROR29
+		return;
+	}
 	data_->VertexNumber_[number_] = _VertexNumber;
 }
 
-void IOMuon::Charge(Int_t _Charge)
+void IOMuon::NumChambers(Int_t _NumChambers)
 {
-	data_->Charge_[number_] = _Charge;
-}
-
-void IOMuon::NumChamber(Int_t _NumChamber)
-{
-	data_->NumChamber_[number_] = _NumChamber;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(30);//ERROR30
+		return;
+	}
+	data_->NumChambers_[number_] = _NumChambers;
 }
 
 void IOMuon::NumChambersWithSegments(Int_t _NumChambersWithSegments)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(31);//ERROR31
+		return;
+	}
 	data_->NumChambersWithSegments_[number_] = _NumChambersWithSegments;
 }
 
 void IOMuon::NumValidMuonHits(Int_t _NumValidMuonHits)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(32);//ERROR32
+		return;
+	}
 	data_->NumValidMuonHits_[number_] = _NumValidMuonHits;
 }
 
 void IOMuon::NumMatchedStations(Int_t _NumMatchedStations)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(33);//ERROR33
+		return;
+	}
 	data_->NumMatchedStations_[number_] = _NumMatchedStations;
+}
+
+void IOMuon::TriggerMatching(UInt_t _TriggerMatching)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(34);//ERROR34
+		return;
+	}
+	data_->TriggerMatching_[number_] = _TriggerMatching;
+}
+
+void IOMuon::Info(UInt_t _Info)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(35);//ERROR35
+		return;
+	}
+	data_->Info_[number_] = _Info;
 }
 
 void IOMuon::px(Float_t _px)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(36);//ERROR36
+		return;
+	}
 	data_->px_[number_] = _px;
 }
 
 void IOMuon::py(Float_t _py)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(37);//ERROR37
+		return;
+	}
 	data_->py_[number_] = _py;
 }
 
 void IOMuon::pz(Float_t _pz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(38);//ERROR38
+		return;
+	}
 	data_->pz_[number_] = _pz;
 }
 
 void IOMuon::PtUnc(Float_t _PtUnc)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(39);//ERROR39
+		return;
+	}
 	data_->PtUnc_[number_] = _PtUnc;
 }
 
 void IOMuon::ChiQ(Float_t _ChiQ)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(40);//ERROR40
+		return;
+	}
 	data_->ChiQ_[number_] = _ChiQ;
 }
 
 void IOMuon::NDOF(Float_t _NDOF)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(41);//ERROR41
+		return;
+	}
 	data_->NDOF_[number_] = _NDOF;
 }
 
 void IOMuon::ECalEnergy(Float_t _ECalEnergy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(42);//ERROR42
+		return;
+	}
 	data_->ECalEnergy_[number_] = _ECalEnergy;
 }
 
 void IOMuon::HCalEnergy(Float_t _HCalEnergy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(43);//ERROR43
+		return;
+	}
 	data_->HCalEnergy_[number_] = _HCalEnergy;
 }
 
-void IOMuon::TriggerMatching(UInt_t _TriggerMatching)
+void IOMuon::GH(Float_t _GH)
 {
-	data_->TriggerMatching_[number_] = _TriggerMatching;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(44);//ERROR44
+		return;
+	}
+	data_->GH_[number_] = _GH;
 }
 
 
@@ -1162,21 +1279,41 @@ Float_t IOMET::pfmetpycorr() const
 
 void IOMET::pfmetpx(Float_t _pfmetpx)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(45);//ERROR45
+		return;
+	}
 	data_->pfmetpx_[number_] = _pfmetpx;
 }
 
 void IOMET::pfmetpy(Float_t _pfmetpy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(46);//ERROR46
+		return;
+	}
 	data_->pfmetpy_[number_] = _pfmetpy;
 }
 
 void IOMET::pfmetpxcorr(Float_t _pfmetpxcorr)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(47);//ERROR47
+		return;
+	}
 	data_->pfmetpxcorr_[number_] = _pfmetpxcorr;
 }
 
 void IOMET::pfmetpycorr(Float_t _pfmetpycorr)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(48);//ERROR48
+		return;
+	}
 	data_->pfmetpycorr_[number_] = _pfmetpycorr;
 }
 
@@ -1190,9 +1327,10 @@ prefix_(prefix)
 {
 	VertexNumber_ = new Int_t[size_];
 	Charge_ = new Char_t[size_];
-	NHits_ = new UChar_t[size_];
+	NStripHits_ = new UChar_t[size_];
 	NPixelHits_ = new UChar_t[size_];
 	NMissingHits_ = new UChar_t[size_];
+	NMissingInnerHits_ = new UChar_t[size_];
 	NPixelLayers_ = new UChar_t[size_];
 	NStripLayers_ = new UChar_t[size_];
 	px_ = new Float_t[size_];
@@ -1211,9 +1349,10 @@ Data_IOTrack::~Data_IOTrack()
 {
 	delete[] VertexNumber_;
 	delete[] Charge_;
-	delete[] NHits_;
+	delete[] NStripHits_;
 	delete[] NPixelHits_;
 	delete[] NMissingHits_;
+	delete[] NMissingInnerHits_;
 	delete[] NPixelLayers_;
 	delete[] NStripLayers_;
 	delete[] px_;
@@ -1238,9 +1377,10 @@ void Data_IOTrack::SetUpWrite(TTree* tree)
 	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
 	tree->Branch((prefix_ + "_VertexNumber").c_str(), VertexNumber_, (prefix_ + "_VertexNumber[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_Charge").c_str(), Charge_, (prefix_ + "_Charge[" + prefix_ + "_count]/B").c_str());
-	tree->Branch((prefix_ + "_NHits").c_str(), NHits_, (prefix_ + "_NHits[" + prefix_ + "_count]/b").c_str());
+	tree->Branch((prefix_ + "_NStripHits").c_str(), NStripHits_, (prefix_ + "_NStripHits[" + prefix_ + "_count]/b").c_str());
 	tree->Branch((prefix_ + "_NPixelHits").c_str(), NPixelHits_, (prefix_ + "_NPixelHits[" + prefix_ + "_count]/b").c_str());
 	tree->Branch((prefix_ + "_NMissingHits").c_str(), NMissingHits_, (prefix_ + "_NMissingHits[" + prefix_ + "_count]/b").c_str());
+	tree->Branch((prefix_ + "_NMissingInnerHits").c_str(), NMissingInnerHits_, (prefix_ + "_NMissingInnerHits[" + prefix_ + "_count]/b").c_str());
 	tree->Branch((prefix_ + "_NPixelLayers").c_str(), NPixelLayers_, (prefix_ + "_NPixelLayers[" + prefix_ + "_count]/b").c_str());
 	tree->Branch((prefix_ + "_NStripLayers").c_str(), NStripLayers_, (prefix_ + "_NStripLayers[" + prefix_ + "_count]/b").c_str());
 	tree->Branch((prefix_ + "_px").c_str(), px_, (prefix_ + "_px[" + prefix_ + "_count]/F").c_str());
@@ -1260,9 +1400,10 @@ void Data_IOTrack::SetUpRead(TTree* tree)
 	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
 	tree->SetBranchAddress((prefix_ + "_VertexNumber").c_str(), VertexNumber_);
 	tree->SetBranchAddress((prefix_ + "_Charge").c_str(), Charge_);
-	tree->SetBranchAddress((prefix_ + "_NHits").c_str(), NHits_);
+	tree->SetBranchAddress((prefix_ + "_NStripHits").c_str(), NStripHits_);
 	tree->SetBranchAddress((prefix_ + "_NPixelHits").c_str(), NPixelHits_);
 	tree->SetBranchAddress((prefix_ + "_NMissingHits").c_str(), NMissingHits_);
+	tree->SetBranchAddress((prefix_ + "_NMissingInnerHits").c_str(), NMissingInnerHits_);
 	tree->SetBranchAddress((prefix_ + "_NPixelLayers").c_str(), NPixelLayers_);
 	tree->SetBranchAddress((prefix_ + "_NStripLayers").c_str(), NStripLayers_);
 	tree->SetBranchAddress((prefix_ + "_px").c_str(), px_);
@@ -1282,9 +1423,10 @@ void Data_IOTrack::Load(TTree* tree, bool load)
 	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_VertexNumber").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_Charge").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NHits").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NStripHits").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_NPixelHits").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_NMissingHits").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NMissingInnerHits").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_NPixelLayers").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_NStripLayers").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_px").c_str(), load);
@@ -1334,9 +1476,9 @@ Char_t IOTrack::Charge() const
 	return data_->Charge_[number_];
 }
 
-UChar_t IOTrack::NHits() const
+UChar_t IOTrack::NStripHits() const
 {
-	return data_->NHits_[number_];
+	return data_->NStripHits_[number_];
 }
 
 UChar_t IOTrack::NPixelHits() const
@@ -1347,6 +1489,11 @@ UChar_t IOTrack::NPixelHits() const
 UChar_t IOTrack::NMissingHits() const
 {
 	return data_->NMissingHits_[number_];
+}
+
+UChar_t IOTrack::NMissingInnerHits() const
+{
+	return data_->NMissingInnerHits_[number_];
 }
 
 UChar_t IOTrack::NPixelLayers() const
@@ -1411,156 +1558,271 @@ Float_t IOTrack::DeDx() const
 
 void IOTrack::VertexNumber(Int_t _VertexNumber)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(49);//ERROR49
+		return;
+	}
 	data_->VertexNumber_[number_] = _VertexNumber;
 }
 
 void IOTrack::Charge(Char_t _Charge)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(50);//ERROR50
+		return;
+	}
 	data_->Charge_[number_] = _Charge;
 }
 
-void IOTrack::NHits(UChar_t _NHits)
+void IOTrack::NStripHits(UChar_t _NStripHits)
 {
-	data_->NHits_[number_] = _NHits;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(51);//ERROR51
+		return;
+	}
+	data_->NStripHits_[number_] = _NStripHits;
 }
 
 void IOTrack::NPixelHits(UChar_t _NPixelHits)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(52);//ERROR52
+		return;
+	}
 	data_->NPixelHits_[number_] = _NPixelHits;
 }
 
 void IOTrack::NMissingHits(UChar_t _NMissingHits)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(53);//ERROR53
+		return;
+	}
 	data_->NMissingHits_[number_] = _NMissingHits;
+}
+
+void IOTrack::NMissingInnerHits(UChar_t _NMissingInnerHits)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(54);//ERROR54
+		return;
+	}
+	data_->NMissingInnerHits_[number_] = _NMissingInnerHits;
 }
 
 void IOTrack::NPixelLayers(UChar_t _NPixelLayers)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(55);//ERROR55
+		return;
+	}
 	data_->NPixelLayers_[number_] = _NPixelLayers;
 }
 
 void IOTrack::NStripLayers(UChar_t _NStripLayers)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(56);//ERROR56
+		return;
+	}
 	data_->NStripLayers_[number_] = _NStripLayers;
 }
 
 void IOTrack::px(Float_t _px)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(57);//ERROR57
+		return;
+	}
 	data_->px_[number_] = _px;
 }
 
 void IOTrack::py(Float_t _py)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(58);//ERROR58
+		return;
+	}
 	data_->py_[number_] = _py;
 }
 
 void IOTrack::pz(Float_t _pz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(59);//ERROR59
+		return;
+	}
 	data_->pz_[number_] = _pz;
 }
 
 void IOTrack::ChiQ(Float_t _ChiQ)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(60);//ERROR60
+		return;
+	}
 	data_->ChiQ_[number_] = _ChiQ;
 }
 
 void IOTrack::NDOF(Float_t _NDOF)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(61);//ERROR61
+		return;
+	}
 	data_->NDOF_[number_] = _NDOF;
 }
 
 void IOTrack::Dxy(Float_t _Dxy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(62);//ERROR62
+		return;
+	}
 	data_->Dxy_[number_] = _Dxy;
 }
 
 void IOTrack::DxyUnc(Float_t _DxyUnc)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(63);//ERROR63
+		return;
+	}
 	data_->DxyUnc_[number_] = _DxyUnc;
 }
 
 void IOTrack::Dz(Float_t _Dz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(64);//ERROR64
+		return;
+	}
 	data_->Dz_[number_] = _Dz;
 }
 
 void IOTrack::DzUnc(Float_t _DzUnc)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(65);//ERROR65
+		return;
+	}
 	data_->DzUnc_[number_] = _DzUnc;
 }
 
 void IOTrack::DeDx(Float_t _DeDx)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(66);//ERROR66
+		return;
+	}
 	data_->DeDx_[number_] = _DeDx;
 }
 
 
 
-//Data_IOPosition Data_IOPosition Data_IOPosition Data_IOPosition Data_IOPosition Data_IOPosition Data_IOPosition Data_IOPosition Data_IOPosition Data_IOPosition 
-BaseIO* Data_IOPosition::baseio = 0;
-Data_IOPosition::Data_IOPosition(UInt_t size, std::string prefix = "") : 
+//Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster 
+BaseIO* Data_IOSuperCluster::baseio = 0;
+Data_IOSuperCluster::Data_IOSuperCluster(UInt_t size, std::string prefix = "") : 
 size_(size),
 prefix_(prefix)
 {
-	x_ = new Double_t[size_];
-	y_ = new Double_t[size_];
-	z_ = new Double_t[size_];
+	x_ = new Float_t[size_];
+	y_ = new Float_t[size_];
+	z_ = new Float_t[size_];
+	Energy_ = new Float_t[size_];
+	RawEnergy_ = new Float_t[size_];
+	PhiWidth_ = new Float_t[size_];
+	EtaWidth_ = new Float_t[size_];
 }
 
-Data_IOPosition::~Data_IOPosition()
+Data_IOSuperCluster::~Data_IOSuperCluster()
 {
 	delete[] x_;
 	delete[] y_;
 	delete[] z_;
+	delete[] Energy_;
+	delete[] RawEnergy_;
+	delete[] PhiWidth_;
+	delete[] EtaWidth_;
 }
 
-void Data_IOPosition::Fill()
+void Data_IOSuperCluster::Fill()
 {
 	count_ = 0;
 }
 
-void Data_IOPosition::SetUpWrite(TTree* tree)
+void Data_IOSuperCluster::SetUpWrite(TTree* tree)
 {
 	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_x").c_str(), x_, (prefix_ + "_x[" + prefix_ + "_count]/D").c_str());
-	tree->Branch((prefix_ + "_y").c_str(), y_, (prefix_ + "_y[" + prefix_ + "_count]/D").c_str());
-	tree->Branch((prefix_ + "_z").c_str(), z_, (prefix_ + "_z[" + prefix_ + "_count]/D").c_str());
+	tree->Branch((prefix_ + "_x").c_str(), x_, (prefix_ + "_x[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_y").c_str(), y_, (prefix_ + "_y[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_z").c_str(), z_, (prefix_ + "_z[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_Energy").c_str(), Energy_, (prefix_ + "_Energy[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_RawEnergy").c_str(), RawEnergy_, (prefix_ + "_RawEnergy[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_PhiWidth").c_str(), PhiWidth_, (prefix_ + "_PhiWidth[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_EtaWidth").c_str(), EtaWidth_, (prefix_ + "_EtaWidth[" + prefix_ + "_count]/F").c_str());
 }
 
-void Data_IOPosition::SetUpRead(TTree* tree)
+void Data_IOSuperCluster::SetUpRead(TTree* tree)
 {
 	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
 	tree->SetBranchAddress((prefix_ + "_x").c_str(), x_);
 	tree->SetBranchAddress((prefix_ + "_y").c_str(), y_);
 	tree->SetBranchAddress((prefix_ + "_z").c_str(), z_);
+	tree->SetBranchAddress((prefix_ + "_Energy").c_str(), Energy_);
+	tree->SetBranchAddress((prefix_ + "_RawEnergy").c_str(), RawEnergy_);
+	tree->SetBranchAddress((prefix_ + "_PhiWidth").c_str(), PhiWidth_);
+	tree->SetBranchAddress((prefix_ + "_EtaWidth").c_str(), EtaWidth_);
 }
 
-void Data_IOPosition::Load(TTree* tree, bool load)
+void Data_IOSuperCluster::Load(TTree* tree, bool load)
 {
 	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_x").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_y").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_z").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_Energy").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_RawEnergy").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_PhiWidth").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_EtaWidth").c_str(), load);
 }
 
 
 
-//IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == IOPosition == 
-BaseIO* IOPosition::baseio = 0;
-IOPosition::IOPosition(Data_IOPosition* data, UInt_t number) : 
+//IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == 
+BaseIO* IOSuperCluster::baseio = 0;
+IOSuperCluster::IOSuperCluster(Data_IOSuperCluster* data, UInt_t number) : 
 number_(number),
 data_(data)
 {
 	Init();
 }
 
-IOPosition::IOPosition(const IOPosition& _ioposition) : 
-number_( _ioposition.number_),
-data_( _ioposition.data_)
+IOSuperCluster::IOSuperCluster(const IOSuperCluster& _iosupercluster) : 
+number_( _iosupercluster.number_),
+data_( _iosupercluster.data_)
 {
 }
 
-void IOPosition::Init()
+void IOSuperCluster::Init()
 {
 	if(baseio->IsWritable())
 	{
@@ -1568,34 +1830,109 @@ void IOPosition::Init()
 	}
 }
 
-Double_t IOPosition::x() const
+Float_t IOSuperCluster::x() const
 {
 	return data_->x_[number_];
 }
 
-Double_t IOPosition::y() const
+Float_t IOSuperCluster::y() const
 {
 	return data_->y_[number_];
 }
 
-Double_t IOPosition::z() const
+Float_t IOSuperCluster::z() const
 {
 	return data_->z_[number_];
 }
 
-void IOPosition::x(Double_t _x)
+Float_t IOSuperCluster::Energy() const
 {
+	return data_->Energy_[number_];
+}
+
+Float_t IOSuperCluster::RawEnergy() const
+{
+	return data_->RawEnergy_[number_];
+}
+
+Float_t IOSuperCluster::PhiWidth() const
+{
+	return data_->PhiWidth_[number_];
+}
+
+Float_t IOSuperCluster::EtaWidth() const
+{
+	return data_->EtaWidth_[number_];
+}
+
+void IOSuperCluster::x(Float_t _x)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(67);//ERROR67
+		return;
+	}
 	data_->x_[number_] = _x;
 }
 
-void IOPosition::y(Double_t _y)
+void IOSuperCluster::y(Float_t _y)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(68);//ERROR68
+		return;
+	}
 	data_->y_[number_] = _y;
 }
 
-void IOPosition::z(Double_t _z)
+void IOSuperCluster::z(Float_t _z)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(69);//ERROR69
+		return;
+	}
 	data_->z_[number_] = _z;
+}
+
+void IOSuperCluster::Energy(Float_t _Energy)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(70);//ERROR70
+		return;
+	}
+	data_->Energy_[number_] = _Energy;
+}
+
+void IOSuperCluster::RawEnergy(Float_t _RawEnergy)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(71);//ERROR71
+		return;
+	}
+	data_->RawEnergy_[number_] = _RawEnergy;
+}
+
+void IOSuperCluster::PhiWidth(Float_t _PhiWidth)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(72);//ERROR72
+		return;
+	}
+	data_->PhiWidth_[number_] = _PhiWidth;
+}
+
+void IOSuperCluster::EtaWidth(Float_t _EtaWidth)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(73);//ERROR73
+		return;
+	}
+	data_->EtaWidth_[number_] = _EtaWidth;
 }
 
 
@@ -1606,10 +1943,6 @@ Data_PFIsolation::Data_PFIsolation(UInt_t size, std::string prefix = "") :
 size_(size),
 prefix_(prefix)
 {
-	NumCharged_ = new Int_t[size_];
-	NumNeutral_ = new Int_t[size_];
-	NumHadron_ = new Int_t[size_];
-	NumPhoton_ = new Int_t[size_];
 	Charged_ = new Float_t[size_];
 	Neutral_ = new Float_t[size_];
 	Hadron_ = new Float_t[size_];
@@ -1618,10 +1951,6 @@ prefix_(prefix)
 
 Data_PFIsolation::~Data_PFIsolation()
 {
-	delete[] NumCharged_;
-	delete[] NumNeutral_;
-	delete[] NumHadron_;
-	delete[] NumPhoton_;
 	delete[] Charged_;
 	delete[] Neutral_;
 	delete[] Hadron_;
@@ -1636,10 +1965,6 @@ void Data_PFIsolation::Fill()
 void Data_PFIsolation::SetUpWrite(TTree* tree)
 {
 	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_NumCharged").c_str(), NumCharged_, (prefix_ + "_NumCharged[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumNeutral").c_str(), NumNeutral_, (prefix_ + "_NumNeutral[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumHadron").c_str(), NumHadron_, (prefix_ + "_NumHadron[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumPhoton").c_str(), NumPhoton_, (prefix_ + "_NumPhoton[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_Charged").c_str(), Charged_, (prefix_ + "_Charged[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_Neutral").c_str(), Neutral_, (prefix_ + "_Neutral[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_Hadron").c_str(), Hadron_, (prefix_ + "_Hadron[" + prefix_ + "_count]/F").c_str());
@@ -1649,10 +1974,6 @@ void Data_PFIsolation::SetUpWrite(TTree* tree)
 void Data_PFIsolation::SetUpRead(TTree* tree)
 {
 	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
-	tree->SetBranchAddress((prefix_ + "_NumCharged").c_str(), NumCharged_);
-	tree->SetBranchAddress((prefix_ + "_NumNeutral").c_str(), NumNeutral_);
-	tree->SetBranchAddress((prefix_ + "_NumHadron").c_str(), NumHadron_);
-	tree->SetBranchAddress((prefix_ + "_NumPhoton").c_str(), NumPhoton_);
 	tree->SetBranchAddress((prefix_ + "_Charged").c_str(), Charged_);
 	tree->SetBranchAddress((prefix_ + "_Neutral").c_str(), Neutral_);
 	tree->SetBranchAddress((prefix_ + "_Hadron").c_str(), Hadron_);
@@ -1662,10 +1983,6 @@ void Data_PFIsolation::SetUpRead(TTree* tree)
 void Data_PFIsolation::Load(TTree* tree, bool load)
 {
 	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumCharged").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumNeutral").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumHadron").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumPhoton").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_Charged").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_Neutral").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_Hadron").c_str(), load);
@@ -1697,26 +2014,6 @@ void PFIsolation::Init()
 	}
 }
 
-Int_t PFIsolation::NumCharged() const
-{
-	return data_->NumCharged_[number_];
-}
-
-Int_t PFIsolation::NumNeutral() const
-{
-	return data_->NumNeutral_[number_];
-}
-
-Int_t PFIsolation::NumHadron() const
-{
-	return data_->NumHadron_[number_];
-}
-
-Int_t PFIsolation::NumPhoton() const
-{
-	return data_->NumPhoton_[number_];
-}
-
 Float_t PFIsolation::Charged() const
 {
 	return data_->Charged_[number_];
@@ -1737,43 +2034,43 @@ Float_t PFIsolation::Photon() const
 	return data_->Photon_[number_];
 }
 
-void PFIsolation::NumCharged(Int_t _NumCharged)
-{
-	data_->NumCharged_[number_] = _NumCharged;
-}
-
-void PFIsolation::NumNeutral(Int_t _NumNeutral)
-{
-	data_->NumNeutral_[number_] = _NumNeutral;
-}
-
-void PFIsolation::NumHadron(Int_t _NumHadron)
-{
-	data_->NumHadron_[number_] = _NumHadron;
-}
-
-void PFIsolation::NumPhoton(Int_t _NumPhoton)
-{
-	data_->NumPhoton_[number_] = _NumPhoton;
-}
-
 void PFIsolation::Charged(Float_t _Charged)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(74);//ERROR74
+		return;
+	}
 	data_->Charged_[number_] = _Charged;
 }
 
 void PFIsolation::Neutral(Float_t _Neutral)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(75);//ERROR75
+		return;
+	}
 	data_->Neutral_[number_] = _Neutral;
 }
 
 void PFIsolation::Hadron(Float_t _Hadron)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(76);//ERROR76
+		return;
+	}
 	data_->Hadron_[number_] = _Hadron;
 }
 
 void PFIsolation::Photon(Float_t _Photon)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(77);//ERROR77
+		return;
+	}
 	data_->Photon_[number_] = _Photon;
 }
 
@@ -1784,20 +2081,19 @@ BaseIO* Data_IOElectron::baseio = 0;
 Data_IOElectron::Data_IOElectron(UInt_t size, std::string prefix = "") : 
 size_(size),
 prefix_(prefix)
-, ECalPos_(new Data_IOPosition(size_, prefix_ + "_ECalPos"))
 , PFR3_(new Data_PFIsolation(size_, prefix_ + "_PFR3"))
-, PFR4_(new Data_PFIsolation(size_, prefix_ + "_PFR4"))
-, GSFTrack_(new Data_IOTrack(size_, prefix_ + "_GSFTrack"))
-, DetR3_(new Data_DetIsolation(size_, prefix_ + "_DetR3"))
-, DetR4_(new Data_DetIsolation(size_, prefix_ + "_DetR4"))
 , SC_(new Data_IOSuperCluster(size_, prefix_ + "_SC"))
+, GSFTrack_(new Data_IOTrack(size_, prefix_ + "_GSFTrack"))
 {
+	TriggerMatching_ = new UInt_t[size_];
+	Info_ = new UInt_t[size_];
 	px_ = new Float_t[size_];
 	py_ = new Float_t[size_];
 	pz_ = new Float_t[size_];
 	DeltaEtaSCTrack_ = new Float_t[size_];
 	DeltaPhiSCTrack_ = new Float_t[size_];
 	ESCOverETrack_ = new Float_t[size_];
+	ECalEnergy_ = new Float_t[size_];
 	E1x5_ = new Float_t[size_];
 	E2x5_ = new Float_t[size_];
 	E5x5_ = new Float_t[size_];
@@ -1805,19 +2101,24 @@ prefix_(prefix)
 	SigmaIEtaIEta_ = new Float_t[size_];
 	SigmaIPhiIPhi_ = new Float_t[size_];
 	SigmaIEtaIPhi_ = new Float_t[size_];
-	EHCalTowerOverECal_ = new Float_t[size_];
-	VertexNumber_ = new Int_t[size_];
-	Trigger_ = new Int_t[size_];
+	EHCalTowerOverECalD1_ = new Float_t[size_];
+	EHCalTowerOverECalD2_ = new Float_t[size_];
 }
 
 Data_IOElectron::~Data_IOElectron()
 {
+	delete[] TriggerMatching_;
+	delete[] Info_;
+	delete PFR3_;
+	delete SC_;
+	delete GSFTrack_;
 	delete[] px_;
 	delete[] py_;
 	delete[] pz_;
 	delete[] DeltaEtaSCTrack_;
 	delete[] DeltaPhiSCTrack_;
 	delete[] ESCOverETrack_;
+	delete[] ECalEnergy_;
 	delete[] E1x5_;
 	delete[] E2x5_;
 	delete[] E5x5_;
@@ -1825,39 +2126,30 @@ Data_IOElectron::~Data_IOElectron()
 	delete[] SigmaIEtaIEta_;
 	delete[] SigmaIPhiIPhi_;
 	delete[] SigmaIEtaIPhi_;
-	delete[] EHCalTowerOverECal_;
-	delete[] VertexNumber_;
-	delete[] Trigger_;
-	delete ECalPos_;
-	delete PFR3_;
-	delete PFR4_;
-	delete GSFTrack_;
-	delete DetR3_;
-	delete DetR4_;
-	delete SC_;
+	delete[] EHCalTowerOverECalD1_;
+	delete[] EHCalTowerOverECalD2_;
 }
 
 void Data_IOElectron::Fill()
 {
 	count_ = 0;
-	ECalPos_->Fill();
 	PFR3_->Fill();
-	PFR4_->Fill();
-	GSFTrack_->Fill();
-	DetR3_->Fill();
-	DetR4_->Fill();
 	SC_->Fill();
+	GSFTrack_->Fill();
 }
 
 void Data_IOElectron::SetUpWrite(TTree* tree)
 {
 	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
+	tree->Branch((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_, (prefix_ + "_TriggerMatching[" + prefix_ + "_count]/i").c_str());
+	tree->Branch((prefix_ + "_Info").c_str(), Info_, (prefix_ + "_Info[" + prefix_ + "_count]/i").c_str());
 	tree->Branch((prefix_ + "_px").c_str(), px_, (prefix_ + "_px[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_py").c_str(), py_, (prefix_ + "_py[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_pz").c_str(), pz_, (prefix_ + "_pz[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_DeltaEtaSCTrack").c_str(), DeltaEtaSCTrack_, (prefix_ + "_DeltaEtaSCTrack[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_DeltaPhiSCTrack").c_str(), DeltaPhiSCTrack_, (prefix_ + "_DeltaPhiSCTrack[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_ESCOverETrack").c_str(), ESCOverETrack_, (prefix_ + "_ESCOverETrack[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_ECalEnergy").c_str(), ECalEnergy_, (prefix_ + "_ECalEnergy[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_E1x5").c_str(), E1x5_, (prefix_ + "_E1x5[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_E2x5").c_str(), E2x5_, (prefix_ + "_E2x5[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_E5x5").c_str(), E5x5_, (prefix_ + "_E5x5[" + prefix_ + "_count]/F").c_str());
@@ -1865,27 +2157,25 @@ void Data_IOElectron::SetUpWrite(TTree* tree)
 	tree->Branch((prefix_ + "_SigmaIEtaIEta").c_str(), SigmaIEtaIEta_, (prefix_ + "_SigmaIEtaIEta[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_SigmaIPhiIPhi").c_str(), SigmaIPhiIPhi_, (prefix_ + "_SigmaIPhiIPhi[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_SigmaIEtaIPhi").c_str(), SigmaIEtaIPhi_, (prefix_ + "_SigmaIEtaIPhi[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_EHCalTowerOverECal").c_str(), EHCalTowerOverECal_, (prefix_ + "_EHCalTowerOverECal[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_VertexNumber").c_str(), VertexNumber_, (prefix_ + "_VertexNumber[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_Trigger").c_str(), Trigger_, (prefix_ + "_Trigger[" + prefix_ + "_count]/I").c_str());
-	ECalPos_->SetUpWrite(tree);
+	tree->Branch((prefix_ + "_EHCalTowerOverECalD1").c_str(), EHCalTowerOverECalD1_, (prefix_ + "_EHCalTowerOverECalD1[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_EHCalTowerOverECalD2").c_str(), EHCalTowerOverECalD2_, (prefix_ + "_EHCalTowerOverECalD2[" + prefix_ + "_count]/F").c_str());
 	PFR3_->SetUpWrite(tree);
-	PFR4_->SetUpWrite(tree);
-	GSFTrack_->SetUpWrite(tree);
-	DetR3_->SetUpWrite(tree);
-	DetR4_->SetUpWrite(tree);
 	SC_->SetUpWrite(tree);
+	GSFTrack_->SetUpWrite(tree);
 }
 
 void Data_IOElectron::SetUpRead(TTree* tree)
 {
 	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
+	tree->SetBranchAddress((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_);
+	tree->SetBranchAddress((prefix_ + "_Info").c_str(), Info_);
 	tree->SetBranchAddress((prefix_ + "_px").c_str(), px_);
 	tree->SetBranchAddress((prefix_ + "_py").c_str(), py_);
 	tree->SetBranchAddress((prefix_ + "_pz").c_str(), pz_);
 	tree->SetBranchAddress((prefix_ + "_DeltaEtaSCTrack").c_str(), DeltaEtaSCTrack_);
 	tree->SetBranchAddress((prefix_ + "_DeltaPhiSCTrack").c_str(), DeltaPhiSCTrack_);
 	tree->SetBranchAddress((prefix_ + "_ESCOverETrack").c_str(), ESCOverETrack_);
+	tree->SetBranchAddress((prefix_ + "_ECalEnergy").c_str(), ECalEnergy_);
 	tree->SetBranchAddress((prefix_ + "_E1x5").c_str(), E1x5_);
 	tree->SetBranchAddress((prefix_ + "_E2x5").c_str(), E2x5_);
 	tree->SetBranchAddress((prefix_ + "_E5x5").c_str(), E5x5_);
@@ -1893,27 +2183,25 @@ void Data_IOElectron::SetUpRead(TTree* tree)
 	tree->SetBranchAddress((prefix_ + "_SigmaIEtaIEta").c_str(), SigmaIEtaIEta_);
 	tree->SetBranchAddress((prefix_ + "_SigmaIPhiIPhi").c_str(), SigmaIPhiIPhi_);
 	tree->SetBranchAddress((prefix_ + "_SigmaIEtaIPhi").c_str(), SigmaIEtaIPhi_);
-	tree->SetBranchAddress((prefix_ + "_EHCalTowerOverECal").c_str(), EHCalTowerOverECal_);
-	tree->SetBranchAddress((prefix_ + "_VertexNumber").c_str(), VertexNumber_);
-	tree->SetBranchAddress((prefix_ + "_Trigger").c_str(), Trigger_);
-	ECalPos_->SetUpRead(tree);
+	tree->SetBranchAddress((prefix_ + "_EHCalTowerOverECalD1").c_str(), EHCalTowerOverECalD1_);
+	tree->SetBranchAddress((prefix_ + "_EHCalTowerOverECalD2").c_str(), EHCalTowerOverECalD2_);
 	PFR3_->SetUpRead(tree);
-	PFR4_->SetUpRead(tree);
-	GSFTrack_->SetUpRead(tree);
-	DetR3_->SetUpRead(tree);
-	DetR4_->SetUpRead(tree);
 	SC_->SetUpRead(tree);
+	GSFTrack_->SetUpRead(tree);
 }
 
 void Data_IOElectron::Load(TTree* tree, bool load)
 {
 	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_TriggerMatching").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_Info").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_px").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_py").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_pz").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_DeltaEtaSCTrack").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_DeltaPhiSCTrack").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_ESCOverETrack").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_ECalEnergy").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_E1x5").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_E2x5").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_E5x5").c_str(), load);
@@ -1921,16 +2209,11 @@ void Data_IOElectron::Load(TTree* tree, bool load)
 	tree->SetBranchStatus((prefix_ + "_SigmaIEtaIEta").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_SigmaIPhiIPhi").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_SigmaIEtaIPhi").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_EHCalTowerOverECal").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_VertexNumber").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_Trigger").c_str(), load);
-	ECalPos_->Load(tree, load);
+	tree->SetBranchStatus((prefix_ + "_EHCalTowerOverECalD1").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_EHCalTowerOverECalD2").c_str(), load);
 	PFR3_->Load(tree, load);
-	PFR4_->Load(tree, load);
-	GSFTrack_->Load(tree, load);
-	DetR3_->Load(tree, load);
-	DetR4_->Load(tree, load);
 	SC_->Load(tree, load);
+	GSFTrack_->Load(tree, load);
 }
 
 
@@ -1956,6 +2239,31 @@ void IOElectron::Init()
 	{
 		data_->count_ = number_+1;
 	}
+}
+
+UInt_t IOElectron::TriggerMatching() const
+{
+	return data_->TriggerMatching_[number_];
+}
+
+UInt_t IOElectron::Info() const
+{
+	return data_->Info_[number_];
+}
+
+PFIsolation IOElectron::PFR3() const
+{
+	return PFIsolation(data_->PFR3_, number_);
+}
+
+IOSuperCluster IOElectron::SC() const
+{
+	return IOSuperCluster(data_->SC_, number_);
+}
+
+IOTrack IOElectron::GSFTrack() const
+{
+	return IOTrack(data_->GSFTrack_, number_);
 }
 
 Float_t IOElectron::px() const
@@ -1986,6 +2294,11 @@ Float_t IOElectron::DeltaPhiSCTrack() const
 Float_t IOElectron::ESCOverETrack() const
 {
 	return data_->ESCOverETrack_[number_];
+}
+
+Float_t IOElectron::ECalEnergy() const
+{
+	return data_->ECalEnergy_[number_];
 }
 
 Float_t IOElectron::E1x5() const
@@ -2023,134 +2336,194 @@ Float_t IOElectron::SigmaIEtaIPhi() const
 	return data_->SigmaIEtaIPhi_[number_];
 }
 
-Float_t IOElectron::EHCalTowerOverECal() const
+Float_t IOElectron::EHCalTowerOverECalD1() const
 {
-	return data_->EHCalTowerOverECal_[number_];
+	return data_->EHCalTowerOverECalD1_[number_];
 }
 
-Int_t IOElectron::VertexNumber() const
+Float_t IOElectron::EHCalTowerOverECalD2() const
 {
-	return data_->VertexNumber_[number_];
+	return data_->EHCalTowerOverECalD2_[number_];
 }
 
-Int_t IOElectron::Trigger() const
+void IOElectron::TriggerMatching(UInt_t _TriggerMatching)
 {
-	return data_->Trigger_[number_];
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(78);//ERROR78
+		return;
+	}
+	data_->TriggerMatching_[number_] = _TriggerMatching;
 }
 
-IOPosition IOElectron::ECalPos() const
+void IOElectron::Info(UInt_t _Info)
 {
-	return IOPosition(data_->ECalPos_, number_);
-}
-
-PFIsolation IOElectron::PFR3() const
-{
-	return PFIsolation(data_->PFR3_, number_);
-}
-
-PFIsolation IOElectron::PFR4() const
-{
-	return PFIsolation(data_->PFR4_, number_);
-}
-
-IOTrack IOElectron::GSFTrack() const
-{
-	return IOTrack(data_->GSFTrack_, number_);
-}
-
-DetIsolation IOElectron::DetR3() const
-{
-	return DetIsolation(data_->DetR3_, number_);
-}
-
-DetIsolation IOElectron::DetR4() const
-{
-	return DetIsolation(data_->DetR4_, number_);
-}
-
-IOSuperCluster IOElectron::SC() const
-{
-	return IOSuperCluster(data_->SC_, number_);
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(79);//ERROR79
+		return;
+	}
+	data_->Info_[number_] = _Info;
 }
 
 void IOElectron::px(Float_t _px)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(80);//ERROR80
+		return;
+	}
 	data_->px_[number_] = _px;
 }
 
 void IOElectron::py(Float_t _py)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(81);//ERROR81
+		return;
+	}
 	data_->py_[number_] = _py;
 }
 
 void IOElectron::pz(Float_t _pz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(82);//ERROR82
+		return;
+	}
 	data_->pz_[number_] = _pz;
 }
 
 void IOElectron::DeltaEtaSCTrack(Float_t _DeltaEtaSCTrack)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(83);//ERROR83
+		return;
+	}
 	data_->DeltaEtaSCTrack_[number_] = _DeltaEtaSCTrack;
 }
 
 void IOElectron::DeltaPhiSCTrack(Float_t _DeltaPhiSCTrack)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(84);//ERROR84
+		return;
+	}
 	data_->DeltaPhiSCTrack_[number_] = _DeltaPhiSCTrack;
 }
 
 void IOElectron::ESCOverETrack(Float_t _ESCOverETrack)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(85);//ERROR85
+		return;
+	}
 	data_->ESCOverETrack_[number_] = _ESCOverETrack;
+}
+
+void IOElectron::ECalEnergy(Float_t _ECalEnergy)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(86);//ERROR86
+		return;
+	}
+	data_->ECalEnergy_[number_] = _ECalEnergy;
 }
 
 void IOElectron::E1x5(Float_t _E1x5)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(87);//ERROR87
+		return;
+	}
 	data_->E1x5_[number_] = _E1x5;
 }
 
 void IOElectron::E2x5(Float_t _E2x5)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(88);//ERROR88
+		return;
+	}
 	data_->E2x5_[number_] = _E2x5;
 }
 
 void IOElectron::E5x5(Float_t _E5x5)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(89);//ERROR89
+		return;
+	}
 	data_->E5x5_[number_] = _E5x5;
 }
 
 void IOElectron::R9(Float_t _R9)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(90);//ERROR90
+		return;
+	}
 	data_->R9_[number_] = _R9;
 }
 
 void IOElectron::SigmaIEtaIEta(Float_t _SigmaIEtaIEta)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(91);//ERROR91
+		return;
+	}
 	data_->SigmaIEtaIEta_[number_] = _SigmaIEtaIEta;
 }
 
 void IOElectron::SigmaIPhiIPhi(Float_t _SigmaIPhiIPhi)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(92);//ERROR92
+		return;
+	}
 	data_->SigmaIPhiIPhi_[number_] = _SigmaIPhiIPhi;
 }
 
 void IOElectron::SigmaIEtaIPhi(Float_t _SigmaIEtaIPhi)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(93);//ERROR93
+		return;
+	}
 	data_->SigmaIEtaIPhi_[number_] = _SigmaIEtaIPhi;
 }
 
-void IOElectron::EHCalTowerOverECal(Float_t _EHCalTowerOverECal)
+void IOElectron::EHCalTowerOverECalD1(Float_t _EHCalTowerOverECalD1)
 {
-	data_->EHCalTowerOverECal_[number_] = _EHCalTowerOverECal;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(94);//ERROR94
+		return;
+	}
+	data_->EHCalTowerOverECalD1_[number_] = _EHCalTowerOverECalD1;
 }
 
-void IOElectron::VertexNumber(Int_t _VertexNumber)
+void IOElectron::EHCalTowerOverECalD2(Float_t _EHCalTowerOverECalD2)
 {
-	data_->VertexNumber_[number_] = _VertexNumber;
-}
-
-void IOElectron::Trigger(Int_t _Trigger)
-{
-	data_->Trigger_[number_] = _Trigger;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(95);//ERROR95
+		return;
+	}
+	data_->EHCalTowerOverECalD2_[number_] = _EHCalTowerOverECalD2;
 }
 
 
@@ -2172,8 +2545,10 @@ prefix_(prefix)
 	vz_ = new Float_t[size_];
 	Mother_num_ = new UInt_t[size_];
 	Mother_ = new Int_t[size_*100];
+	Mother_countmax_ = size_*100;
 	Daughter_num_ = new UInt_t[size_];
 	Daughter_ = new Int_t[size_*100];
+	Daughter_countmax_ = size_*100;
 }
 
 Data_AllGenParticle::~Data_AllGenParticle()
@@ -2356,147 +2731,269 @@ Int_t AllGenParticle::Daughter(UInt_t n) const
 
 void AllGenParticle::PDGID(Int_t _PDGID)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(96);//ERROR96
+		return;
+	}
 	data_->PDGID_[number_] = _PDGID;
 }
 
 void AllGenParticle::Status(Int_t _Status)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(97);//ERROR97
+		return;
+	}
 	data_->Status_[number_] = _Status;
 }
 
 void AllGenParticle::px(Float_t _px)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(98);//ERROR98
+		return;
+	}
 	data_->px_[number_] = _px;
 }
 
 void AllGenParticle::py(Float_t _py)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(99);//ERROR99
+		return;
+	}
 	data_->py_[number_] = _py;
 }
 
 void AllGenParticle::pz(Float_t _pz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(100);//ERROR100
+		return;
+	}
 	data_->pz_[number_] = _pz;
 }
 
 void AllGenParticle::e(Float_t _e)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(101);//ERROR101
+		return;
+	}
 	data_->e_[number_] = _e;
 }
 
 void AllGenParticle::vx(Float_t _vx)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(102);//ERROR102
+		return;
+	}
 	data_->vx_[number_] = _vx;
 }
 
 void AllGenParticle::vy(Float_t _vy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(103);//ERROR103
+		return;
+	}
 	data_->vy_[number_] = _vy;
 }
 
 void AllGenParticle::vz(Float_t _vz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(104);//ERROR104
+		return;
+	}
 	data_->vz_[number_] = _vz;
 }
 
 void AllGenParticle::Mother(Int_t _Mother, UInt_t n)
 {
-	if(number_ == 0) {data_->Mother_[n] = _Mother;}
-	else {data_->Mother_[data_->Mother_num_[number_-1] +n] = _Mother;}
+	if(number_ != 0){n = data_->Mother_num_[number_-1] +n;}
+	if(n >= data_->Mother_countmax_)
+	{
+		baseio->SetError(105);//ERROR105
+		return;
+	}
+	if(n != data_->Mother_count_)
+	{
+		cerr << "Index already filled" << endl;
+		return;
+	}
+	data_->Mother_[n] = _Mother;
 	data_->Mother_num_[number_]++;
 	data_->Mother_count_++;
 }
 
 void AllGenParticle::Daughter(Int_t _Daughter, UInt_t n)
 {
-	if(number_ == 0) {data_->Daughter_[n] = _Daughter;}
-	else {data_->Daughter_[data_->Daughter_num_[number_-1] +n] = _Daughter;}
+	if(number_ != 0){n = data_->Daughter_num_[number_-1] +n;}
+	if(n >= data_->Daughter_countmax_)
+	{
+		baseio->SetError(106);//ERROR106
+		return;
+	}
+	if(n != data_->Daughter_count_)
+	{
+		cerr << "Index already filled" << endl;
+		return;
+	}
+	data_->Daughter_[n] = _Daughter;
 	data_->Daughter_num_[number_]++;
 	data_->Daughter_count_++;
 }
 
 
 
-//Data_DetIsolation Data_DetIsolation Data_DetIsolation Data_DetIsolation Data_DetIsolation Data_DetIsolation Data_DetIsolation Data_DetIsolation Data_DetIsolation Data_DetIsolation 
-BaseIO* Data_DetIsolation::baseio = 0;
-Data_DetIsolation::Data_DetIsolation(UInt_t size, std::string prefix = "") : 
+//Data_IOPhoton Data_IOPhoton Data_IOPhoton Data_IOPhoton Data_IOPhoton Data_IOPhoton Data_IOPhoton Data_IOPhoton Data_IOPhoton Data_IOPhoton 
+BaseIO* Data_IOPhoton::baseio = 0;
+Data_IOPhoton::Data_IOPhoton(UInt_t size, std::string prefix = "") : 
 size_(size),
 prefix_(prefix)
+, PFR3_(new Data_PFIsolation(size_, prefix_ + "_PFR3"))
+, SC_(new Data_IOSuperCluster(size_, prefix_ + "_SC"))
 {
-	NumTrack_ = new Int_t[size_];
-	NumECal_ = new Int_t[size_];
-	NumHCal_ = new Int_t[size_];
-	Track_ = new Float_t[size_];
-	ECal_ = new Float_t[size_];
-	HCal_ = new Float_t[size_];
+	TriggerMatching_ = new UInt_t[size_];
+	Info_ = new UInt_t[size_];
+	px_ = new Float_t[size_];
+	py_ = new Float_t[size_];
+	pz_ = new Float_t[size_];
+	E1x5_ = new Float_t[size_];
+	E2x5_ = new Float_t[size_];
+	E3x3_ = new Float_t[size_];
+	E5x5_ = new Float_t[size_];
+	MaxCrystalEnergy_ = new Float_t[size_];
+	SigmaIEtaIEta_ = new Float_t[size_];
+	SigmaIPhiIPhi_ = new Float_t[size_];
+	SigmaIEtaIPhi_ = new Float_t[size_];
+	EHCalTowerOverECalD1_ = new Float_t[size_];
+	EHCalTowerOverECalD2_ = new Float_t[size_];
 }
 
-Data_DetIsolation::~Data_DetIsolation()
+Data_IOPhoton::~Data_IOPhoton()
 {
-	delete[] NumTrack_;
-	delete[] NumECal_;
-	delete[] NumHCal_;
-	delete[] Track_;
-	delete[] ECal_;
-	delete[] HCal_;
+	delete[] TriggerMatching_;
+	delete[] Info_;
+	delete PFR3_;
+	delete SC_;
+	delete[] px_;
+	delete[] py_;
+	delete[] pz_;
+	delete[] E1x5_;
+	delete[] E2x5_;
+	delete[] E3x3_;
+	delete[] E5x5_;
+	delete[] MaxCrystalEnergy_;
+	delete[] SigmaIEtaIEta_;
+	delete[] SigmaIPhiIPhi_;
+	delete[] SigmaIEtaIPhi_;
+	delete[] EHCalTowerOverECalD1_;
+	delete[] EHCalTowerOverECalD2_;
 }
 
-void Data_DetIsolation::Fill()
+void Data_IOPhoton::Fill()
 {
 	count_ = 0;
+	PFR3_->Fill();
+	SC_->Fill();
 }
 
-void Data_DetIsolation::SetUpWrite(TTree* tree)
+void Data_IOPhoton::SetUpWrite(TTree* tree)
 {
 	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_NumTrack").c_str(), NumTrack_, (prefix_ + "_NumTrack[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumECal").c_str(), NumECal_, (prefix_ + "_NumECal[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumHCal").c_str(), NumHCal_, (prefix_ + "_NumHCal[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_Track").c_str(), Track_, (prefix_ + "_Track[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_ECal").c_str(), ECal_, (prefix_ + "_ECal[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_HCal").c_str(), HCal_, (prefix_ + "_HCal[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_, (prefix_ + "_TriggerMatching[" + prefix_ + "_count]/i").c_str());
+	tree->Branch((prefix_ + "_Info").c_str(), Info_, (prefix_ + "_Info[" + prefix_ + "_count]/i").c_str());
+	tree->Branch((prefix_ + "_px").c_str(), px_, (prefix_ + "_px[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_py").c_str(), py_, (prefix_ + "_py[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_pz").c_str(), pz_, (prefix_ + "_pz[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_E1x5").c_str(), E1x5_, (prefix_ + "_E1x5[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_E2x5").c_str(), E2x5_, (prefix_ + "_E2x5[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_E3x3").c_str(), E3x3_, (prefix_ + "_E3x3[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_E5x5").c_str(), E5x5_, (prefix_ + "_E5x5[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_MaxCrystalEnergy").c_str(), MaxCrystalEnergy_, (prefix_ + "_MaxCrystalEnergy[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_SigmaIEtaIEta").c_str(), SigmaIEtaIEta_, (prefix_ + "_SigmaIEtaIEta[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_SigmaIPhiIPhi").c_str(), SigmaIPhiIPhi_, (prefix_ + "_SigmaIPhiIPhi[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_SigmaIEtaIPhi").c_str(), SigmaIEtaIPhi_, (prefix_ + "_SigmaIEtaIPhi[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_EHCalTowerOverECalD1").c_str(), EHCalTowerOverECalD1_, (prefix_ + "_EHCalTowerOverECalD1[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_EHCalTowerOverECalD2").c_str(), EHCalTowerOverECalD2_, (prefix_ + "_EHCalTowerOverECalD2[" + prefix_ + "_count]/F").c_str());
+	PFR3_->SetUpWrite(tree);
+	SC_->SetUpWrite(tree);
 }
 
-void Data_DetIsolation::SetUpRead(TTree* tree)
+void Data_IOPhoton::SetUpRead(TTree* tree)
 {
 	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
-	tree->SetBranchAddress((prefix_ + "_NumTrack").c_str(), NumTrack_);
-	tree->SetBranchAddress((prefix_ + "_NumECal").c_str(), NumECal_);
-	tree->SetBranchAddress((prefix_ + "_NumHCal").c_str(), NumHCal_);
-	tree->SetBranchAddress((prefix_ + "_Track").c_str(), Track_);
-	tree->SetBranchAddress((prefix_ + "_ECal").c_str(), ECal_);
-	tree->SetBranchAddress((prefix_ + "_HCal").c_str(), HCal_);
+	tree->SetBranchAddress((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_);
+	tree->SetBranchAddress((prefix_ + "_Info").c_str(), Info_);
+	tree->SetBranchAddress((prefix_ + "_px").c_str(), px_);
+	tree->SetBranchAddress((prefix_ + "_py").c_str(), py_);
+	tree->SetBranchAddress((prefix_ + "_pz").c_str(), pz_);
+	tree->SetBranchAddress((prefix_ + "_E1x5").c_str(), E1x5_);
+	tree->SetBranchAddress((prefix_ + "_E2x5").c_str(), E2x5_);
+	tree->SetBranchAddress((prefix_ + "_E3x3").c_str(), E3x3_);
+	tree->SetBranchAddress((prefix_ + "_E5x5").c_str(), E5x5_);
+	tree->SetBranchAddress((prefix_ + "_MaxCrystalEnergy").c_str(), MaxCrystalEnergy_);
+	tree->SetBranchAddress((prefix_ + "_SigmaIEtaIEta").c_str(), SigmaIEtaIEta_);
+	tree->SetBranchAddress((prefix_ + "_SigmaIPhiIPhi").c_str(), SigmaIPhiIPhi_);
+	tree->SetBranchAddress((prefix_ + "_SigmaIEtaIPhi").c_str(), SigmaIEtaIPhi_);
+	tree->SetBranchAddress((prefix_ + "_EHCalTowerOverECalD1").c_str(), EHCalTowerOverECalD1_);
+	tree->SetBranchAddress((prefix_ + "_EHCalTowerOverECalD2").c_str(), EHCalTowerOverECalD2_);
+	PFR3_->SetUpRead(tree);
+	SC_->SetUpRead(tree);
 }
 
-void Data_DetIsolation::Load(TTree* tree, bool load)
+void Data_IOPhoton::Load(TTree* tree, bool load)
 {
 	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumTrack").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumECal").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumHCal").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_Track").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_ECal").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_HCal").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_TriggerMatching").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_Info").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_px").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_py").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_pz").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_E1x5").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_E2x5").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_E3x3").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_E5x5").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_MaxCrystalEnergy").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_SigmaIEtaIEta").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_SigmaIPhiIPhi").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_SigmaIEtaIPhi").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_EHCalTowerOverECalD1").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_EHCalTowerOverECalD2").c_str(), load);
+	PFR3_->Load(tree, load);
+	SC_->Load(tree, load);
 }
 
 
 
-//DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == DetIsolation == 
-BaseIO* DetIsolation::baseio = 0;
-DetIsolation::DetIsolation(Data_DetIsolation* data, UInt_t number) : 
+//IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == IOPhoton == 
+BaseIO* IOPhoton::baseio = 0;
+IOPhoton::IOPhoton(Data_IOPhoton* data, UInt_t number) : 
 number_(number),
 data_(data)
 {
 	Init();
 }
 
-DetIsolation::DetIsolation(const DetIsolation& _detisolation) : 
-number_( _detisolation.number_),
-data_( _detisolation.data_)
+IOPhoton::IOPhoton(const IOPhoton& _iophoton) : 
+number_( _iophoton.number_),
+data_( _iophoton.data_)
 {
 }
 
-void DetIsolation::Init()
+void IOPhoton::Init()
 {
 	if(baseio->IsWritable())
 	{
@@ -2504,64 +3001,343 @@ void DetIsolation::Init()
 	}
 }
 
-Int_t DetIsolation::NumTrack() const
+UInt_t IOPhoton::TriggerMatching() const
 {
-	return data_->NumTrack_[number_];
+	return data_->TriggerMatching_[number_];
 }
 
-Int_t DetIsolation::NumECal() const
+UInt_t IOPhoton::Info() const
 {
-	return data_->NumECal_[number_];
+	return data_->Info_[number_];
 }
 
-Int_t DetIsolation::NumHCal() const
+PFIsolation IOPhoton::PFR3() const
 {
-	return data_->NumHCal_[number_];
+	return PFIsolation(data_->PFR3_, number_);
 }
 
-Float_t DetIsolation::Track() const
+IOSuperCluster IOPhoton::SC() const
 {
-	return data_->Track_[number_];
+	return IOSuperCluster(data_->SC_, number_);
 }
 
-Float_t DetIsolation::ECal() const
+Float_t IOPhoton::px() const
 {
-	return data_->ECal_[number_];
+	return data_->px_[number_];
 }
 
-Float_t DetIsolation::HCal() const
+Float_t IOPhoton::py() const
 {
-	return data_->HCal_[number_];
+	return data_->py_[number_];
 }
 
-void DetIsolation::NumTrack(Int_t _NumTrack)
+Float_t IOPhoton::pz() const
 {
-	data_->NumTrack_[number_] = _NumTrack;
+	return data_->pz_[number_];
 }
 
-void DetIsolation::NumECal(Int_t _NumECal)
+Float_t IOPhoton::E1x5() const
 {
-	data_->NumECal_[number_] = _NumECal;
+	return data_->E1x5_[number_];
 }
 
-void DetIsolation::NumHCal(Int_t _NumHCal)
+Float_t IOPhoton::E2x5() const
 {
-	data_->NumHCal_[number_] = _NumHCal;
+	return data_->E2x5_[number_];
 }
 
-void DetIsolation::Track(Float_t _Track)
+Float_t IOPhoton::E3x3() const
 {
-	data_->Track_[number_] = _Track;
+	return data_->E3x3_[number_];
 }
 
-void DetIsolation::ECal(Float_t _ECal)
+Float_t IOPhoton::E5x5() const
 {
-	data_->ECal_[number_] = _ECal;
+	return data_->E5x5_[number_];
 }
 
-void DetIsolation::HCal(Float_t _HCal)
+Float_t IOPhoton::MaxCrystalEnergy() const
 {
-	data_->HCal_[number_] = _HCal;
+	return data_->MaxCrystalEnergy_[number_];
+}
+
+Float_t IOPhoton::SigmaIEtaIEta() const
+{
+	return data_->SigmaIEtaIEta_[number_];
+}
+
+Float_t IOPhoton::SigmaIPhiIPhi() const
+{
+	return data_->SigmaIPhiIPhi_[number_];
+}
+
+Float_t IOPhoton::SigmaIEtaIPhi() const
+{
+	return data_->SigmaIEtaIPhi_[number_];
+}
+
+Float_t IOPhoton::EHCalTowerOverECalD1() const
+{
+	return data_->EHCalTowerOverECalD1_[number_];
+}
+
+Float_t IOPhoton::EHCalTowerOverECalD2() const
+{
+	return data_->EHCalTowerOverECalD2_[number_];
+}
+
+void IOPhoton::TriggerMatching(UInt_t _TriggerMatching)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(107);//ERROR107
+		return;
+	}
+	data_->TriggerMatching_[number_] = _TriggerMatching;
+}
+
+void IOPhoton::Info(UInt_t _Info)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(108);//ERROR108
+		return;
+	}
+	data_->Info_[number_] = _Info;
+}
+
+void IOPhoton::px(Float_t _px)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(109);//ERROR109
+		return;
+	}
+	data_->px_[number_] = _px;
+}
+
+void IOPhoton::py(Float_t _py)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(110);//ERROR110
+		return;
+	}
+	data_->py_[number_] = _py;
+}
+
+void IOPhoton::pz(Float_t _pz)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(111);//ERROR111
+		return;
+	}
+	data_->pz_[number_] = _pz;
+}
+
+void IOPhoton::E1x5(Float_t _E1x5)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(112);//ERROR112
+		return;
+	}
+	data_->E1x5_[number_] = _E1x5;
+}
+
+void IOPhoton::E2x5(Float_t _E2x5)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(113);//ERROR113
+		return;
+	}
+	data_->E2x5_[number_] = _E2x5;
+}
+
+void IOPhoton::E3x3(Float_t _E3x3)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(114);//ERROR114
+		return;
+	}
+	data_->E3x3_[number_] = _E3x3;
+}
+
+void IOPhoton::E5x5(Float_t _E5x5)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(115);//ERROR115
+		return;
+	}
+	data_->E5x5_[number_] = _E5x5;
+}
+
+void IOPhoton::MaxCrystalEnergy(Float_t _MaxCrystalEnergy)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(116);//ERROR116
+		return;
+	}
+	data_->MaxCrystalEnergy_[number_] = _MaxCrystalEnergy;
+}
+
+void IOPhoton::SigmaIEtaIEta(Float_t _SigmaIEtaIEta)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(117);//ERROR117
+		return;
+	}
+	data_->SigmaIEtaIEta_[number_] = _SigmaIEtaIEta;
+}
+
+void IOPhoton::SigmaIPhiIPhi(Float_t _SigmaIPhiIPhi)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(118);//ERROR118
+		return;
+	}
+	data_->SigmaIPhiIPhi_[number_] = _SigmaIPhiIPhi;
+}
+
+void IOPhoton::SigmaIEtaIPhi(Float_t _SigmaIEtaIPhi)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(119);//ERROR119
+		return;
+	}
+	data_->SigmaIEtaIPhi_[number_] = _SigmaIEtaIPhi;
+}
+
+void IOPhoton::EHCalTowerOverECalD1(Float_t _EHCalTowerOverECalD1)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(120);//ERROR120
+		return;
+	}
+	data_->EHCalTowerOverECalD1_[number_] = _EHCalTowerOverECalD1;
+}
+
+void IOPhoton::EHCalTowerOverECalD2(Float_t _EHCalTowerOverECalD2)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(121);//ERROR121
+		return;
+	}
+	data_->EHCalTowerOverECalD2_[number_] = _EHCalTowerOverECalD2;
+}
+
+
+
+//Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString 
+BaseIO* Data_IOString::baseio = 0;
+Data_IOString::Data_IOString(UInt_t size, std::string prefix = "") : 
+size_(size),
+prefix_(prefix)
+{
+	str_num_ = new UInt_t[size_];
+	str_ = new Char_t[size_*100];
+	str_countmax_ = size_*100;
+}
+
+Data_IOString::~Data_IOString()
+{
+	delete[] str_;
+	delete[] str_num_;
+}
+
+void Data_IOString::Fill()
+{
+	count_ = 0;
+	str_count_ = 0;
+}
+
+void Data_IOString::SetUpWrite(TTree* tree)
+{
+	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
+	tree->Branch((prefix_ + "_str_count").c_str(), &str_count_, (prefix_ + "_str_count/i").c_str());
+	tree->Branch((prefix_ + "_str_num").c_str(), str_num_, (prefix_ + "_str_num[" + prefix_ + "_count]/i").c_str());
+	tree->Branch((prefix_ + "_str").c_str(), str_, (prefix_ + "_str[" + prefix_ + "_str_count]/B").c_str());
+}
+
+void Data_IOString::SetUpRead(TTree* tree)
+{
+	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
+	tree->SetBranchAddress((prefix_ + "_str_count").c_str(), &str_count_);
+	tree->SetBranchAddress((prefix_ + "_str_num").c_str(), str_num_);
+	tree->SetBranchAddress((prefix_ + "_str").c_str(), str_);
+}
+
+void Data_IOString::Load(TTree* tree, bool load)
+{
+	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_str_count").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_str_num").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_str").c_str(), load);
+}
+
+
+
+//IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == 
+BaseIO* IOString::baseio = 0;
+IOString::IOString(Data_IOString* data, UInt_t number) : 
+number_(number),
+data_(data)
+{
+	Init();
+}
+
+IOString::IOString(const IOString& _iostring) : 
+number_( _iostring.number_),
+data_( _iostring.data_)
+{
+}
+
+void IOString::Init()
+{
+	if(baseio->IsWritable())
+	{
+		if(number_ == 0) {data_->str_num_[number_] = 0;}
+		else {data_->str_num_[number_] = data_->str_num_[number_-1];}
+		data_->count_ = number_+1;
+	}
+}
+
+UInt_t IOString::Num_str() const
+{
+	return number_ == 0 ? data_->str_num_[number_] : data_->str_num_[number_] - data_->str_num_[number_-1];
+}
+
+Char_t IOString::str(UInt_t n) const
+{
+	return number_ == 0 ? data_->str_[n] : data_->str_[data_->str_num_[number_-1]  + n];
+}
+
+void IOString::str(Char_t _str, UInt_t n)
+{
+	if(number_ != 0){n = data_->str_num_[number_-1] +n;}
+	if(n >= data_->str_countmax_)
+	{
+		baseio->SetError(122);//ERROR122
+		return;
+	}
+	if(n != data_->str_count_)
+	{
+		cerr << "Index already filled" << endl;
+		return;
+	}
+	data_->str_[n] = _str;
+	data_->str_num_[number_]++;
+	data_->str_count_++;
 }
 
 
@@ -2572,62 +3348,68 @@ Data_IOPFJet::Data_IOPFJet(UInt_t size, std::string prefix = "") :
 size_(size),
 prefix_(prefix)
 {
-	NumCharged_ = new Int_t[size_];
-	NumNeutral_ = new Int_t[size_];
-	NumHadron_ = new Int_t[size_];
-	NumPhoton_ = new Int_t[size_];
-	NumElectron_ = new Int_t[size_];
-	NumMuon_ = new Int_t[size_];
-	MCFlavor_ = new Int_t[size_];
+	TriggerMatching_ = new UInt_t[size_];
+	NumChargedHadrons_ = new Int_t[size_];
+	NumNeutralHadrons_ = new Int_t[size_];
+	NumPhotons_ = new Int_t[size_];
+	NumElectrons_ = new Int_t[size_];
+	NumMuons_ = new Int_t[size_];
+	NumForwardEMs_ = new Int_t[size_];
+	NumForwardHads_ = new Int_t[size_];
 	px_ = new Float_t[size_];
 	py_ = new Float_t[size_];
 	pz_ = new Float_t[size_];
 	e_ = new Float_t[size_];
-	HCalEnergy_ = new Float_t[size_];
-	ECalEnergy_ = new Float_t[size_];
-	TrackEnergy_ = new Float_t[size_];
-	ChargedEnergy_ = new Float_t[size_];
-	NeutralEnergy_ = new Float_t[size_];
-	HadronEnergy_ = new Float_t[size_];
+	Area_ = new Float_t[size_];
+	Mass_ = new Float_t[size_];
+	ChargedHadronEnergy_ = new Float_t[size_];
+	NeutralHadronEnergy_ = new Float_t[size_];
 	PhotonEnergy_ = new Float_t[size_];
 	ElectronEnergy_ = new Float_t[size_];
 	MuonEnergy_ = new Float_t[size_];
+	ForwardEM_ = new Float_t[size_];
+	ForwardHad_ = new Float_t[size_];
 	ChargedPtMomPA_ = new Float_t[size_];
 	ChargedPtMomPB_ = new Float_t[size_];
-	ConstPtMomPA_ = new Float_t[size_];
-	ConstPtMomPB_ = new Float_t[size_];
-	PtWrongPrimaryVertex_ = new Float_t[size_];
+	ConstituentPtMomPA_ = new Float_t[size_];
+	ConstituentPtMomPB_ = new Float_t[size_];
+	PtFractionWrongPrimaryVertex_ = new Float_t[size_];
+	MaxChargedPtFraction_ = new Float_t[size_];
+	MaxPtFraction_ = new Float_t[size_];
 	EnergyCorrection_ = new Float_t[size_];
 	EnergyCorrectionUnc_ = new Float_t[size_];
 }
 
 Data_IOPFJet::~Data_IOPFJet()
 {
-	delete[] NumCharged_;
-	delete[] NumNeutral_;
-	delete[] NumHadron_;
-	delete[] NumPhoton_;
-	delete[] NumElectron_;
-	delete[] NumMuon_;
-	delete[] MCFlavor_;
+	delete[] TriggerMatching_;
+	delete[] NumChargedHadrons_;
+	delete[] NumNeutralHadrons_;
+	delete[] NumPhotons_;
+	delete[] NumElectrons_;
+	delete[] NumMuons_;
+	delete[] NumForwardEMs_;
+	delete[] NumForwardHads_;
 	delete[] px_;
 	delete[] py_;
 	delete[] pz_;
 	delete[] e_;
-	delete[] HCalEnergy_;
-	delete[] ECalEnergy_;
-	delete[] TrackEnergy_;
-	delete[] ChargedEnergy_;
-	delete[] NeutralEnergy_;
-	delete[] HadronEnergy_;
+	delete[] Area_;
+	delete[] Mass_;
+	delete[] ChargedHadronEnergy_;
+	delete[] NeutralHadronEnergy_;
 	delete[] PhotonEnergy_;
 	delete[] ElectronEnergy_;
 	delete[] MuonEnergy_;
+	delete[] ForwardEM_;
+	delete[] ForwardHad_;
 	delete[] ChargedPtMomPA_;
 	delete[] ChargedPtMomPB_;
-	delete[] ConstPtMomPA_;
-	delete[] ConstPtMomPB_;
-	delete[] PtWrongPrimaryVertex_;
+	delete[] ConstituentPtMomPA_;
+	delete[] ConstituentPtMomPB_;
+	delete[] PtFractionWrongPrimaryVertex_;
+	delete[] MaxChargedPtFraction_;
+	delete[] MaxPtFraction_;
 	delete[] EnergyCorrection_;
 	delete[] EnergyCorrectionUnc_;
 }
@@ -2640,31 +3422,34 @@ void Data_IOPFJet::Fill()
 void Data_IOPFJet::SetUpWrite(TTree* tree)
 {
 	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_NumCharged").c_str(), NumCharged_, (prefix_ + "_NumCharged[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumNeutral").c_str(), NumNeutral_, (prefix_ + "_NumNeutral[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumHadron").c_str(), NumHadron_, (prefix_ + "_NumHadron[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumPhoton").c_str(), NumPhoton_, (prefix_ + "_NumPhoton[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumElectron").c_str(), NumElectron_, (prefix_ + "_NumElectron[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_NumMuon").c_str(), NumMuon_, (prefix_ + "_NumMuon[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_MCFlavor").c_str(), MCFlavor_, (prefix_ + "_MCFlavor[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_, (prefix_ + "_TriggerMatching[" + prefix_ + "_count]/i").c_str());
+	tree->Branch((prefix_ + "_NumChargedHadrons").c_str(), NumChargedHadrons_, (prefix_ + "_NumChargedHadrons[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_NumNeutralHadrons").c_str(), NumNeutralHadrons_, (prefix_ + "_NumNeutralHadrons[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_NumPhotons").c_str(), NumPhotons_, (prefix_ + "_NumPhotons[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_NumElectrons").c_str(), NumElectrons_, (prefix_ + "_NumElectrons[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_NumMuons").c_str(), NumMuons_, (prefix_ + "_NumMuons[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_NumForwardEMs").c_str(), NumForwardEMs_, (prefix_ + "_NumForwardEMs[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_NumForwardHads").c_str(), NumForwardHads_, (prefix_ + "_NumForwardHads[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_px").c_str(), px_, (prefix_ + "_px[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_py").c_str(), py_, (prefix_ + "_py[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_pz").c_str(), pz_, (prefix_ + "_pz[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_e").c_str(), e_, (prefix_ + "_e[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_HCalEnergy").c_str(), HCalEnergy_, (prefix_ + "_HCalEnergy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_ECalEnergy").c_str(), ECalEnergy_, (prefix_ + "_ECalEnergy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_TrackEnergy").c_str(), TrackEnergy_, (prefix_ + "_TrackEnergy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_ChargedEnergy").c_str(), ChargedEnergy_, (prefix_ + "_ChargedEnergy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_NeutralEnergy").c_str(), NeutralEnergy_, (prefix_ + "_NeutralEnergy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_HadronEnergy").c_str(), HadronEnergy_, (prefix_ + "_HadronEnergy[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_Area").c_str(), Area_, (prefix_ + "_Area[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_Mass").c_str(), Mass_, (prefix_ + "_Mass[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_ChargedHadronEnergy").c_str(), ChargedHadronEnergy_, (prefix_ + "_ChargedHadronEnergy[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_NeutralHadronEnergy").c_str(), NeutralHadronEnergy_, (prefix_ + "_NeutralHadronEnergy[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_PhotonEnergy").c_str(), PhotonEnergy_, (prefix_ + "_PhotonEnergy[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_ElectronEnergy").c_str(), ElectronEnergy_, (prefix_ + "_ElectronEnergy[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_MuonEnergy").c_str(), MuonEnergy_, (prefix_ + "_MuonEnergy[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_ForwardEM").c_str(), ForwardEM_, (prefix_ + "_ForwardEM[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_ForwardHad").c_str(), ForwardHad_, (prefix_ + "_ForwardHad[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_ChargedPtMomPA").c_str(), ChargedPtMomPA_, (prefix_ + "_ChargedPtMomPA[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_ChargedPtMomPB").c_str(), ChargedPtMomPB_, (prefix_ + "_ChargedPtMomPB[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_ConstPtMomPA").c_str(), ConstPtMomPA_, (prefix_ + "_ConstPtMomPA[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_ConstPtMomPB").c_str(), ConstPtMomPB_, (prefix_ + "_ConstPtMomPB[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_PtWrongPrimaryVertex").c_str(), PtWrongPrimaryVertex_, (prefix_ + "_PtWrongPrimaryVertex[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_ConstituentPtMomPA").c_str(), ConstituentPtMomPA_, (prefix_ + "_ConstituentPtMomPA[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_ConstituentPtMomPB").c_str(), ConstituentPtMomPB_, (prefix_ + "_ConstituentPtMomPB[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_PtFractionWrongPrimaryVertex").c_str(), PtFractionWrongPrimaryVertex_, (prefix_ + "_PtFractionWrongPrimaryVertex[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_MaxChargedPtFraction").c_str(), MaxChargedPtFraction_, (prefix_ + "_MaxChargedPtFraction[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_MaxPtFraction").c_str(), MaxPtFraction_, (prefix_ + "_MaxPtFraction[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_EnergyCorrection").c_str(), EnergyCorrection_, (prefix_ + "_EnergyCorrection[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_EnergyCorrectionUnc").c_str(), EnergyCorrectionUnc_, (prefix_ + "_EnergyCorrectionUnc[" + prefix_ + "_count]/F").c_str());
 }
@@ -2672,31 +3457,34 @@ void Data_IOPFJet::SetUpWrite(TTree* tree)
 void Data_IOPFJet::SetUpRead(TTree* tree)
 {
 	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
-	tree->SetBranchAddress((prefix_ + "_NumCharged").c_str(), NumCharged_);
-	tree->SetBranchAddress((prefix_ + "_NumNeutral").c_str(), NumNeutral_);
-	tree->SetBranchAddress((prefix_ + "_NumHadron").c_str(), NumHadron_);
-	tree->SetBranchAddress((prefix_ + "_NumPhoton").c_str(), NumPhoton_);
-	tree->SetBranchAddress((prefix_ + "_NumElectron").c_str(), NumElectron_);
-	tree->SetBranchAddress((prefix_ + "_NumMuon").c_str(), NumMuon_);
-	tree->SetBranchAddress((prefix_ + "_MCFlavor").c_str(), MCFlavor_);
+	tree->SetBranchAddress((prefix_ + "_TriggerMatching").c_str(), TriggerMatching_);
+	tree->SetBranchAddress((prefix_ + "_NumChargedHadrons").c_str(), NumChargedHadrons_);
+	tree->SetBranchAddress((prefix_ + "_NumNeutralHadrons").c_str(), NumNeutralHadrons_);
+	tree->SetBranchAddress((prefix_ + "_NumPhotons").c_str(), NumPhotons_);
+	tree->SetBranchAddress((prefix_ + "_NumElectrons").c_str(), NumElectrons_);
+	tree->SetBranchAddress((prefix_ + "_NumMuons").c_str(), NumMuons_);
+	tree->SetBranchAddress((prefix_ + "_NumForwardEMs").c_str(), NumForwardEMs_);
+	tree->SetBranchAddress((prefix_ + "_NumForwardHads").c_str(), NumForwardHads_);
 	tree->SetBranchAddress((prefix_ + "_px").c_str(), px_);
 	tree->SetBranchAddress((prefix_ + "_py").c_str(), py_);
 	tree->SetBranchAddress((prefix_ + "_pz").c_str(), pz_);
 	tree->SetBranchAddress((prefix_ + "_e").c_str(), e_);
-	tree->SetBranchAddress((prefix_ + "_HCalEnergy").c_str(), HCalEnergy_);
-	tree->SetBranchAddress((prefix_ + "_ECalEnergy").c_str(), ECalEnergy_);
-	tree->SetBranchAddress((prefix_ + "_TrackEnergy").c_str(), TrackEnergy_);
-	tree->SetBranchAddress((prefix_ + "_ChargedEnergy").c_str(), ChargedEnergy_);
-	tree->SetBranchAddress((prefix_ + "_NeutralEnergy").c_str(), NeutralEnergy_);
-	tree->SetBranchAddress((prefix_ + "_HadronEnergy").c_str(), HadronEnergy_);
+	tree->SetBranchAddress((prefix_ + "_Area").c_str(), Area_);
+	tree->SetBranchAddress((prefix_ + "_Mass").c_str(), Mass_);
+	tree->SetBranchAddress((prefix_ + "_ChargedHadronEnergy").c_str(), ChargedHadronEnergy_);
+	tree->SetBranchAddress((prefix_ + "_NeutralHadronEnergy").c_str(), NeutralHadronEnergy_);
 	tree->SetBranchAddress((prefix_ + "_PhotonEnergy").c_str(), PhotonEnergy_);
 	tree->SetBranchAddress((prefix_ + "_ElectronEnergy").c_str(), ElectronEnergy_);
 	tree->SetBranchAddress((prefix_ + "_MuonEnergy").c_str(), MuonEnergy_);
+	tree->SetBranchAddress((prefix_ + "_ForwardEM").c_str(), ForwardEM_);
+	tree->SetBranchAddress((prefix_ + "_ForwardHad").c_str(), ForwardHad_);
 	tree->SetBranchAddress((prefix_ + "_ChargedPtMomPA").c_str(), ChargedPtMomPA_);
 	tree->SetBranchAddress((prefix_ + "_ChargedPtMomPB").c_str(), ChargedPtMomPB_);
-	tree->SetBranchAddress((prefix_ + "_ConstPtMomPA").c_str(), ConstPtMomPA_);
-	tree->SetBranchAddress((prefix_ + "_ConstPtMomPB").c_str(), ConstPtMomPB_);
-	tree->SetBranchAddress((prefix_ + "_PtWrongPrimaryVertex").c_str(), PtWrongPrimaryVertex_);
+	tree->SetBranchAddress((prefix_ + "_ConstituentPtMomPA").c_str(), ConstituentPtMomPA_);
+	tree->SetBranchAddress((prefix_ + "_ConstituentPtMomPB").c_str(), ConstituentPtMomPB_);
+	tree->SetBranchAddress((prefix_ + "_PtFractionWrongPrimaryVertex").c_str(), PtFractionWrongPrimaryVertex_);
+	tree->SetBranchAddress((prefix_ + "_MaxChargedPtFraction").c_str(), MaxChargedPtFraction_);
+	tree->SetBranchAddress((prefix_ + "_MaxPtFraction").c_str(), MaxPtFraction_);
 	tree->SetBranchAddress((prefix_ + "_EnergyCorrection").c_str(), EnergyCorrection_);
 	tree->SetBranchAddress((prefix_ + "_EnergyCorrectionUnc").c_str(), EnergyCorrectionUnc_);
 }
@@ -2704,31 +3492,34 @@ void Data_IOPFJet::SetUpRead(TTree* tree)
 void Data_IOPFJet::Load(TTree* tree, bool load)
 {
 	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumCharged").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumNeutral").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumHadron").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumPhoton").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumElectron").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NumMuon").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_MCFlavor").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_TriggerMatching").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NumChargedHadrons").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NumNeutralHadrons").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NumPhotons").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NumElectrons").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NumMuons").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NumForwardEMs").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NumForwardHads").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_px").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_py").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_pz").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_e").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_HCalEnergy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_ECalEnergy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_TrackEnergy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_ChargedEnergy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_NeutralEnergy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_HadronEnergy").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_Area").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_Mass").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_ChargedHadronEnergy").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_NeutralHadronEnergy").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_PhotonEnergy").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_ElectronEnergy").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_MuonEnergy").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_ForwardEM").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_ForwardHad").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_ChargedPtMomPA").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_ChargedPtMomPB").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_ConstPtMomPA").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_ConstPtMomPB").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_PtWrongPrimaryVertex").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_ConstituentPtMomPA").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_ConstituentPtMomPB").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_PtFractionWrongPrimaryVertex").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_MaxChargedPtFraction").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_MaxPtFraction").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_EnergyCorrection").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_EnergyCorrectionUnc").c_str(), load);
 }
@@ -2758,39 +3549,44 @@ void IOPFJet::Init()
 	}
 }
 
-Int_t IOPFJet::NumCharged() const
+UInt_t IOPFJet::TriggerMatching() const
 {
-	return data_->NumCharged_[number_];
+	return data_->TriggerMatching_[number_];
 }
 
-Int_t IOPFJet::NumNeutral() const
+Int_t IOPFJet::NumChargedHadrons() const
 {
-	return data_->NumNeutral_[number_];
+	return data_->NumChargedHadrons_[number_];
 }
 
-Int_t IOPFJet::NumHadron() const
+Int_t IOPFJet::NumNeutralHadrons() const
 {
-	return data_->NumHadron_[number_];
+	return data_->NumNeutralHadrons_[number_];
 }
 
-Int_t IOPFJet::NumPhoton() const
+Int_t IOPFJet::NumPhotons() const
 {
-	return data_->NumPhoton_[number_];
+	return data_->NumPhotons_[number_];
 }
 
-Int_t IOPFJet::NumElectron() const
+Int_t IOPFJet::NumElectrons() const
 {
-	return data_->NumElectron_[number_];
+	return data_->NumElectrons_[number_];
 }
 
-Int_t IOPFJet::NumMuon() const
+Int_t IOPFJet::NumMuons() const
 {
-	return data_->NumMuon_[number_];
+	return data_->NumMuons_[number_];
 }
 
-Int_t IOPFJet::MCFlavor() const
+Int_t IOPFJet::NumForwardEMs() const
 {
-	return data_->MCFlavor_[number_];
+	return data_->NumForwardEMs_[number_];
+}
+
+Int_t IOPFJet::NumForwardHads() const
+{
+	return data_->NumForwardHads_[number_];
 }
 
 Float_t IOPFJet::px() const
@@ -2813,34 +3609,24 @@ Float_t IOPFJet::e() const
 	return data_->e_[number_];
 }
 
-Float_t IOPFJet::HCalEnergy() const
+Float_t IOPFJet::Area() const
 {
-	return data_->HCalEnergy_[number_];
+	return data_->Area_[number_];
 }
 
-Float_t IOPFJet::ECalEnergy() const
+Float_t IOPFJet::Mass() const
 {
-	return data_->ECalEnergy_[number_];
+	return data_->Mass_[number_];
 }
 
-Float_t IOPFJet::TrackEnergy() const
+Float_t IOPFJet::ChargedHadronEnergy() const
 {
-	return data_->TrackEnergy_[number_];
+	return data_->ChargedHadronEnergy_[number_];
 }
 
-Float_t IOPFJet::ChargedEnergy() const
+Float_t IOPFJet::NeutralHadronEnergy() const
 {
-	return data_->ChargedEnergy_[number_];
-}
-
-Float_t IOPFJet::NeutralEnergy() const
-{
-	return data_->NeutralEnergy_[number_];
-}
-
-Float_t IOPFJet::HadronEnergy() const
-{
-	return data_->HadronEnergy_[number_];
+	return data_->NeutralHadronEnergy_[number_];
 }
 
 Float_t IOPFJet::PhotonEnergy() const
@@ -2858,6 +3644,16 @@ Float_t IOPFJet::MuonEnergy() const
 	return data_->MuonEnergy_[number_];
 }
 
+Float_t IOPFJet::ForwardEM() const
+{
+	return data_->ForwardEM_[number_];
+}
+
+Float_t IOPFJet::ForwardHad() const
+{
+	return data_->ForwardHad_[number_];
+}
+
 Float_t IOPFJet::ChargedPtMomPA() const
 {
 	return data_->ChargedPtMomPA_[number_];
@@ -2868,19 +3664,29 @@ Float_t IOPFJet::ChargedPtMomPB() const
 	return data_->ChargedPtMomPB_[number_];
 }
 
-Float_t IOPFJet::ConstPtMomPA() const
+Float_t IOPFJet::ConstituentPtMomPA() const
 {
-	return data_->ConstPtMomPA_[number_];
+	return data_->ConstituentPtMomPA_[number_];
 }
 
-Float_t IOPFJet::ConstPtMomPB() const
+Float_t IOPFJet::ConstituentPtMomPB() const
 {
-	return data_->ConstPtMomPB_[number_];
+	return data_->ConstituentPtMomPB_[number_];
 }
 
-Float_t IOPFJet::PtWrongPrimaryVertex() const
+Float_t IOPFJet::PtFractionWrongPrimaryVertex() const
 {
-	return data_->PtWrongPrimaryVertex_[number_];
+	return data_->PtFractionWrongPrimaryVertex_[number_];
+}
+
+Float_t IOPFJet::MaxChargedPtFraction() const
+{
+	return data_->MaxChargedPtFraction_[number_];
+}
+
+Float_t IOPFJet::MaxPtFraction() const
+{
+	return data_->MaxPtFraction_[number_];
 }
 
 Float_t IOPFJet::EnergyCorrection() const
@@ -2893,138 +3699,303 @@ Float_t IOPFJet::EnergyCorrectionUnc() const
 	return data_->EnergyCorrectionUnc_[number_];
 }
 
-void IOPFJet::NumCharged(Int_t _NumCharged)
+void IOPFJet::TriggerMatching(UInt_t _TriggerMatching)
 {
-	data_->NumCharged_[number_] = _NumCharged;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(123);//ERROR123
+		return;
+	}
+	data_->TriggerMatching_[number_] = _TriggerMatching;
 }
 
-void IOPFJet::NumNeutral(Int_t _NumNeutral)
+void IOPFJet::NumChargedHadrons(Int_t _NumChargedHadrons)
 {
-	data_->NumNeutral_[number_] = _NumNeutral;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(124);//ERROR124
+		return;
+	}
+	data_->NumChargedHadrons_[number_] = _NumChargedHadrons;
 }
 
-void IOPFJet::NumHadron(Int_t _NumHadron)
+void IOPFJet::NumNeutralHadrons(Int_t _NumNeutralHadrons)
 {
-	data_->NumHadron_[number_] = _NumHadron;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(125);//ERROR125
+		return;
+	}
+	data_->NumNeutralHadrons_[number_] = _NumNeutralHadrons;
 }
 
-void IOPFJet::NumPhoton(Int_t _NumPhoton)
+void IOPFJet::NumPhotons(Int_t _NumPhotons)
 {
-	data_->NumPhoton_[number_] = _NumPhoton;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(126);//ERROR126
+		return;
+	}
+	data_->NumPhotons_[number_] = _NumPhotons;
 }
 
-void IOPFJet::NumElectron(Int_t _NumElectron)
+void IOPFJet::NumElectrons(Int_t _NumElectrons)
 {
-	data_->NumElectron_[number_] = _NumElectron;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(127);//ERROR127
+		return;
+	}
+	data_->NumElectrons_[number_] = _NumElectrons;
 }
 
-void IOPFJet::NumMuon(Int_t _NumMuon)
+void IOPFJet::NumMuons(Int_t _NumMuons)
 {
-	data_->NumMuon_[number_] = _NumMuon;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(128);//ERROR128
+		return;
+	}
+	data_->NumMuons_[number_] = _NumMuons;
 }
 
-void IOPFJet::MCFlavor(Int_t _MCFlavor)
+void IOPFJet::NumForwardEMs(Int_t _NumForwardEMs)
 {
-	data_->MCFlavor_[number_] = _MCFlavor;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(129);//ERROR129
+		return;
+	}
+	data_->NumForwardEMs_[number_] = _NumForwardEMs;
+}
+
+void IOPFJet::NumForwardHads(Int_t _NumForwardHads)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(130);//ERROR130
+		return;
+	}
+	data_->NumForwardHads_[number_] = _NumForwardHads;
 }
 
 void IOPFJet::px(Float_t _px)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(131);//ERROR131
+		return;
+	}
 	data_->px_[number_] = _px;
 }
 
 void IOPFJet::py(Float_t _py)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(132);//ERROR132
+		return;
+	}
 	data_->py_[number_] = _py;
 }
 
 void IOPFJet::pz(Float_t _pz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(133);//ERROR133
+		return;
+	}
 	data_->pz_[number_] = _pz;
 }
 
 void IOPFJet::e(Float_t _e)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(134);//ERROR134
+		return;
+	}
 	data_->e_[number_] = _e;
 }
 
-void IOPFJet::HCalEnergy(Float_t _HCalEnergy)
+void IOPFJet::Area(Float_t _Area)
 {
-	data_->HCalEnergy_[number_] = _HCalEnergy;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(135);//ERROR135
+		return;
+	}
+	data_->Area_[number_] = _Area;
 }
 
-void IOPFJet::ECalEnergy(Float_t _ECalEnergy)
+void IOPFJet::Mass(Float_t _Mass)
 {
-	data_->ECalEnergy_[number_] = _ECalEnergy;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(136);//ERROR136
+		return;
+	}
+	data_->Mass_[number_] = _Mass;
 }
 
-void IOPFJet::TrackEnergy(Float_t _TrackEnergy)
+void IOPFJet::ChargedHadronEnergy(Float_t _ChargedHadronEnergy)
 {
-	data_->TrackEnergy_[number_] = _TrackEnergy;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(137);//ERROR137
+		return;
+	}
+	data_->ChargedHadronEnergy_[number_] = _ChargedHadronEnergy;
 }
 
-void IOPFJet::ChargedEnergy(Float_t _ChargedEnergy)
+void IOPFJet::NeutralHadronEnergy(Float_t _NeutralHadronEnergy)
 {
-	data_->ChargedEnergy_[number_] = _ChargedEnergy;
-}
-
-void IOPFJet::NeutralEnergy(Float_t _NeutralEnergy)
-{
-	data_->NeutralEnergy_[number_] = _NeutralEnergy;
-}
-
-void IOPFJet::HadronEnergy(Float_t _HadronEnergy)
-{
-	data_->HadronEnergy_[number_] = _HadronEnergy;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(138);//ERROR138
+		return;
+	}
+	data_->NeutralHadronEnergy_[number_] = _NeutralHadronEnergy;
 }
 
 void IOPFJet::PhotonEnergy(Float_t _PhotonEnergy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(139);//ERROR139
+		return;
+	}
 	data_->PhotonEnergy_[number_] = _PhotonEnergy;
 }
 
 void IOPFJet::ElectronEnergy(Float_t _ElectronEnergy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(140);//ERROR140
+		return;
+	}
 	data_->ElectronEnergy_[number_] = _ElectronEnergy;
 }
 
 void IOPFJet::MuonEnergy(Float_t _MuonEnergy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(141);//ERROR141
+		return;
+	}
 	data_->MuonEnergy_[number_] = _MuonEnergy;
+}
+
+void IOPFJet::ForwardEM(Float_t _ForwardEM)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(142);//ERROR142
+		return;
+	}
+	data_->ForwardEM_[number_] = _ForwardEM;
+}
+
+void IOPFJet::ForwardHad(Float_t _ForwardHad)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(143);//ERROR143
+		return;
+	}
+	data_->ForwardHad_[number_] = _ForwardHad;
 }
 
 void IOPFJet::ChargedPtMomPA(Float_t _ChargedPtMomPA)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(144);//ERROR144
+		return;
+	}
 	data_->ChargedPtMomPA_[number_] = _ChargedPtMomPA;
 }
 
 void IOPFJet::ChargedPtMomPB(Float_t _ChargedPtMomPB)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(145);//ERROR145
+		return;
+	}
 	data_->ChargedPtMomPB_[number_] = _ChargedPtMomPB;
 }
 
-void IOPFJet::ConstPtMomPA(Float_t _ConstPtMomPA)
+void IOPFJet::ConstituentPtMomPA(Float_t _ConstituentPtMomPA)
 {
-	data_->ConstPtMomPA_[number_] = _ConstPtMomPA;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(146);//ERROR146
+		return;
+	}
+	data_->ConstituentPtMomPA_[number_] = _ConstituentPtMomPA;
 }
 
-void IOPFJet::ConstPtMomPB(Float_t _ConstPtMomPB)
+void IOPFJet::ConstituentPtMomPB(Float_t _ConstituentPtMomPB)
 {
-	data_->ConstPtMomPB_[number_] = _ConstPtMomPB;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(147);//ERROR147
+		return;
+	}
+	data_->ConstituentPtMomPB_[number_] = _ConstituentPtMomPB;
 }
 
-void IOPFJet::PtWrongPrimaryVertex(Float_t _PtWrongPrimaryVertex)
+void IOPFJet::PtFractionWrongPrimaryVertex(Float_t _PtFractionWrongPrimaryVertex)
 {
-	data_->PtWrongPrimaryVertex_[number_] = _PtWrongPrimaryVertex;
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(148);//ERROR148
+		return;
+	}
+	data_->PtFractionWrongPrimaryVertex_[number_] = _PtFractionWrongPrimaryVertex;
+}
+
+void IOPFJet::MaxChargedPtFraction(Float_t _MaxChargedPtFraction)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(149);//ERROR149
+		return;
+	}
+	data_->MaxChargedPtFraction_[number_] = _MaxChargedPtFraction;
+}
+
+void IOPFJet::MaxPtFraction(Float_t _MaxPtFraction)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(150);//ERROR150
+		return;
+	}
+	data_->MaxPtFraction_[number_] = _MaxPtFraction;
 }
 
 void IOPFJet::EnergyCorrection(Float_t _EnergyCorrection)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(151);//ERROR151
+		return;
+	}
 	data_->EnergyCorrection_[number_] = _EnergyCorrection;
 }
 
 void IOPFJet::EnergyCorrectionUnc(Float_t _EnergyCorrectionUnc)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(152);//ERROR152
+		return;
+	}
 	data_->EnergyCorrectionUnc_[number_] = _EnergyCorrectionUnc;
 }
 
@@ -3209,192 +4180,122 @@ Float_t SelectedGenParticle::vz() const
 
 void SelectedGenParticle::PDGID(Int_t _PDGID)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(153);//ERROR153
+		return;
+	}
 	data_->PDGID_[number_] = _PDGID;
 }
 
 void SelectedGenParticle::Status(Int_t _Status)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(154);//ERROR154
+		return;
+	}
 	data_->Status_[number_] = _Status;
 }
 
 void SelectedGenParticle::Info(Int_t _Info)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(155);//ERROR155
+		return;
+	}
 	data_->Info_[number_] = _Info;
 }
 
 void SelectedGenParticle::Mother(Int_t _Mother)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(156);//ERROR156
+		return;
+	}
 	data_->Mother_[number_] = _Mother;
 }
 
 void SelectedGenParticle::IndirectMother(Int_t _IndirectMother)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(157);//ERROR157
+		return;
+	}
 	data_->IndirectMother_[number_] = _IndirectMother;
 }
 
 void SelectedGenParticle::px(Float_t _px)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(158);//ERROR158
+		return;
+	}
 	data_->px_[number_] = _px;
 }
 
 void SelectedGenParticle::py(Float_t _py)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(159);//ERROR159
+		return;
+	}
 	data_->py_[number_] = _py;
 }
 
 void SelectedGenParticle::pz(Float_t _pz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(160);//ERROR160
+		return;
+	}
 	data_->pz_[number_] = _pz;
 }
 
 void SelectedGenParticle::e(Float_t _e)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(161);//ERROR161
+		return;
+	}
 	data_->e_[number_] = _e;
 }
 
 void SelectedGenParticle::vx(Float_t _vx)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(162);//ERROR162
+		return;
+	}
 	data_->vx_[number_] = _vx;
 }
 
 void SelectedGenParticle::vy(Float_t _vy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(163);//ERROR163
+		return;
+	}
 	data_->vy_[number_] = _vy;
 }
 
 void SelectedGenParticle::vz(Float_t _vz)
 {
-	data_->vz_[number_] = _vz;
-}
-
-
-
-//Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster Data_IOSuperCluster 
-BaseIO* Data_IOSuperCluster::baseio = 0;
-Data_IOSuperCluster::Data_IOSuperCluster(UInt_t size, std::string prefix = "") : 
-size_(size),
-prefix_(prefix)
-, Pos_(new Data_IOPosition(size_, prefix_ + "_Pos"))
-{
-	Energy_ = new Float_t[size_];
-	RawEnergy_ = new Float_t[size_];
-	PhiWidth_ = new Float_t[size_];
-	EtaWidth_ = new Float_t[size_];
-}
-
-Data_IOSuperCluster::~Data_IOSuperCluster()
-{
-	delete[] Energy_;
-	delete[] RawEnergy_;
-	delete[] PhiWidth_;
-	delete[] EtaWidth_;
-	delete Pos_;
-}
-
-void Data_IOSuperCluster::Fill()
-{
-	count_ = 0;
-	Pos_->Fill();
-}
-
-void Data_IOSuperCluster::SetUpWrite(TTree* tree)
-{
-	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_Energy").c_str(), Energy_, (prefix_ + "_Energy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_RawEnergy").c_str(), RawEnergy_, (prefix_ + "_RawEnergy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_PhiWidth").c_str(), PhiWidth_, (prefix_ + "_PhiWidth[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_EtaWidth").c_str(), EtaWidth_, (prefix_ + "_EtaWidth[" + prefix_ + "_count]/F").c_str());
-	Pos_->SetUpWrite(tree);
-}
-
-void Data_IOSuperCluster::SetUpRead(TTree* tree)
-{
-	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
-	tree->SetBranchAddress((prefix_ + "_Energy").c_str(), Energy_);
-	tree->SetBranchAddress((prefix_ + "_RawEnergy").c_str(), RawEnergy_);
-	tree->SetBranchAddress((prefix_ + "_PhiWidth").c_str(), PhiWidth_);
-	tree->SetBranchAddress((prefix_ + "_EtaWidth").c_str(), EtaWidth_);
-	Pos_->SetUpRead(tree);
-}
-
-void Data_IOSuperCluster::Load(TTree* tree, bool load)
-{
-	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_Energy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_RawEnergy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_PhiWidth").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_EtaWidth").c_str(), load);
-	Pos_->Load(tree, load);
-}
-
-
-
-//IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == IOSuperCluster == 
-BaseIO* IOSuperCluster::baseio = 0;
-IOSuperCluster::IOSuperCluster(Data_IOSuperCluster* data, UInt_t number) : 
-number_(number),
-data_(data)
-{
-	Init();
-}
-
-IOSuperCluster::IOSuperCluster(const IOSuperCluster& _iosupercluster) : 
-number_( _iosupercluster.number_),
-data_( _iosupercluster.data_)
-{
-}
-
-void IOSuperCluster::Init()
-{
-	if(baseio->IsWritable())
+	if(number_ >= data_->size_)
 	{
-		data_->count_ = number_+1;
+		baseio->SetError(164);//ERROR164
+		return;
 	}
-}
-
-Float_t IOSuperCluster::Energy() const
-{
-	return data_->Energy_[number_];
-}
-
-Float_t IOSuperCluster::RawEnergy() const
-{
-	return data_->RawEnergy_[number_];
-}
-
-Float_t IOSuperCluster::PhiWidth() const
-{
-	return data_->PhiWidth_[number_];
-}
-
-Float_t IOSuperCluster::EtaWidth() const
-{
-	return data_->EtaWidth_[number_];
-}
-
-IOPosition IOSuperCluster::Pos() const
-{
-	return IOPosition(data_->Pos_, number_);
-}
-
-void IOSuperCluster::Energy(Float_t _Energy)
-{
-	data_->Energy_[number_] = _Energy;
-}
-
-void IOSuperCluster::RawEnergy(Float_t _RawEnergy)
-{
-	data_->RawEnergy_[number_] = _RawEnergy;
-}
-
-void IOSuperCluster::PhiWidth(Float_t _PhiWidth)
-{
-	data_->PhiWidth_[number_] = _PhiWidth;
-}
-
-void IOSuperCluster::EtaWidth(Float_t _EtaWidth)
-{
-	data_->EtaWidth_[number_] = _EtaWidth;
+	data_->vz_[number_] = _vz;
 }
 
 
@@ -3518,31 +4419,61 @@ Float_t IOBeamSpot::ZWidth() const
 
 void IOBeamSpot::Vx(Float_t _Vx)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(165);//ERROR165
+		return;
+	}
 	data_->Vx_[number_] = _Vx;
 }
 
 void IOBeamSpot::Vy(Float_t _Vy)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(166);//ERROR166
+		return;
+	}
 	data_->Vy_[number_] = _Vy;
 }
 
 void IOBeamSpot::Vz(Float_t _Vz)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(167);//ERROR167
+		return;
+	}
 	data_->Vz_[number_] = _Vz;
 }
 
 void IOBeamSpot::XWidth(Float_t _XWidth)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(168);//ERROR168
+		return;
+	}
 	data_->XWidth_[number_] = _XWidth;
 }
 
 void IOBeamSpot::YWidth(Float_t _YWidth)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(169);//ERROR169
+		return;
+	}
 	data_->YWidth_[number_] = _YWidth;
 }
 
 void IOBeamSpot::ZWidth(Float_t _ZWidth)
 {
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(170);//ERROR170
+		return;
+	}
 	data_->ZWidth_[number_] = _ZWidth;
 }
 
@@ -3557,45 +4488,45 @@ IOMET_container_(1, "IOMET"),
 IOTrack_container_(500, "IOTrack"),
 IOElectron_container_(100, "IOElectron"),
 AllGenParticle_container_(10000, "AllGenParticle"),
+IOPhoton_container_(100, "IOPhoton"),
 IOPFJet_container_(100, "IOPFJet"),
 SelectedGenParticle_container_(10000, "SelectedGenParticle"),
 IOBeamSpot_container_(1, "IOBeamSpot"),
 writable_(writable),
+errorcount_(0),
 tree_(0),
 copytree_(0),
 treename_(treename)
 {
-IOString::baseio = this;
-	Data_IOString::baseio = this;
-PrimaryVertex::baseio = this;
+	PrimaryVertex::baseio = this;
 	Data_PrimaryVertex::baseio = this;
-IOEventInfo::baseio = this;
+	IOEventInfo::baseio = this;
 	Data_IOEventInfo::baseio = this;
-GenInfo::baseio = this;
+	GenInfo::baseio = this;
 	Data_GenInfo::baseio = this;
-IOMuon::baseio = this;
+	IOMuon::baseio = this;
 	Data_IOMuon::baseio = this;
-IOMET::baseio = this;
+	IOMET::baseio = this;
 	Data_IOMET::baseio = this;
-IOTrack::baseio = this;
+	IOTrack::baseio = this;
 	Data_IOTrack::baseio = this;
-IOPosition::baseio = this;
-	Data_IOPosition::baseio = this;
-PFIsolation::baseio = this;
-	Data_PFIsolation::baseio = this;
-IOElectron::baseio = this;
-	Data_IOElectron::baseio = this;
-AllGenParticle::baseio = this;
-	Data_AllGenParticle::baseio = this;
-DetIsolation::baseio = this;
-	Data_DetIsolation::baseio = this;
-IOPFJet::baseio = this;
-	Data_IOPFJet::baseio = this;
-SelectedGenParticle::baseio = this;
-	Data_SelectedGenParticle::baseio = this;
-IOSuperCluster::baseio = this;
+	IOSuperCluster::baseio = this;
 	Data_IOSuperCluster::baseio = this;
-IOBeamSpot::baseio = this;
+	PFIsolation::baseio = this;
+	Data_PFIsolation::baseio = this;
+	IOElectron::baseio = this;
+	Data_IOElectron::baseio = this;
+	AllGenParticle::baseio = this;
+	Data_AllGenParticle::baseio = this;
+	IOPhoton::baseio = this;
+	Data_IOPhoton::baseio = this;
+	IOString::baseio = this;
+	Data_IOString::baseio = this;
+	IOPFJet::baseio = this;
+	Data_IOPFJet::baseio = this;
+	SelectedGenParticle::baseio = this;
+	Data_SelectedGenParticle::baseio = this;
+	IOBeamSpot::baseio = this;
 	Data_IOBeamSpot::baseio = this;
 }
 
@@ -3603,12 +4534,25 @@ BaseIO::~BaseIO()
 {
 }
 
+void BaseIO::SetError(Int_t errn)
+{
+	error_[errorcount_] = errn;
+	errorcount_++;
+}
+
+UInt_t BaseIO::NumErrors()
+{
+	return(errorcount_);
+}
+
 void BaseIO::SetFile(TFile* file)
 {
 	if(writable_)
 	{
-	file->cd();
-	tree_ = new TTree(treename_.c_str(), treename_.c_str(), 1);
+		file->cd();
+		tree_ = new TTree(treename_.c_str(), treename_.c_str(), 1);
+		tree_->Branch("ERROR_COUNT", &errorcount_, "ERROR_COUNT/i");
+		tree_->Branch("ERROR", error_, "ERROR[ERROR_COUNT]/I");
 		PrimaryVertex_container_.SetUpWrite(tree_);
 		IOEventInfo_container_.SetUpWrite(tree_);
 		GenInfo_container_.SetUpWrite(tree_);
@@ -3617,20 +4561,10 @@ void BaseIO::SetFile(TFile* file)
 		IOTrack_container_.SetUpWrite(tree_);
 		IOElectron_container_.SetUpWrite(tree_);
 		AllGenParticle_container_.SetUpWrite(tree_);
+		IOPhoton_container_.SetUpWrite(tree_);
 		IOPFJet_container_.SetUpWrite(tree_);
 		SelectedGenParticle_container_.SetUpWrite(tree_);
 		IOBeamSpot_container_.SetUpWrite(tree_);
-		PrimaryVertex_container_.Fill();
-		IOEventInfo_container_.Fill();
-		GenInfo_container_.Fill();
-		IOMuon_container_.Fill();
-		IOMET_container_.Fill();
-		IOTrack_container_.Fill();
-		IOElectron_container_.Fill();
-		AllGenParticle_container_.Fill();
-		IOPFJet_container_.Fill();
-		SelectedGenParticle_container_.Fill();
-		IOBeamSpot_container_.Fill();
 	}
 	else
 	{
@@ -3643,6 +4577,7 @@ void BaseIO::SetFile(TFile* file)
 		IOTrack_container_.SetUpRead(tree_);
 		IOElectron_container_.SetUpRead(tree_);
 		AllGenParticle_container_.SetUpRead(tree_);
+		IOPhoton_container_.SetUpRead(tree_);
 		IOPFJet_container_.SetUpRead(tree_);
 		SelectedGenParticle_container_.SetUpRead(tree_);
 		IOBeamSpot_container_.SetUpRead(tree_);
@@ -3652,6 +4587,8 @@ void BaseIO::SetFile(TFile* file)
 bool BaseIO::IsWritable() const {return writable_;}
 void BaseIO::Fill(){
 	tree_->Fill();
+}
+void BaseIO::StartFilling(){
 	PrimaryVertex_container_.Fill();
 	IOEventInfo_container_.Fill();
 	GenInfo_container_.Fill();
@@ -3660,6 +4597,7 @@ void BaseIO::Fill(){
 	IOTrack_container_.Fill();
 	IOElectron_container_.Fill();
 	AllGenParticle_container_.Fill();
+	IOPhoton_container_.Fill();
 	IOPFJet_container_.Fill();
 	SelectedGenParticle_container_.Fill();
 	IOBeamSpot_container_.Fill();
@@ -3770,6 +4708,19 @@ void BaseIO::LoadAllGenParticle(bool load)
 	AllGenParticle_container_.Load(tree_, load);
 }
 
+UInt_t BaseIO::NumIOPhotons()
+{
+	return IOPhoton_container_.count_;
+}
+IOPhoton BaseIO::GetIOPhoton(UInt_t n)
+{
+	return IOPhoton(&IOPhoton_container_, n);
+}
+void BaseIO::LoadIOPhoton(bool load)
+{
+	IOPhoton_container_.Load(tree_, load);
+}
+
 UInt_t BaseIO::NumIOPFJets()
 {
 	return IOPFJet_container_.count_;
@@ -3809,3 +4760,4 @@ void BaseIO::LoadIOBeamSpot(bool load)
 	IOBeamSpot_container_.Load(tree_, load);
 }
 
+}

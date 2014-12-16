@@ -138,8 +138,10 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "RecoVertex/VertexPrimitives/interface/TransientVertex.h"
 
-#include "RootMaker/MyRootMaker/interface/BASEIO.h"
-#include "RootMaker/MyRootMaker/interface/iohelper.h"
+#include "BASEIO.h"
+#include "iohelper.h"
+#include "BASEIORUN.h"
+#include "BASEIOLUMI.h"
 
 //#include "EGamma/EGammaAnalysisTools/src/PFIsolationEstimator.cc"
 //#include "PFIsolation/SuperClusterFootprintRemoval/interface/SuperClusterFootprintRemoval.h"
@@ -161,11 +163,15 @@ class RootMaker : public edm::EDAnalyzer{
 		virtual void analyze( const edm::Event& iEvent, const edm::EventSetup& iSetup );
 
 
+		edm::Handle<edm::ValueMap<DeDxData> > dEdxharmonic2;
 		bool AddTracks(const edm::Event& iEvent);
+		void FillTrack(BASEIO::IOTrack& trout, TrackRef& trin);
+		void FillTrack(BASEIO::IOTrack& trout, GsfTrackRef& trin, TrackRef& trinc);
 		bool AddElectrons(const edm::Event& iEvent, const edm::EventSetup& iSetup);
 		bool AddMuons(const edm::Event& iEvent);
 		bool AddPhotons(const edm::Event& iEvent, const edm::EventSetup& iSetup);
 		bool AddAK5PFJets(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+		void FillSC(BASEIO::IOSuperCluster& scout, SuperClusterRef& scin);
 
 		struct JetShape
 		{
@@ -180,6 +186,7 @@ class RootMaker : public edm::EDAnalyzer{
 			Float_t chargedmaxpt;
 			Float_t neutralmaxpt;
 			Float_t allmaxpt;
+			Float_t mass;
 		};
 		JetShape getJetShape(const PFJet& jet);
 		UInt_t GenParticleInfo(const GenParticle* particle);
@@ -190,10 +197,12 @@ class RootMaker : public edm::EDAnalyzer{
 		math::XYZPoint PositionOnECalSurface(reco::TransientTrack&);
 		Int_t getSuperClusterPh(const SuperClusterRef& A);
 		Int_t getSuperClusterEl(const SuperClusterRef& A);
-		Int_t getPrimVertex(const Track& trk);
+		Int_t getPrimVertex(const TrackRef& trk);
 		//Int_t getSuperCluster(const Candidate& A);
 
-		BaseIO baseio;
+		BASEIO::BaseIO baseio;
+		BASEIORUN::BaseIO baseiorun;
+		BASEIOLUMI::BaseIO baseiolumi;
 		//Configuration
 		bool cgen;
 		bool cgenallparticles;
@@ -282,6 +291,11 @@ class RootMaker : public edm::EDAnalyzer{
 		double cLambdaMassWindow;
 
 		//Variables
+	
+		UInt_t lumi_eventsprocessed;
+		UInt_t lumi_eventsfiltered;
+		UInt_t lumi_hltprescaletable;
+	
 		edm::ESHandle<TransientTrackBuilder> TTrackBuilder;
 		edm::ESHandle<MagneticField> magneticField; 
 		Cylinder::ConstCylinderPointer ecalBarrel;

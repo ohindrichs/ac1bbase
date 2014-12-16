@@ -1,4 +1,4 @@
-#include "RootMaker/MyRootMaker/interface/RootMaker.h"
+#include "../interface/RootMaker.h"
 #include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
 
 using namespace reco;
@@ -6,7 +6,9 @@ typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMa
 typedef ROOT::Math::SVector<double, 3> SVector3;
 
 RootMaker::RootMaker(const edm::ParameterSet& iConfig) :
-	baseio("URTREE", true),
+	baseio("UREVENT", true),
+	baseiorun("URRUN", true),
+	baseiolumi("URLUMI", true),
 	cgen(iConfig.getUntrackedParameter<bool>("GenSomeParticles", false)),
 	cgenallparticles(iConfig.getUntrackedParameter<bool>("GenAllParticles", false)),
 	cgenak5jets(iConfig.getUntrackedParameter<bool>("GenAK5Jets", false)),
@@ -106,6 +108,8 @@ void RootMaker::beginJob()
 {
 	edm::Service<TFileService> FS;
 	baseio.SetFile(&(FS->file()));
+	baseiorun.SetFile(&(FS->file()));
+	baseiolumi.SetFile(&(FS->file()));
 }
 
 void RootMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
@@ -114,26 +118,168 @@ void RootMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 	iSetup.get<IdealMagneticFieldRecord>().get(magneticField);
 	propagatorWithMaterial = new PropagatorWithMaterial(alongMomentum, 0.10566, &(*magneticField));
 	iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", TTrackBuilder);
+
+	using namespace BASEIORUN;
+	baseiorun.StartFilling();
+	IORunInfo runinfo(baseiorun.GetIORunInfo(0));
+	runinfo.RunNumber(iRun.run());
+
+//	//L1 prescales
+//	edm::ESHandle<L1GtPrescaleFactors> l1GtPfAlgo;
+//	iSetup.get<L1GtPrescaleFactorsAlgoTrigRcd>().get(l1GtPfAlgo);
+//	runinfo.NumL1Algos((l1GtPfAlgo.product()->gtPrescaleFactors())[0].size());
+//	runinfo.L1AlgoPrescaleColumns((l1GtPfAlgo.product()->gtPrescaleFactors()).size());
+//	for(Int_t i = 0 ; i < runinfo.L1AlgoPrescaleColumns() ; i++)
+//	{
+//		for(Int_t j = 0 ; j < runinfo.NumL1Algos() ; j++)
+//		{
+//			runinfo.L1AlgoPrescaleTable((l1GtPfAlgo.product()->gtPrescaleFactors())[i][j], j+runinfo.NumL1Algos()*i);
+//		}
+//	}
+//
+//	//L1Tech
+//	edm::ESHandle<L1GtPrescaleFactors> l1GtPfTech;
+//	iSetup.get<L1GtPrescaleFactorsTechTrigRcd>().get(l1GtPfTech);
+//
+//	runinfo.NumL1Techs((l1GtPfTech.product()->gtPrescaleFactors())[0].size());
+//	runinfo.L1TechPrescaleColumns((l1GtPfTech.product()->gtPrescaleFactors()).size());
+//	for(Int_t i = 0 ; i < runinfo.L1TechPrescaleColumns() ; i++)
+//	{
+//		for(Int_t j = 0 ; j < runinfo.NumL1Techs() ; j++)
+//		{
+//			runinfo.L1TechPrescaleTable((l1GtPfTech.product()->gtPrescaleFactors())[i][j], j+runinfo.NumL1Techs()*i);
+//		}
+//	}
+
+	if(ctrigger)
+	{
+		bool changed = true;
+		HLTConfiguration.init(iRun, iSetup, cTriggerProcess, changed);
+	}
+	runinfo.NumHLTs(HLTConfiguration.size());
+	runinfo.HLTPrescaleColumns(HLTConfiguration.prescaleSize());
+
+	boost::cmatch what;
+	vector<boost::regex> trigregexes;
+	for(unsigned i = 0 ; i < cHLTriggerNamesSelection.size() ; i++)
+	{
+		trigregexes.push_back(boost::regex(cHLTriggerNamesSelection[i].c_str()));
+	}
+
+	string allnames;
+	for(unsigned i = 0 ; i < HLTConfiguration.size() ; i++)
+	{
+		unsigned TriggerIndex = HLTConfiguration.triggerIndex(HLTConfiguration.triggerName(i));
+		for(unsigned j = 0 ; j < trigregexes.size() ; j++)
+		{
+			if(boost::regex_match(HLTConfiguration.triggerName(i).c_str(), what, trigregexes[j]))
+			{
+				HLTriggerIndexSelection.push_back(TriggerIndex);
+			}
+		}
+		allnames += HLTConfiguration.triggerName(i) + string(" ");
+	}
+	String(runinfo.HLTNames()).Set(allnames);
+
+	string allmuonnames;
+	string allelectronnames;
+	string alltaunames;
+	string allphotonnames;
+	string alljetnames;
+
+	TriggerIndexSelection(cMuHLTriggerMatching, muontriggers, allmuonnames);
+	String(runinfo.HLTNamesMuMatched()).Set(allmuonnames);
+	TriggerIndexSelection(cElHLTriggerMatching, electrontriggers, allelectronnames);
+	String(runinfo.HLTNamesElMatched()).Set(allelectronnames);
+	TriggerIndexSelection(cTauHLTriggerMatching, tautriggers, alltaunames);
+	String(runinfo.HLTNamesTauMatched()).Set(alltaunames);
+	TriggerIndexSelection(cPhotonHLTriggerMatching, photontriggers, allphotonnames);
+	String(runinfo.HLTNamesPhMatched()).Set(allphotonnames);
+	TriggerIndexSelection(cJetHLTriggerMatching, jettriggers, alljetnames);
+	String(runinfo.HLTNamesJetMatched()).Set(alljetnames);
+
+	L1GtUtils l1info;
+	l1info.retrieveL1EventSetup(iSetup);
+
+	edm::ESHandle<L1GtPrescaleFactors> l1GtPfAlgo;
+	iSetup.get<L1GtPrescaleFactorsAlgoTrigRcd>().get(l1GtPfAlgo);
+	edm::ESHandle<L1GtPrescaleFactors> l1GtPfTech;
+	iSetup.get<L1GtPrescaleFactorsTechTrigRcd>().get(l1GtPfTech);
+	cout << "HALLO " << HLTConfiguration.prescaleSize() << " " << HLTConfiguration.size() << endl;
+	for(unsigned j = 0 ; j < HLTConfiguration.prescaleSize() ; j++)
+	{
+		for(unsigned i = 0 ; i < HLTConfiguration.size() ; i++)
+		{
+			int l1bit = -1;
+			int l1prescalealgo = 0;
+			int l1prescaletech = 0;
+			L1GtUtils::TriggerCategory trigCategory;
+			const vector<pair<bool, string> > l1seed = HLTConfiguration.hltL1GTSeeds(i);
+			if(l1seed.size() == 1)
+			{
+				l1info.l1AlgoTechTrigBitNumber(l1seed[0].second, trigCategory, l1bit);
+				l1prescalealgo = (l1GtPfAlgo.product()->gtPrescaleFactors())[j][l1bit];
+				l1prescaletech = (l1GtPfTech.product()->gtPrescaleFactors())[j][l1bit];
+			}
+			runinfo.HLTPrescaleTable(HLTConfiguration.prescaleValue(j, HLTConfiguration.triggerName(i)), i+HLTConfiguration.size()*j);
+			runinfo.HLTSeedAlgoPrescaleTable(l1prescalealgo, i+HLTConfiguration.size()*j);
+			runinfo.HLTSeedTechPrescaleTable(l1prescaletech, i+HLTConfiguration.size()*j);
+			cout << j << " " << i << " " << HLTConfiguration.prescaleValue(j, HLTConfiguration.triggerName(i)) << " " << l1prescalealgo << " " << l1prescaletech << endl;
+		}
+	}
+
+	baseiorun.Fill();
 }
 
 void RootMaker::beginLuminosityBlock(const edm::LuminosityBlock& iLumiBlock, const edm::EventSetup& iSetup)
 {
+    lumi_eventsprocessed = 0;
+    lumi_eventsfiltered = 0;
 }
 
 void RootMaker::endLuminosityBlock(const edm::LuminosityBlock& iLumiBlock, const edm::EventSetup& iSetup)
 {
+	using namespace BASEIOLUMI;
+	baseiolumi.StartFilling();
+	IOLumiInfo lumiinfo(baseiolumi.GetIOLumiInfo(0));
+
+	lumiinfo.RunNumber(iLumiBlock.run());
+	lumiinfo.BlockNumber(iLumiBlock.luminosityBlock());
+	lumiinfo.EventsProcessed(lumi_eventsprocessed);
+	lumiinfo.EventsFiltered(lumi_eventsfiltered);
+	lumiinfo.HLTPrescaleColumn(lumi_hltprescaletable);
+
+	edm::Handle<LumiSummary> lumiSummary;
+	iLumiBlock.getByLabel(edm::InputTag("lumiProducer"), lumiSummary);
+	if(lumiSummary.isValid())
+	{
+		lumiinfo.LumiValue(lumiSummary->avgInsDelLumi());
+		lumiinfo.LumiValueUnc(lumiSummary->avgInsDelLumiErr());
+	}
+	else
+	{
+		lumiinfo.LumiValue(-1);
+		lumiinfo.LumiValueUnc(-1);
+	}
+
+	cout << "END BLOCK " << lumi_hltprescaletable << endl; 
+	baseiolumi.Fill();
 }
 
 
 void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+	using namespace BASEIO;
+	baseio.StartFilling();
+	lumi_eventsprocessed++;
 	bool takeevent = false;
 
 	pv_position = math::XYZPoint(0.,0.,0.);
 	bs_position = math::XYZPoint(0.,0.,0.);
 
+	iEvent.getByLabel(edm::InputTag("TriggerResults", "", cTriggerProcess), HLTrigger);
 
-	EventInfo evinfo = baseio.GetIOEventInfo(0);
+	EventInfo evinfo(baseio.GetIOEventInfo(0), HLTrigger->size());
 	evinfo.EventNumber(iEvent.id().event());
 	evinfo.RunNumber(iEvent.id().run());
 	evinfo.LumiSectionNumber(iEvent.getLuminosityBlock().luminosityBlock());
@@ -147,15 +293,14 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	evinfo.AK5PFSigma(*sigma);
 
 	//HLTriggerResults
-	iEvent.getByLabel(edm::InputTag("TriggerResults", "", cTriggerProcess), HLTrigger);
-	for(int i = 0  ; i < 150 ; i++){evinfo.TriggerHLT(0, i);}
-
 	for(unsigned i = 0 ; i < min(unsigned(HLTrigger->size()), unsigned(1200)) ; i++)
 	{
 		evinfo.SetHLT(i, HLTrigger->accept(i));
 		if(HLTrigger->accept(i) && find(HLTriggerIndexSelection.begin(), HLTriggerIndexSelection.end(), i) != HLTriggerIndexSelection.end())
 		{ takeevent = true;}
 	}
+	evinfo.Write();
+	lumi_hltprescaletable = HLTConfiguration.prescaleSet(iEvent, iSetup);
 	//TriggerEvent for matching
 	iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", "", cTriggerProcess), HLTriggerEvent);
 	//cout<<"PASSED!"<<endl;
@@ -218,6 +363,7 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
 
 	takeevent = false;
+	//iEvent.getByLabel(edm::InputTag("dedxHarmonic2"), dEdxharmonic2);
 
 	if(crectrack)
 	{
@@ -237,7 +383,7 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
 	if(crecak5pfjet)
 	{
-		takeevent = AddAK5PFJets(iEvent, iSetup) && takeevent;
+		takeevent = AddAK5PFJets(iEvent, iSetup) || takeevent;
 	}
 	if(!takeevent) return;
 
@@ -356,9 +502,9 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		}
 	}
 
-
 	if(takeevent)
 	{
+		lumi_eventsfiltered++;
 		baseio.Fill();
 	}
 }
@@ -369,28 +515,346 @@ void RootMaker::endJob()
 
 bool RootMaker::AddMuons(const edm::Event& iEvent)
 {
-	return(false);
-}
+	using namespace BASEIO;
+	int NumGood = 0;
+	edm::Handle<MuonCollection> Muons;
+	iEvent.getByLabel(edm::InputTag("muons"), Muons);
+	for(unsigned i = 0 ; i < Muons->size() ; i++)
+	{
+		MuonRef mu(Muons, i);
+		IOMuon muout(baseio.GetIOMuon(baseio.NumIOMuons()));
+		muout.px(mu->px());
+		muout.py(mu->py());
+		muout.pz(mu->pz());
+		muout.TriggerMatching(GetTrigger(*mu, muontriggers));
+		muout.ECalEnergy(mu->calEnergy().em);
+		muout.HCalEnergy(mu->calEnergy().had);
+		muout.NumChambers(mu->numberOfChambers());
+		muout.NumChambersWithSegments(mu->numberOfMatches(Muon::SegmentAndTrackArbitration));
+		muout.NumMatchedStations(mu->numberOfMatchedStations());
+		if(mu->globalTrack().isNonnull())
+		{
+			muout.PtUnc(mu->globalTrack()->ptError());
+			muout.ChiQ(mu->globalTrack()->chi2());
+			muout.NDOF(mu->globalTrack()->ndof());
+			muout.NumValidMuonHits(mu->globalTrack()->hitPattern().numberOfValidMuonHits());
+		}
+		else
+		{
+			muout.PtUnc(-1.);
+			muout.ChiQ(-1.);
+			muout.NDOF(0);
+			muout.NumValidMuonHits(-1);
+		}
 
+		TrackRef innertrack = mu->innerTrack();
+		if(innertrack.isNonnull()) 
+		{
+			IOTrack tr(muout.InnerTrack(0));
+			FillTrack(tr, innertrack);
+		}
+		//PFIsolation
+		const reco::MuonPFIsolation pfisor04 = mu->pfIsolationR04();
+		PFIsolation r4(muout.PFR4());
+		r4.Charged(pfisor04.sumChargedHadronPt);
+		r4.Neutral(pfisor04.sumNeutralHadronEt);
+		r4.Photon(pfisor04.sumPhotonEt);
+	
+		UInt_t info = 0;
+		info |= mu->isGlobalMuon() << 0;
+		info |= mu->isTrackerMuon() << 1;
+		info |= mu->isStandAloneMuon() << 2;
+		info |= mu->isCaloMuon() << 3;
+		info |= mu->isPFMuon() << 4;
+		info |= (mu->charge() == 1) << 5;
+		muout.Info(info);
+					
+
+		if(mu->pt() >= cMuPtMin && fabs(mu->eta()) <= cMuEtaMax)
+		{
+			NumGood++;
+		}
+
+	}
+
+    if(NumGood >= cMuNum) {return true;}
+	return false;
+}
 
 bool RootMaker::AddPhotons(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+	using namespace BASEIO;
+	int NumGood = 0;
+	edm::Handle<PhotonCollection> Photons;
+	iEvent.getByLabel(edm::InputTag("photons"), Photons);
+
+	if(Photons.isValid() && Photons->size() > 0)
+	{
+		edm::Handle<GsfElectronCollection> Electrons;
+		iEvent.getByLabel(edm::InputTag("gedGsfElectrons"), Electrons);
+		edm::Handle<ConversionCollection> Conversions;
+		iEvent.getByLabel(edm::InputTag("allConversions"), Conversions);
+
+		EcalClusterLazyTools lazyTools(iEvent, iSetup, edm::InputTag("reducedEcalRecHitsEB"), edm::InputTag("reducedEcalRecHitsEE"), edm::InputTag("reducedEcalRecHitsES"));
+
+		for(size_t n = 0 ; n < Photons->size() ; n++)
+		{
+			PhotonRef ph(Photons, n);
+			if(ph->pt() < cPhotonFilterPtMin || TMath::Abs(ph->eta()) < cPhotonFilterEtaMax){continue;}
+			IOPhoton phout = baseio.GetIOPhoton(baseio.NumIOPhotons());
+			phout.px(ph->px());
+			phout.py(ph->py());
+			phout.pz(ph->pz());
+			phout.E1x5(ph->e1x5());
+			phout.E1x5(ph->e2x5());
+			phout.E1x5(ph->e3x3());
+			phout.E1x5(ph->e5x5());
+			phout.MaxCrystalEnergy(ph->maxEnergyXtal());
+			vector<float> localcovariances = lazyTools.localCovariances(*(ph->superCluster()->seed()));
+			phout.SigmaIEtaIEta(TMath::Sqrt(localcovariances[0]));
+			phout.SigmaIPhiIPhi(TMath::Sqrt(localcovariances[2]));
+			phout.SigmaIEtaIPhi(TMath::Sqrt(localcovariances[1]));
+			phout.EHCalTowerOverECalD1(ph->hadronicDepth1OverEm());
+			phout.EHCalTowerOverECalD2(ph->hadronicDepth2OverEm());
+			PFIsolation r3(phout.PFR3());
+			r3.Charged(ph->chargedHadronIso());
+			r3.Neutral(ph->neutralHadronIso());
+			r3.Photon(ph->photonIso());
+			IOSuperCluster phsc(phout.SC());
+			SuperClusterRef sc = ph->superCluster();
+			FillSC(phsc, sc);
+			UInt_t info = 0;
+			info |= ph->isEB() << 0;
+			info |= ph->isEE() << 1;
+			info |= ph->isPFlowPhoton() << 2;
+			info |= ph->hasConversionTracks() << 3;
+			info |= ph->hasPixelSeed() << 4;
+			info |= (ConversionTools::hasMatchedPromptElectron(ph->superCluster(), Electrons, Conversions, bs_position)) << 5;
+			phout.TriggerMatching(GetTrigger(*ph, photontriggers));
+		}
+	}
+	if(NumGood >= cPhotonNum){return true;}
 	return(false);
 }
 
-
 bool RootMaker::AddTracks(const edm::Event& iEvent)
 {
-	return(false);
+	using namespace BASEIO;
+	int NumGood = 0;
+        edm::Handle<TrackCollection> Tracks;
+        iEvent.getByLabel(edm::InputTag("generalTracks"), Tracks);
+	for(unsigned i = 0 ; i < Tracks->size() ; i++)
+	{
+		TrackRef trr(Tracks, i);
+		if(trr->pt() >= cTrackFilterPtMin)
+		{
+			IOTrack trout = baseio.GetIOTrack(baseio.NumIOTracks());
+			FillTrack(trout, trr);
+			if(trr->pt() >= cTrackPtMin && fabs(trr->eta()) <= cTrackEtaMax)
+			{
+				NumGood++;
+			}
+		}
+	}
+	if(NumGood >= cTrackNum){return true;}
+	return false ;
+}
+
+void RootMaker::FillTrack(BASEIO::IOTrack& trout, TrackRef& trin)
+{
+	trout.px(trin->px());
+	trout.py(trin->py());
+	trout.pz(trin->pz());
+	trout.Dxy(trin->dxy(pv_position));
+	trout.DxyUnc(trin->dxyError());
+	trout.Dz(trin->dz(pv_position));
+	trout.DzUnc(trin->dzError());
+	trout.ChiQ(trin->chi2());
+	trout.NDOF(trin->ndof());
+	trout.Charge(trin->charge());
+	trout.VertexNumber(getPrimVertex(trin));
+	trout.NStripHits(trin->hitPattern().numberOfValidStripHits());
+	trout.NPixelHits(trin->hitPattern().numberOfValidPixelHits());
+	trout.NMissingHits(trin->hitPattern().numberOfLostHits());
+	trout.NMissingInnerHits(trin->trackerExpectedHitsInner().numberOfHits());
+	trout.NPixelLayers(trin->hitPattern().pixelLayersWithMeasurement());
+	trout.NStripLayers(trin->hitPattern().stripLayersWithMeasurement());
+	//trout.DeDx((*dEdxharmonic2)[trin].dEdx());
 }
 
 bool RootMaker::AddAK5PFJets(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+	using namespace BASEIO;
+	int NumGood = 0;
+
+	edm::Handle<PFJetCollection> ak5pfJets;
+	iEvent.getByLabel(edm::InputTag("ak5PFJets"), ak5pfJets);
+	const JetCorrector* corrector = JetCorrector::getJetCorrector((string("ak5PF")+cJetCorrection).c_str(), iSetup);
+
+	edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+	iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl);
+	JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+	JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
+	for(unsigned i = 0 ; i < ak5pfJets->size() ; i++)
+	{
+		PFJet corjet((*ak5pfJets)[i]);
+		double jec = corrector->correction(corjet, iEvent, iSetup);
+		corjet.scaleEnergy(jec);
+		if(corjet.pt() >= cAK5PFFilterPtMin)
+		{
+			IOPFJet jetout(baseio.GetIOPFJet(baseio.NumIOPFJets()));
+
+			jetout.e(corjet.energy());
+			jetout.px(corjet.px());
+			jetout.py(corjet.py());
+			jetout.pz(corjet.pz());
+			jetout.TriggerMatching(GetTrigger(corjet, jettriggers));
+			jetout.Area(corjet.jetArea());
+			jetout.ChargedHadronEnergy(corjet.chargedHadronEnergy());
+			jetout.NeutralHadronEnergy(corjet.neutralHadronEnergy());
+			jetout.PhotonEnergy(corjet.photonEnergy());
+			jetout.ElectronEnergy(corjet.electronEnergy());
+			jetout.MuonEnergy(corjet.muonEnergy());
+			jetout.ForwardHad(corjet.HFHadronEnergy());
+			jetout.ForwardEM(corjet.HFEMEnergy());
+			jetout.NumChargedHadrons(corjet.chargedHadronMultiplicity());
+			jetout.NumNeutralHadrons(corjet.neutralHadronMultiplicity());
+			jetout.NumPhotons(corjet.photonMultiplicity());
+			jetout.NumElectrons(corjet.electronMultiplicity());
+			jetout.NumMuons(corjet.muonMultiplicity());
+			jetout.NumForwardHads(corjet.HFHadronMultiplicity());
+			jetout.NumForwardEMs(corjet.HFEMMultiplicity());
+			jetout.EnergyCorrection(1./jec);
+			jecUnc->setJetEta(corjet.eta());
+			jecUnc->setJetPt(corjet.pt());
+			jetout.EnergyCorrectionUnc(jecUnc->getUncertainty(true));
+			JetShape shape = getJetShape(corjet);
+			jetout.Mass(shape.mass);
+			jetout.ChargedPtMomPA(shape.chargeda);
+			jetout.ChargedPtMomPB(shape.chargedb);
+			jetout.ConstituentPtMomPA(shape.alla);
+			jetout.ConstituentPtMomPB(shape.allb);
+			jetout.PtFractionWrongPrimaryVertex(shape.chargedfractionmv);
+			jetout.MaxChargedPtFraction(shape.chargedmaxpt);
+			jetout.MaxPtFraction(shape.allmaxpt);
+			if(corjet.pt() >= cAK5PFPtMin && fabs(corjet.eta()) < cAK5PFEtaMax) 
+			{
+				NumGood++;
+			}
+		}
+	}
+	delete jecUnc;
+	if(NumGood >= cAK5PFNum){return true;}
 	return(false);
 }
+
+
 bool RootMaker::AddElectrons(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-	return(false);
+	using namespace BASEIO;
+	int NumGood = 0;
+	edm::Handle<GsfElectronCollection> Electrons;
+	iEvent.getByLabel(edm::InputTag("gedGsfElectrons"), Electrons);
+	edm::Handle<ConversionCollection> Conversions;
+	iEvent.getByLabel(edm::InputTag("allConversions"), Conversions);
+	for(size_t n = 0 ; n < Electrons->size() ; n++)
+	{
+		GsfElectronRef el(Electrons, n);
+		if(el->pt() > cElFilterPtMin && TMath::Abs(el->eta()) < cElFilterEtaMax)
+		{
+			IOElectron elout(baseio.GetIOElectron(baseio.NumIOElectrons()));
+			elout.px(el->px());
+			elout.py(el->py());
+			elout.pz(el->pz());
+			elout.TriggerMatching(GetTrigger(*el, electrontriggers));
+			elout.ESCOverETrack(el->eSuperClusterOverP());
+			elout.DeltaEtaSCTrack(el->deltaEtaSuperClusterTrackAtVtx());
+			elout.DeltaPhiSCTrack(el->deltaPhiSuperClusterTrackAtVtx());
+			elout.E1x5(el->e1x5());
+			elout.E2x5(el->e2x5Max());
+			elout.E5x5(el->e5x5());
+			elout.R9(el->r9());
+			elout.ECalEnergy(el->correctedEcalEnergy());
+			elout.SigmaIEtaIEta(el->sigmaIetaIeta());
+			elout.SigmaIPhiIPhi(el->sigmaIphiIphi());
+			elout.EHCalTowerOverECalD1(el->hcalDepth1OverEcalBc());
+			elout.EHCalTowerOverECalD2(el->hcalDepth2OverEcalBc());
+			IOTrack eltrk(elout.GSFTrack());
+			GsfTrackRef gsftrk = el->gsfTrack();
+			TrackRef ctrk = el->closestTrack();
+			FillTrack(eltrk, gsftrk, ctrk);
+			IOSuperCluster elsc(elout.SC());
+			SuperClusterRef sc = el->superCluster();
+			FillSC(elsc, sc);
+			PFIsolation r3(elout.PFR3());
+			r3.Charged(el->pfIsolationVariables().sumChargedHadronPt);
+			r3.Neutral(el->pfIsolationVariables().sumNeutralHadronEt);
+			r3.Photon(el->pfIsolationVariables().sumPhotonEt);
+			UInt_t info = 0;
+			info |= el->isEB() << 0;
+			info |= el->isEE() << 1;
+			info |= el->isEBGap() << 2;
+			info |= el->isEBEtaGap() << 3;
+			info |= el->isEBPhiGap() << 4;
+			info |= el->isEEGap() << 5;
+			info |= el->isEERingGap() << 6;
+			info |= el->isEEDeeGap() << 7;
+			info |= el->isEBEEGap() << 8;
+			info |= el->isElectron() << 9;
+			info |= ConversionTools::hasMatchedConversion(*el, Conversions, bs_position) << 10;
+			info |= el->ecalDrivenSeed() << 11;
+			info |= el->trackerDrivenSeed() << 12;
+			elout.Info(info);
+			if(el->pt() >= cElPtMin && fabs(el->eta()) <= cElEtaMax)
+			{
+				NumGood++;
+			}
+		}
+
+	}
+	if(NumGood >= cElNum){return true;}
+	return false;
+}
+
+void RootMaker::FillTrack(BASEIO::IOTrack& trout, GsfTrackRef& trin, TrackRef& trinc)
+{
+	trout.px(trin->px());
+	trout.py(trin->py());
+	trout.pz(trin->pz());
+	trout.Dxy(trin->dxy(pv_position));
+	trout.DxyUnc(trin->dxyError());
+	trout.Dz(trin->dz(pv_position));
+	trout.DzUnc(trin->dzError());
+	trout.ChiQ(trin->chi2());
+	trout.NDOF(trin->ndof());
+	trout.Charge(trin->charge());
+	if(trinc.isNonnull())
+	{
+		trout.VertexNumber(getPrimVertex(trinc));
+	}
+	else
+	{
+		trout.VertexNumber(-1);
+	}
+	trout.NStripHits(trin->hitPattern().numberOfValidStripHits());
+	trout.NPixelHits(trin->hitPattern().numberOfValidPixelHits());
+	trout.NMissingHits(trin->hitPattern().numberOfLostHits());
+	trout.NMissingInnerHits(trin->trackerExpectedHitsInner().numberOfHits());
+	trout.NPixelLayers(trin->hitPattern().pixelLayersWithMeasurement());
+	trout.NStripLayers(trin->hitPattern().stripLayersWithMeasurement());
+	trout.DeDx(-1.);
+}
+
+
+void RootMaker::FillSC(BASEIO::IOSuperCluster& scout, SuperClusterRef& scin)
+{
+	scout.Energy(scin->energy());
+	scout.x(scin->x());
+	scout.y(scin->y());
+	scout.z(scin->z());
+	scout.RawEnergy(scin->rawEnergy());
+	scout.PhiWidth(scin->phiWidth());
+	scout.EtaWidth(scin->etaWidth());
 }
 
 UInt_t RootMaker::FindGenParticle(const GenParticleCollection& genparticles,  const Candidate* particle)
@@ -540,6 +1004,7 @@ RootMaker::JetShape RootMaker::getJetShape(const PFJet& jet)
 	Float_t allphiphi2 = 0.;
 	Float_t allptsum = 0.;
 	Float_t allmaxpt = 0.;
+	TLorentzVector sum(0., 0., 0., 0.);
 	vector<PFCandidatePtr> constituents(jet.getPFConstituents());
 	for(size_t i = 0 ; i < constituents.size() ; ++i)
 	{
@@ -550,6 +1015,7 @@ RootMaker::JetShape RootMaker::getJetShape(const PFJet& jet)
 		tvjet.SetPtEtaPhi(jet.pt(), jet.eta(), jet.phi());
 		Float_t deta = jet.eta() - con.eta();
 		Float_t dphi = tvjet.DeltaPhi(tvcon);
+		sum += TLorentzVector(con.px(), con.py(), con.pz(), Sqrt(con.px()*con.px() + con.py()*con.py() + con.pz()*con.pz()));
 		
 		//Float_t deta = jet.eta() - con.eta();
 		//Float_t dphi = jet.phi() - con.phi();
@@ -559,7 +1025,7 @@ RootMaker::JetShape RootMaker::getJetShape(const PFJet& jet)
 		if(con.trackRef().isNonnull())
 		{
 			chargedptsum += con.pt();      
-			int vertex = getPrimVertex(*(con.trackRef()));
+			int vertex = getPrimVertex(con.trackRef());
 			if(vertex == 0 || vertex == -1)
 			{
 				if(con.pt() > chargedmaxpt) {chargedmaxpt = con.pt();}
@@ -674,13 +1140,14 @@ RootMaker::JetShape RootMaker::getJetShape(const PFJet& jet)
 	res.chargedmaxpt = chargedmaxpt;
 	res.neutralmaxpt = neutralmaxpt;
 	res.allmaxpt = allmaxpt;
+	res.mass = sum.M();
 	return(res);
 
 }
 
 
 
-Int_t RootMaker::getPrimVertex(const Track& trk)
+Int_t RootMaker::getPrimVertex(const TrackRef& trk)
 {
 	if(Vertices.isValid())
 	{
@@ -690,7 +1157,7 @@ Int_t RootMaker::getPrimVertex(const Track& trk)
 			{
 				for(Vertex::trackRef_iterator it = (*Vertices)[i].tracks_begin() ; it != (*Vertices)[i].tracks_end() ; ++it)
 				{
-					if(trk.px() - (*it)->px() < 0.01 && trk.py() - (*it)->py() < 0.01 && trk.pz() - (*it)->pz() < 0.01)  return(i);
+					if(trk->px() - (*it)->px() < 0.01 && trk->py() - (*it)->py() < 0.01 && trk->pz() - (*it)->pz() < 0.01) {return i;}
 				}
 			}
 		}
