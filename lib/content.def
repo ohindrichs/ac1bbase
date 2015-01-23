@@ -8,9 +8,9 @@ BeginClass: IOBeamSpot[1]
 F: Vx, Vy, Vz, XWidth, YWidth, ZWidth
 EndClass
 
-BeginClass: IOMET[1]
-F: pfmetpx, pfmetpy
-F: pfmetpxcorr, pfmetpycorr
+BeginClass: IOMET[10]
+F: px, py
+F: pxUnc, pyUnc, pxpyUnc
 EndClass
 
 BeginClass: IOTrack[1000]
@@ -42,6 +42,7 @@ I: NumChargedHadrons, NumNeutralHadrons, NumPhotons, NumElectrons, NumMuons, Num
 F: ChargedPtMomPA, ChargedPtMomPB, ConstituentPtMomPA, ConstituentPtMomPB
 F: PtFractionWrongPrimaryVertex, MaxChargedPtFraction, MaxPtFraction
 F: EnergyCorrection, EnergyCorrectionUnc
+F: BTagCSV, BTagCSVv2
 EndClass
 
 BeginClass: IOElectron[200]
