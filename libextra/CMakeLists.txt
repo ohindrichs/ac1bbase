@@ -7,4 +7,4 @@ target_link_libraries(AnalysisSupport AnalysisTool ${ROOT_LIBRARIES} -lTMVA)
 
 install(TARGETS AnalysisSupport DESTINATION lib)
 #install(FILES helper.h OPhoton.h OMuon.h OElectron.h OJet.h GluonJetFinder.h ME.h RAMBO.h DESTINATION include/AnalysisTool/)
-install(FILES helper.h OMuon.h OElectron.h OJet.h DESTINATION include/AnalysisTool/)
+install(FILES helper.h OMuon.h OElectron.h OJet.h OPhoton.h DESTINATION include/AnalysisTool/)

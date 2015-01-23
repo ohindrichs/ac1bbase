@@ -3,7 +3,7 @@
 #include "GenBasicParticle.h"
 #include "Analyse.h"
 
-OJet::OJet(IOPFJet jet) : Jet(jet), genp_(0), mcflavour(10000001)
+OJet::OJet(IOPFJet jet) : Jet(jet), genp_(0), mcflavour(0)
 {}
 
 bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons) const
@@ -23,8 +23,10 @@ bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electron
 	return(true);
 }
 
-bool OJet::CalculateMCFlavour()
+void OJet::CalculateMCFlavour()
 {
+	if(mcflavour != 0) {return;}
+	mcflavour = 10000000;
 	double ptmax = 0.;
 	for(UInt_t i = 0 ; i < GLAN->NumAllGenParticles() ; i++)
 	{
@@ -36,7 +38,6 @@ bool OJet::CalculateMCFlavour()
 		ptmax = mp.Pt();
 		mcflavour = mp.PDGID();
 	}
-	return true;
 }
 
 void OJet::SetGen(GenBasicParticle* genp) {genp_ = genp;}

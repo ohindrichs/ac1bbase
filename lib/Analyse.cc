@@ -320,10 +320,14 @@ void Analyse::WriteLumiFile(string filename, string mode)
 		baseiorun.Fill();
 	}
 
+	UInt_t orignumevents = 0;
+	UInt_t numevents = 0;
 	for(map<UInt_t, map<UInt_t, Luminosity> >::iterator a = lumilist.begin() ; a != lumilist.end() ; ++a)
 	{
 		for(map<UInt_t, Luminosity>::iterator b = a->second.begin() ; b != a->second.end() ; ++b)
 		{
+			orignumevents += b->second.NumEventsOrig();
+			numevents += b->second.NumEvents();
 			baseiolumi.StartFilling();
 			BASEIOLUMI::IOLumiInfo lumiinfo(baseiolumi.GetIOLumiInfo(0));
 			b->second.FillOutPut(lumiinfo);
@@ -341,7 +345,7 @@ void Analyse::WriteLumiFile(string filename, string mode)
 			if(!jsonfilter || (jsonfilter && jsonlist[lumiinfo.RunNumber()][lumiinfo.BlockNumber()])) baseiolumi.Fill();
 		}
 	}
-
+	cout << numevents << " out of " << orignumevents << " in dataset." << endl;
 	file->Write();
 	file->Close();
 }

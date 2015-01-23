@@ -9,3 +9,12 @@ GenBasicParticle GenBasicParticle::GetMother(Int_t n)
 {
 	return GenBasicParticle(GLAN->GetAllGenParticle(Mother(n)));
 }
+
+bool GenBasicParticle::HasMother(Int_t pdgid)
+{
+	for(UInt_t m = 0 ; m < Num_Mother() ; ++m)
+	{
+		if(GetMother(m).PDGID() == pdgid){return true;}
+	}
+	return false;
+}
