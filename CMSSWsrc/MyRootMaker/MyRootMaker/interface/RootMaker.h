@@ -37,8 +37,6 @@
 #include "CondFormats/DataRecord/interface/L1GtPrescaleFactorsTechTrigRcd.h"
 #include "L1Trigger/GlobalTriggerAnalyzer/interface/L1GtUtils.h"
 
-#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-
 #include "DataFormats/CaloRecHit/interface/CaloCluster.h" 
 #include "DataFormats/CaloRecHit/interface/CaloClusterFwd.h" 
 #include "DataFormats/TrackReco/interface/Track.h"
@@ -203,6 +201,10 @@ class RootMaker : public edm::EDAnalyzer{
 		BASEIO::BaseIO baseio;
 		BASEIORUN::BaseIO baseiorun;
 		BASEIOLUMI::BaseIO baseiolumi;
+		TH1D* histmu;
+		TH1D* histpum;
+		TH1D* histpu;
+		TH1D* histpup;
 		//Configuration
 		bool cgen;
 		bool cgenallparticles;

@@ -9,18 +9,18 @@ namespace BASEIO{
 class BaseIO;
 class Data_IOMuon;
 class IOMuon;
-class Data_IOString;
-class IOString;
 class Data_PrimaryVertex;
 class PrimaryVertex;
 class Data_IOEventInfo;
 class IOEventInfo;
 class Data_IOPFJet;
 class IOPFJet;
-class Data_IOMET;
-class IOMET;
+class Data_IOString;
+class IOString;
 class Data_GenInfo;
 class GenInfo;
+class Data_IOMET;
+class IOMET;
 class Data_IOSuperCluster;
 class IOSuperCluster;
 class Data_PFIsolation;
@@ -119,47 +119,6 @@ class IOMuon
 		void NDOF(Float_t _NDOF);
 		void ECalEnergy(Float_t _ECalEnergy);
 		void HCalEnergy(Float_t _HCalEnergy);
- };
-
-
-
-class Data_IOString
- {
-	friend class IOString;
-	friend class BaseIO;
-	private:
-		static BaseIO* baseio;
-		UInt_t size_;
-		std::string prefix_;
-		UInt_t count_;
-		UInt_t str_count_;
-		UInt_t str_countmax_;
-		UInt_t* str_num_;
-		Char_t* str_;
-	public:
-		void Fill();
-		Data_IOString(UInt_t size, std::string prefix);
-		~Data_IOString();
-		void SetUpWrite(TTree* tree);
-		void SetUpRead(TTree* tree);
-		void Load(TTree* tree, bool load);
- };
-
-
-class IOString
- {
-	friend class BaseIO;
-	private:
-		static BaseIO* baseio;
-		UInt_t number_;
-		Data_IOString* data_;
-	public:
-		IOString(Data_IOString* data, UInt_t number);
-		IOString(const IOString& _iostring);
-		void Init();
-		Char_t str(UInt_t n) const;
-		UInt_t Num_str() const;
-		void str(Char_t _str, UInt_t n);
  };
 
 
@@ -320,6 +279,8 @@ class Data_IOPFJet
 		Float_t* MaxPtFraction_;
 		Float_t* EnergyCorrection_;
 		Float_t* EnergyCorrectionUnc_;
+		Float_t* BTagCSV_;
+		Float_t* BTagCSVv2_;
 	public:
 		void Fill();
 		Data_IOPFJet(UInt_t size, std::string prefix);
@@ -371,6 +332,8 @@ class IOPFJet
 		Float_t MaxPtFraction() const;
 		Float_t EnergyCorrection() const;
 		Float_t EnergyCorrectionUnc() const;
+		Float_t BTagCSV() const;
+		Float_t BTagCSVv2() const;
 		void TriggerMatching(UInt_t _TriggerMatching);
 		void NumChargedHadrons(Int_t _NumChargedHadrons);
 		void NumNeutralHadrons(Int_t _NumNeutralHadrons);
@@ -401,52 +364,49 @@ class IOPFJet
 		void MaxPtFraction(Float_t _MaxPtFraction);
 		void EnergyCorrection(Float_t _EnergyCorrection);
 		void EnergyCorrectionUnc(Float_t _EnergyCorrectionUnc);
+		void BTagCSV(Float_t _BTagCSV);
+		void BTagCSVv2(Float_t _BTagCSVv2);
  };
 
 
 
-class Data_IOMET
+class Data_IOString
  {
-	friend class IOMET;
+	friend class IOString;
 	friend class BaseIO;
 	private:
 		static BaseIO* baseio;
 		UInt_t size_;
 		std::string prefix_;
 		UInt_t count_;
-		Float_t* pfmetpx_;
-		Float_t* pfmetpy_;
-		Float_t* pfmetpxcorr_;
-		Float_t* pfmetpycorr_;
+		UInt_t str_count_;
+		UInt_t str_countmax_;
+		UInt_t* str_num_;
+		Char_t* str_;
 	public:
 		void Fill();
-		Data_IOMET(UInt_t size, std::string prefix);
-		~Data_IOMET();
+		Data_IOString(UInt_t size, std::string prefix);
+		~Data_IOString();
 		void SetUpWrite(TTree* tree);
 		void SetUpRead(TTree* tree);
 		void Load(TTree* tree, bool load);
  };
 
 
-class IOMET
+class IOString
  {
 	friend class BaseIO;
 	private:
 		static BaseIO* baseio;
 		UInt_t number_;
-		Data_IOMET* data_;
+		Data_IOString* data_;
 	public:
-		IOMET(Data_IOMET* data, UInt_t number);
-		IOMET(const IOMET& _iomet);
+		IOString(Data_IOString* data, UInt_t number);
+		IOString(const IOString& _iostring);
 		void Init();
-		Float_t pfmetpx() const;
-		Float_t pfmetpy() const;
-		Float_t pfmetpxcorr() const;
-		Float_t pfmetpycorr() const;
-		void pfmetpx(Float_t _pfmetpx);
-		void pfmetpy(Float_t _pfmetpy);
-		void pfmetpxcorr(Float_t _pfmetpxcorr);
-		void pfmetpycorr(Float_t _pfmetpycorr);
+		Char_t str(UInt_t n) const;
+		UInt_t Num_str() const;
+		void str(Char_t _str, UInt_t n);
  };
 
 
@@ -520,6 +480,55 @@ class GenInfo
 		void METx(Float_t _METx);
 		void METy(Float_t _METy);
 		void NumTrueInteractions(Float_t _NumTrueInteractions);
+ };
+
+
+
+class Data_IOMET
+ {
+	friend class IOMET;
+	friend class BaseIO;
+	private:
+		static BaseIO* baseio;
+		UInt_t size_;
+		std::string prefix_;
+		UInt_t count_;
+		Float_t* px_;
+		Float_t* py_;
+		Float_t* pxUnc_;
+		Float_t* pyUnc_;
+		Float_t* pxpyUnc_;
+	public:
+		void Fill();
+		Data_IOMET(UInt_t size, std::string prefix);
+		~Data_IOMET();
+		void SetUpWrite(TTree* tree);
+		void SetUpRead(TTree* tree);
+		void Load(TTree* tree, bool load);
+ };
+
+
+class IOMET
+ {
+	friend class BaseIO;
+	private:
+		static BaseIO* baseio;
+		UInt_t number_;
+		Data_IOMET* data_;
+	public:
+		IOMET(Data_IOMET* data, UInt_t number);
+		IOMET(const IOMET& _iomet);
+		void Init();
+		Float_t px() const;
+		Float_t py() const;
+		Float_t pxUnc() const;
+		Float_t pyUnc() const;
+		Float_t pxpyUnc() const;
+		void px(Float_t _px);
+		void py(Float_t _py);
+		void pxUnc(Float_t _pxUnc);
+		void pyUnc(Float_t _pyUnc);
+		void pxpyUnc(Float_t _pxpyUnc);
  };
 
 
@@ -637,15 +646,12 @@ class Data_SelectedGenParticle
 		Int_t* PDGID_;
 		Int_t* Status_;
 		Int_t* Info_;
-		Int_t* Mother_;
 		Int_t* IndirectMother_;
+		Int_t* Mother_;
 		Float_t* px_;
 		Float_t* py_;
 		Float_t* pz_;
 		Float_t* e_;
-		Float_t* vx_;
-		Float_t* vy_;
-		Float_t* vz_;
 	public:
 		void Fill();
 		Data_SelectedGenParticle(UInt_t size, std::string prefix);
@@ -670,27 +676,21 @@ class SelectedGenParticle
 		Int_t PDGID() const;
 		Int_t Status() const;
 		Int_t Info() const;
-		Int_t Mother() const;
 		Int_t IndirectMother() const;
+		Int_t Mother() const;
 		Float_t px() const;
 		Float_t py() const;
 		Float_t pz() const;
 		Float_t e() const;
-		Float_t vx() const;
-		Float_t vy() const;
-		Float_t vz() const;
 		void PDGID(Int_t _PDGID);
 		void Status(Int_t _Status);
 		void Info(Int_t _Info);
-		void Mother(Int_t _Mother);
 		void IndirectMother(Int_t _IndirectMother);
+		void Mother(Int_t _Mother);
 		void px(Float_t _px);
 		void py(Float_t _py);
 		void pz(Float_t _pz);
 		void e(Float_t _e);
-		void vx(Float_t _vx);
-		void vy(Float_t _vy);
-		void vz(Float_t _vz);
  };
 
 
@@ -1089,12 +1089,12 @@ class IOPhoton
 class BaseIO
 {
 	friend class IOMuon;
-	friend class IOString;
 	friend class PrimaryVertex;
 	friend class IOEventInfo;
 	friend class IOPFJet;
-	friend class IOMET;
+	friend class IOString;
 	friend class GenInfo;
+	friend class IOMET;
 	friend class IOSuperCluster;
 	friend class PFIsolation;
 	friend class SelectedGenParticle;
@@ -1108,8 +1108,8 @@ class BaseIO
 		Data_PrimaryVertex PrimaryVertex_container_;
 		Data_IOEventInfo IOEventInfo_container_;
 		Data_IOPFJet IOPFJet_container_;
-		Data_IOMET IOMET_container_;
 		Data_GenInfo GenInfo_container_;
+		Data_IOMET IOMET_container_;
 		Data_SelectedGenParticle SelectedGenParticle_container_;
 		Data_AllGenParticle AllGenParticle_container_;
 		Data_IOElectron IOElectron_container_;
@@ -1145,12 +1145,12 @@ class BaseIO
 		UInt_t NumIOPFJets();
 		IOPFJet GetIOPFJet(UInt_t n);
 		void LoadIOPFJet(bool load);
-		UInt_t NumIOMETs();
-		IOMET GetIOMET(UInt_t n);
-		void LoadIOMET(bool load);
 		UInt_t NumGenInfos();
 		GenInfo GetGenInfo(UInt_t n);
 		void LoadGenInfo(bool load);
+		UInt_t NumIOMETs();
+		IOMET GetIOMET(UInt_t n);
+		void LoadIOMET(bool load);
 		UInt_t NumSelectedGenParticles();
 		SelectedGenParticle GetSelectedGenParticle(UInt_t n);
 		void LoadSelectedGenParticle(bool load);

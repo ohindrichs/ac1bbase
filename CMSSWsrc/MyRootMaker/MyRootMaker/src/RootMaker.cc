@@ -97,6 +97,27 @@ RootMaker::RootMaker(const edm::ParameterSet& iConfig) :
 	ecalBarrel = Cylinder::build(Surface::PositionType(0, 0, 0), rot, barrelRadius);
 	ecalNegativeEtaEndcap = Plane::build(Surface::PositionType(0, 0, -endcapZ), rot);
 	ecalPositiveEtaEndcap = Plane::build(Surface::PositionType(0, 0, endcapZ), rot);
+
+    testids.push_back(24);//0
+    testids.push_back(-24);//1
+    testids.push_back(22);//2
+    testids.push_back(23);//3
+    testids.push_back(25);//4
+    testids.push_back(35);//5
+    testids.push_back(36);//6
+    testids.push_back(37);//7
+    testids.push_back(-37);//8
+    testids.push_back(6);//9
+    testids.push_back(-6);//10
+    testids.push_back(5);//11
+    testids.push_back(-5);//12
+    testids.push_back(32);//13
+    testids.push_back(8);//14
+    testids.push_back(-8);//15
+    testids.push_back(15);//16
+    testids.push_back(-15);//17
+    testids.push_back(6000047);//18
+
 }
 
 RootMaker::~RootMaker()
@@ -110,6 +131,10 @@ void RootMaker::beginJob()
 	baseio.SetFile(&(FS->file()));
 	baseiorun.SetFile(&(FS->file()));
 	baseiolumi.SetFile(&(FS->file()));
+	histmu = FS->make<TH1D>("mu", "mu", 600, 0., 300.);
+	histpu = FS->make<TH1D>("pu", "pu", 300, 0., 300.);
+	histpum = FS->make<TH1D>("pum", "pum", 300, 0., 300.);
+	histpup = FS->make<TH1D>("pup", "pup", 300, 0., 300.);
 }
 
 void RootMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
@@ -291,6 +316,30 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.getByLabel(edm::InputTag("kt6PFJets", "sigma", "ROOTMAKER"), sigma);
 	evinfo.AK5PFSigma(*sigma);
 
+	edm::Handle<vector<PileupSummaryInfo> > PUInfo;
+	iEvent.getByLabel(edm::InputTag("addPileupInfo"), PUInfo);
+
+	if(PUInfo.isValid())
+	{
+		for(vector<PileupSummaryInfo>::const_iterator PVI = PUInfo->begin(); PVI != PUInfo->end(); ++PVI)
+		{
+			int BX = PVI->getBunchCrossing();
+			if(BX == -1)
+			{ 
+				histpum->Fill(PVI->getPU_NumInteractions());
+			}
+			else if(BX == 0)
+			{ 
+				histpu->Fill(PVI->getPU_NumInteractions());
+				histmu->Fill(PVI->getTrueNumInteractions());
+			}
+			else if(BX == 1)
+			{ 
+				histpup->Fill(PVI->getPU_NumInteractions());
+			}
+		}
+	}
+
 	//HLTriggerResults
 	for(unsigned i = 0 ; i < min(unsigned(HLTrigger->size()), unsigned(1200)) ; i++)
 	{
@@ -318,7 +367,7 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		{
 			for(unsigned i = 0 ; i < Vertices->size(); i++)
 			{
-				PrimaryVertex vtx = baseio.GetPrimaryVertex(0);
+				PrimaryVertex vtx = baseio.GetPrimaryVertex(baseio.NumPrimaryVertexs());
 				vtx.Vx((*Vertices)[i].x());
 				vtx.Vy((*Vertices)[i].y());
 				vtx.Vz((*Vertices)[i].z());
@@ -393,16 +442,52 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		iEvent.getByLabel(edm::InputTag("pfMet"), pfMet);
 		if(pfMet.isValid() && pfMet->size() > 0)
 		{
-			met.pfmetpx((*pfMet)[0].px());
-			met.pfmetpy((*pfMet)[0].py());
+			met.px((*pfMet)[0].px());
+			met.py((*pfMet)[0].py());
+			met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
+			met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
+			met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
 		}
-		edm::Handle<reco::PFMETCollection> pfMetType0Type1;
-		iEvent.getByLabel(edm::InputTag("pfType0Type1CorrectedMet"), pfMetType0Type1);
-		if(pfMetType0Type1.isValid() && pfMetType0Type1->size() > 0)
+		met = baseio.GetIOMET(1);
+		edm::Handle<reco::PFMETCollection> pfMetT0;
+		iEvent.getByLabel(edm::InputTag("pfMetT0pc"), pfMetT0);
+		if(pfMetT0.isValid() && pfMetT0->size() > 0)
 		{
-			met.pfmetpx((*pfMetType0Type1)[0].px());
-			met.pfmetpy((*pfMetType0Type1)[0].py());
+			met.px((*pfMetT0)[0].px());
+			met.py((*pfMetT0)[0].py());
+			met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
+			met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
+			met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
 		}
+		met = baseio.GetIOMET(2);
+		edm::Handle<reco::PFMETCollection> pfMetT1;
+		iEvent.getByLabel(edm::InputTag("pfMetT1"), pfMetT1);
+		if(pfMetT1.isValid() && pfMetT1->size() > 0)
+		{
+			met.px((*pfMetT1)[0].px());
+			met.py((*pfMetT1)[0].py());
+			met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
+			met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
+			met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
+		}
+		met = baseio.GetIOMET(3);
+		edm::Handle<reco::PFMETCollection> pfMetT0T1;
+		iEvent.getByLabel(edm::InputTag("pfMetT0pcT1"), pfMetT0T1);
+		if(pfMetT0T1.isValid() && pfMetT0T1->size() > 0)
+		{
+			met.px((*pfMetT0T1)[0].px());
+			met.py((*pfMetT0T1)[0].py());
+			met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
+			met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
+			met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
+		}
+		//edm::Handle<reco::PFMETCollection> pfMetType0Type1;
+		//iEvent.getByLabel(edm::InputTag("pfType0Type1CorrectedMet"), pfMetType0Type1);
+		//if(pfMetType0Type1.isValid() && pfMetType0Type1->size() > 0)
+		//{
+		//	met.pfmetpx((*pfMetType0Type1)[0].px());
+		//	met.pfmetpy((*pfMetType0Type1)[0].py());
+		//}
 	}
 
 	if(cgen || cgenallparticles || cgenak5jets)
@@ -420,10 +505,6 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			gi.RenScale(HEPMC->qScale());
 			gi.FacScale(HEPMC->qScale());
 		}
-
-		edm::Handle<vector<PileupSummaryInfo> > PUInfo;
-		iEvent.getByLabel(edm::InputTag("addPileupInfo"), PUInfo);
-
 		if(PUInfo.isValid())
 		{
 			for(vector<PileupSummaryInfo>::const_iterator PVI = PUInfo->begin(); PVI != PUInfo->end(); ++PVI)
@@ -445,6 +526,7 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			}
 		}
 
+
 		edm::Handle<GenMETCollection> GenMetTrue;
 		iEvent.getByLabel(edm::InputTag("genMetTrue"), GenMetTrue);
 		if(GenMetTrue.isValid() && GenMetTrue->size() > 0)
@@ -461,6 +543,63 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	}  
 
+	if(cgen)
+	{
+		edm::Handle<GenParticleCollection> GenParticles;
+		iEvent.getByLabel(edm::InputTag("genPlusSimParticles"), GenParticles);
+		if(!GenParticles.isValid())
+		{
+			iEvent.getByLabel(edm::InputTag("genParticles"), GenParticles);
+		}
+
+		if(GenParticles.isValid())
+		{
+			for(unsigned i = 0 ; i < GenParticles->size() ; i++)
+			{
+				bool fill = false;
+				if((*GenParticles)[i].status() > 20 && (*GenParticles)[i].status() < 30){fill = true;}
+				if((abs((*GenParticles)[i].pdgId()) <= 6 || (*GenParticles)[i].pdgId() == 21))
+				{
+					for(size_t nm = 0 ; nm < (*GenParticles)[i].numberOfMothers() ; ++nm)
+					{
+						if(TMath::Abs((*GenParticles)[i].mother(nm)->pdgId()) == 24)
+						{
+							fill = true;
+						}
+					}
+				}
+				if((*GenParticles)[i].status() == 1)
+				{
+					if(TMath::Abs((*GenParticles)[i].pdgId()) >= 11 && TMath::Abs((*GenParticles)[i].pdgId()) <= 16) {fill = true;}
+				}
+				if(fill)
+				{
+					SelectedGenParticle gp = baseio.GetSelectedGenParticle(baseio.NumSelectedGenParticles());
+					gp.e((*GenParticles)[i].energy());
+					gp.px((*GenParticles)[i].px());
+					gp.py((*GenParticles)[i].py());
+					gp.pz((*GenParticles)[i].pz());
+					//gp.vx((*GenParticles)[i].vx());
+					//gp.vy((*GenParticles)[i].vy());
+					//gp.vz((*GenParticles)[i].vz());
+					gp.PDGID((*GenParticles)[i].pdgId());
+					gp.Status((*GenParticles)[i].status());
+					pair<Int_t, Int_t> motherinfo = HasAnyMother(&(*GenParticles)[i], testids);
+					gp.Info(motherinfo.first);
+					gp.IndirectMother(motherinfo.second);
+					if((*GenParticles)[i].numberOfMothers() > 0)
+					{
+						gp.Mother((*GenParticles)[i].mother(0)->pdgId());
+					}
+					else
+					{
+						gp.Mother(0);
+					}
+				}
+			}
+		}
+	}
+
 	if(cgenallparticles)
 	{
 		edm::Handle<GenParticleCollection> GenParticles;
@@ -474,7 +613,7 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		{
 			for(unsigned i = 0 ; i < GenParticles->size() ; i++)
 			{
-				AllGenParticle gp = baseio.GetAllGenParticle(i);
+				AllGenParticle gp = baseio.GetAllGenParticle(baseio.NumAllGenParticles());
 				gp.e((*GenParticles)[i].energy());
 				gp.px((*GenParticles)[i].px());
 				gp.py((*GenParticles)[i].py());
@@ -592,8 +731,6 @@ bool RootMaker::AddPhotons(const edm::Event& iEvent, const edm::EventSetup& iSet
 		edm::Handle<ConversionCollection> Conversions;
 		iEvent.getByLabel(edm::InputTag("allConversions"), Conversions);
 
-		EcalClusterLazyTools lazyTools(iEvent, iSetup, edm::InputTag("reducedEcalRecHitsEB"), edm::InputTag("reducedEcalRecHitsEE"), edm::InputTag("reducedEcalRecHitsES"));
-
 		for(size_t n = 0 ; n < Photons->size() ; n++)
 		{
 			PhotonRef ph(Photons, n);
@@ -607,10 +744,7 @@ bool RootMaker::AddPhotons(const edm::Event& iEvent, const edm::EventSetup& iSet
 			phout.E1x5(ph->e3x3());
 			phout.E1x5(ph->e5x5());
 			phout.MaxCrystalEnergy(ph->maxEnergyXtal());
-			vector<float> localcovariances = lazyTools.localCovariances(*(ph->superCluster()->seed()));
-			phout.SigmaIEtaIEta(TMath::Sqrt(localcovariances[0]));
-			phout.SigmaIPhiIPhi(TMath::Sqrt(localcovariances[2]));
-			phout.SigmaIEtaIPhi(TMath::Sqrt(localcovariances[1]));
+			phout.SigmaIEtaIEta(ph->sigmaIetaIeta());
 			phout.EHCalTowerOverECalD1(ph->hadronicDepth1OverEm());
 			phout.EHCalTowerOverECalD2(ph->hadronicDepth2OverEm());
 			PFIsolation r3(phout.PFR3());
@@ -677,8 +811,8 @@ void RootMaker::FillTrack(BASEIO::IOTrack& trout, TrackRef& trin)
 	trout.VertexNumber(getPrimVertex(trin));
 	trout.NStripHits(trin->hitPattern().numberOfValidStripHits());
 	trout.NPixelHits(trin->hitPattern().numberOfValidPixelHits());
-	trout.NMissingHits(trin->hitPattern().numberOfLostHits());
-	trout.NMissingInnerHits(trin->trackerExpectedHitsInner().numberOfHits());
+	trout.NMissingHits(trin->hitPattern().numberOfLostHits(HitPattern::TRACK_HITS));
+	trout.NMissingInnerHits(trin->hitPattern().numberOfHits(HitPattern::MISSING_INNER_HITS));
 	trout.NPixelLayers(trin->hitPattern().pixelLayersWithMeasurement());
 	trout.NStripLayers(trin->hitPattern().stripLayersWithMeasurement());
 	//trout.DeDx((*dEdxharmonic2)[trin].dEdx());
@@ -690,11 +824,18 @@ bool RootMaker::AddAK5PFJets(const edm::Event& iEvent, const edm::EventSetup& iS
 	int NumGood = 0;
 
 	edm::Handle<PFJetCollection> ak5pfJets;
-	iEvent.getByLabel(edm::InputTag("ak5PFJets"), ak5pfJets);
-	const JetCorrector* corrector = JetCorrector::getJetCorrector((string("ak5PF")+cJetCorrection).c_str(), iSetup);
+	iEvent.getByLabel(edm::InputTag("ak4PFJets"), ak5pfJets);
+	const JetCorrector* corrector = JetCorrector::getJetCorrector((string("ak4PF")+cJetCorrection).c_str(), iSetup);
+
+	edm::Handle<reco::JetTagCollection> bTagCSVHandle;
+	iEvent.getByLabel("combinedSecondaryVertexBJetTags", bTagCSVHandle);
+	const reco::JetTagCollection& bTagCSVs = *(bTagCSVHandle.product());
+	edm::Handle<reco::JetTagCollection> bTagCSVv2Handle;
+	iEvent.getByLabel("combinedInclusiveSecondaryVertexV2BJetTags", bTagCSVv2Handle);
+	const reco::JetTagCollection& bTagCSVv2s = *(bTagCSVv2Handle.product());
 
 	edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-	iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl);
+	iSetup.get<JetCorrectionsRecord>().get("AK4PF",JetCorParColl);
 	JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
 	JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 	for(unsigned i = 0 ; i < ak5pfJets->size() ; i++)
@@ -710,6 +851,25 @@ bool RootMaker::AddAK5PFJets(const edm::Event& iEvent, const edm::EventSetup& iS
 			jetout.px(corjet.px());
 			jetout.py(corjet.py());
 			jetout.pz(corjet.pz());
+			double tag = -1.;
+			for(size_t b = 0; b < bTagCSVs.size(); ++b)
+			{
+				if(sqrt((corjet.eta() - bTagCSVs[b].first->eta())*(corjet.eta() - bTagCSVs[b].first->eta()) + (corjet.phi() - bTagCSVs[b].first->phi())*(corjet.phi() - bTagCSVs[b].first->phi())) < 0.2)
+				{
+					tag = bTagCSVs[b].second;
+				}
+			}
+			jetout.BTagCSV(tag);
+			tag = -1.;
+			for(size_t b = 0; b < bTagCSVv2s.size(); ++b)
+			{
+				if(sqrt((corjet.eta() - bTagCSVv2s[b].first->eta())*(corjet.eta() - bTagCSVv2s[b].first->eta()) + (corjet.phi() - bTagCSVv2s[b].first->phi())*(corjet.phi() - bTagCSVv2s[b].first->phi())) < 0.2)
+				{
+					tag = bTagCSVv2s[b].second;
+				}
+			}
+			jetout.BTagCSVv2(tag);
+
 			jetout.TriggerMatching(GetTrigger(corjet, jettriggers));
 			jetout.Area(corjet.jetArea());
 			jetout.ChargedHadronEnergy(corjet.chargedHadronEnergy());
@@ -840,8 +1000,8 @@ void RootMaker::FillTrack(BASEIO::IOTrack& trout, GsfTrackRef& trin, TrackRef& t
 	}
 	trout.NStripHits(trin->hitPattern().numberOfValidStripHits());
 	trout.NPixelHits(trin->hitPattern().numberOfValidPixelHits());
-	trout.NMissingHits(trin->hitPattern().numberOfLostHits());
-	trout.NMissingInnerHits(trin->trackerExpectedHitsInner().numberOfHits());
+	trout.NMissingHits(trin->hitPattern().numberOfLostHits(HitPattern::TRACK_HITS));
+	trout.NMissingInnerHits(trin->hitPattern().numberOfHits(HitPattern::MISSING_INNER_HITS));
 	trout.NPixelLayers(trin->hitPattern().pixelLayersWithMeasurement());
 	trout.NStripLayers(trin->hitPattern().stripLayersWithMeasurement());
 	trout.DeDx(-1.);

@@ -6,13 +6,19 @@ process = cms.Process("ROOTMAKER")
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 process.load('Configuration.StandardSequences.Services_cff')
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.load("Configuration.StandardSequences.MagneticField_cff")
+#process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+#process.load("Configuration.StandardSequences.MagneticField_cff")
 #process.load("Configuration.StandardSequences.Geometry_cff")
-process.load("Configuration.Geometry.GeometryIdeal_cff")
-process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
+#process.load("Configuration.Geometry.GeometryIdeal_cff")
 
-	
+#process.load("Configuration.StandardSequences.Geometry_cff")
+#process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+#process.load("Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff")
+process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
+process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')	
+process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
+
 process.MessageLogger.cerr.threshold = 'INFO'
 #process.MessageLogger.categories.append('PATSummaryTables')
 #process.GlobalTag.globaltag = cms.string('GR_P_V16::All')
@@ -56,95 +62,100 @@ process.maxEvents = cms.untracked.PSet(
 #process.vertex_step=cms.Path(process.goodVertices)
 #####Filter
 ## The good primary vertex filter ____________________________________________||
-process.primaryVertexFilter = cms.EDFilter(
-                "VertexSelector",
-                src = cms.InputTag("offlinePrimaryVertices"),
-                cut = cms.string("!isFake && ndof > 4 && abs(z) <= 24 && position.Rho <= 2"),
-                filter = cms.bool(True)
-                )
-
-
-## The beam scraping filter __________________________________________________||
-process.noscraping = cms.EDFilter(
-                "FilterOutScraping",
-                applyfilter = cms.untracked.bool(True),
-                debugOn = cms.untracked.bool(False),
-                numtrack = cms.untracked.uint32(10),
-                thresh = cms.untracked.double(0.25)
-                )
-
-## The iso-based HBHE noise filter ___________________________________________||
-process.load('CommonTools.RecoAlgos.HBHENoiseFilter_cfi')
-
-## The CSC beam halo tight filter ____________________________________________||
-#process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
-
-## The HCAL laser filter _____________________________________________________||
-process.load("RecoMET.METFilters.hcalLaserEventFilter_cfi")
-
-## The ECAL dead cell trigger primitive filter _______________________________||
-process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
-
-## The EE bad SuperCrystal filter ____________________________________________||
-process.load('RecoMET.METFilters.eeBadScFilter_cfi')
-
-## The ECAL laser correction filter
-process.load('RecoMET.METFilters.ecalLaserCorrFilter_cfi')
-
-## The tracking failure filter _______________________________________________||
-process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
-
-
-process.filters_step = cms.Path(
-                process.primaryVertexFilter *
-                process.noscraping *
-                process.HBHENoiseFilter *
-#                process.CSCTightHaloFilter *
-                process.hcalLaserEventFilter *
-                process.EcalDeadCellTriggerPrimitiveFilter *
-                process.trackingFailureFilter *
-                process.eeBadScFilter *
-                process.ecalLaserCorrFilter
-                )
-
-###### Jet MET corrections
+#process.primaryVertexFilter = cms.EDFilter(
+#                "VertexSelector",
+#                src = cms.InputTag("offlinePrimaryVertices"),
+#                cut = cms.string("!isFake && ndof > 4 && abs(z) <= 24 && position.Rho <= 2"),
+#                filter = cms.bool(True)
+#                )
+#
+#
+### The beam scraping filter __________________________________________________||
+#process.noscraping = cms.EDFilter(
+#                "FilterOutScraping",
+#                applyfilter = cms.untracked.bool(True),
+#                debugOn = cms.untracked.bool(False),
+#                numtrack = cms.untracked.uint32(10),
+#                thresh = cms.untracked.double(0.25)
+#                )
+#
+### The iso-based HBHE noise filter ___________________________________________||
+#process.load('CommonTools.RecoAlgos.HBHENoiseFilter_cfi')
+#
+### The CSC beam halo tight filter ____________________________________________||
+##process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
+#
+### The HCAL laser filter _____________________________________________________||
+#process.load("RecoMET.METFilters.hcalLaserEventFilter_cfi")
+#
+### The ECAL dead cell trigger primitive filter _______________________________||
+#process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
+#
+### The EE bad SuperCrystal filter ____________________________________________||
+#process.load('RecoMET.METFilters.eeBadScFilter_cfi')
+#
+### The ECAL laser correction filter
+#process.load('RecoMET.METFilters.ecalLaserCorrFilter_cfi')
+#
+### The tracking failure filter _______________________________________________||
+#process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
+#
+#
+#process.filters_step = cms.Path(
+#                process.primaryVertexFilter *
+#                process.noscraping *
+#                process.HBHENoiseFilter *
+##                process.CSCTightHaloFilter *
+#                process.hcalLaserEventFilter *
+#                process.EcalDeadCellTriggerPrimitiveFilter *
+#                process.trackingFailureFilter *
+#                process.eeBadScFilter *
+#                process.ecalLaserCorrFilter
+#                )
+#
+####### Jet MET corrections
 process.load('RecoJets.Configuration.RecoPFJets_cff')
 process.kt6PFJets.doRhoFastjet = True
 process.kt6PFJets.doAreaFastjet = True
 process.kt6PFJets.voronoiRfact = 0.9
-
+#
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
-process.load('JetMETCorrections.Configuration.JetCorrectionServices_cff')
-process.load("JetMETCorrections.Type1MET.pfMETCorrectionType0_cfi")
-process.load('JetMETCorrections.Type1MET.pfMETCorrections_cff')
-process.pfJetMETcorr.jetCorrLabel = cms.string("ak5PFL1FastL2L3")
-from JetMETCorrections.Type1MET.pfMETCorrections_cff import pfType1CorrectedMet
-process.pfType0Type1CorrectedMet = pfType1CorrectedMet.clone(
-applyType0Corrections = cms.bool(False),
-srcType1Corrections = cms.VInputTag(
-    cms.InputTag('pfMETcorrType0'),
-    cms.InputTag('pfJetMETcorr', 'type1')
+
+#process.load('RecoMET.METProducers.PFMET_cfi')
+process.load("RecoMET.METProducers.METSigParams_cfi")
+process.pfMet = cms.EDProducer(
+"PFMETProducer",
+process.METSignificance_params,
+src = cms.InputTag("particleFlow"),
+alias = cms.string('pfMet'),
+globalThreshold = cms.double(0.0),
+calculateSignificance = cms.bool(True),
+jets = cms.InputTag("ak4PFJets")
 )
-)
-process.metAnalysisSequence=cms.Sequence(process.type0PFMEtCorrection*process.producePFMETCorrections*process.pfType0Type1CorrectedMet)
+process.load('JetMETCorrections.Type1MET.correctionTermsPfMetType0PFCandidate_cff')
+process.load('JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff')
+process.load('JetMETCorrections.Type1MET.correctedMet_cff')
+process.metAnalysisSequence=cms.Sequence(process.pfMet*process.correctionTermsPfMetType0PFCandidate*process.correctionTermsPfMetType1Type2*process.pfMetT0pc*process.pfMetT0pcT1*process.pfMetT1)
+
+#process.jet_step = cms.Path(process.kt6PFJets)
 process.jet_step = cms.Path(process.kt6PFJets*process.metAnalysisSequence)
-
-######PF ISO calculation for Electrons
-#from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso, setupPFPhotonIso
-#process.eleIsoSequence = setupPFElectronIso(process, 'gsfElectrons')
-##process.phoIsoSequence = setupPFPhotonIso(process, 'photons')
-##process.pfiso_step = cms.Path( process.pfParticleSelectionSequence + process.eleIsoSequence + process.phoIsoSequence)
-#process.pfiso_step = cms.Path( process.pfParticleSelectionSequence + process.eleIsoSequence)
-
-######Electron ID
-process.load("RecoEgamma.ElectronIdentification.cutsInCategoriesElectronIdentificationV06_cfi")
-process.electron_step = cms.Path(process.eidHyperTight1MC*process.eidLooseMC)
-
-######Matching Partons to Jets
-process.load("PhysicsTools.JetMCAlgos.CaloJetsMCFlavour_cfi")
-process.AK5byRef.jets = cms.InputTag("ak5PFJets")
-process.jetflavour_step = cms.Path(process.myPartons * process.AK5Flavour)
-
+#
+#######PF ISO calculation for Electrons
+##from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso, setupPFPhotonIso
+##process.eleIsoSequence = setupPFElectronIso(process, 'gsfElectrons')
+###process.phoIsoSequence = setupPFPhotonIso(process, 'photons')
+###process.pfiso_step = cms.Path( process.pfParticleSelectionSequence + process.eleIsoSequence + process.phoIsoSequence)
+##process.pfiso_step = cms.Path( process.pfParticleSelectionSequence + process.eleIsoSequence)
+#
+#######Electron ID
+#process.load("RecoEgamma.ElectronIdentification.cutsInCategoriesElectronIdentificationV06_cfi")
+#process.electron_step = cms.Path(process.eidHyperTight1MC*process.eidLooseMC)
+#
+#######Matching Partons to Jets
+#process.load("PhysicsTools.JetMCAlgos.CaloJetsMCFlavour_cfi")
+#process.AK5byRef.jets = cms.InputTag("ak5PFJets")
+#process.jetflavour_step = cms.Path(process.myPartons * process.AK5Flavour)
+#
 ######PAT
 #process.load("PhysicsTools.PatAlgos.patSequences_cff")
 #from PhysicsTools.PatAlgos.patEventContent_cff import patEventContent
@@ -320,7 +331,7 @@ RecLambdaMasswin = cms.untracked.double(0.02)
 #)
 
 process.TFileService = cms.Service("TFileService",
-	fileName = cms.string('AC1B.root')
+	fileName = cms.string('UR.root')
 )
 
 process.roottree_step = cms.EndPath(process.makeroottree)

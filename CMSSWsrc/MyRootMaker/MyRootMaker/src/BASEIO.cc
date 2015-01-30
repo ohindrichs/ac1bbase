@@ -398,110 +398,6 @@ void IOMuon::HCalEnergy(Float_t _HCalEnergy)
 
 
 
-//Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString 
-BaseIO* Data_IOString::baseio = 0;
-Data_IOString::Data_IOString(UInt_t size, std::string prefix = "") : 
-size_(size),
-prefix_(prefix)
-{
-	str_num_ = new UInt_t[size_];
-	str_ = new Char_t[size_*100];
-	str_countmax_ = size_*100;
-}
-
-Data_IOString::~Data_IOString()
-{
-	delete[] str_;
-	delete[] str_num_;
-}
-
-void Data_IOString::Fill()
-{
-	count_ = 0;
-	str_count_ = 0;
-}
-
-void Data_IOString::SetUpWrite(TTree* tree)
-{
-	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_str_count").c_str(), &str_count_, (prefix_ + "_str_count/i").c_str());
-	tree->Branch((prefix_ + "_str_num").c_str(), str_num_, (prefix_ + "_str_num[" + prefix_ + "_count]/i").c_str());
-	tree->Branch((prefix_ + "_str").c_str(), str_, (prefix_ + "_str[" + prefix_ + "_str_count]/B").c_str());
-}
-
-void Data_IOString::SetUpRead(TTree* tree)
-{
-	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
-	tree->SetBranchAddress((prefix_ + "_str_count").c_str(), &str_count_);
-	tree->SetBranchAddress((prefix_ + "_str_num").c_str(), str_num_);
-	tree->SetBranchAddress((prefix_ + "_str").c_str(), str_);
-}
-
-void Data_IOString::Load(TTree* tree, bool load)
-{
-	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_str_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_str_num").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_str").c_str(), load);
-}
-
-
-
-//IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == 
-BaseIO* IOString::baseio = 0;
-IOString::IOString(Data_IOString* data, UInt_t number) : 
-number_(number),
-data_(data)
-{
-	Init();
-}
-
-IOString::IOString(const IOString& _iostring) : 
-number_( _iostring.number_),
-data_( _iostring.data_)
-{
-}
-
-void IOString::Init()
-{
-	if(baseio->IsWritable())
-	{
-		if(number_ == 0) {data_->str_num_[number_] = 0;}
-		else {data_->str_num_[number_] = data_->str_num_[number_-1];}
-		data_->count_ = number_+1;
-	}
-}
-
-UInt_t IOString::Num_str() const
-{
-	return number_ == 0 ? data_->str_num_[number_] : data_->str_num_[number_] - data_->str_num_[number_-1];
-}
-
-Char_t IOString::str(UInt_t n) const
-{
-	return number_ == 0 ? data_->str_[n] : data_->str_[data_->str_num_[number_-1]  + n];
-}
-
-void IOString::str(Char_t _str, UInt_t n)
-{
-	if(number_ != 0){n = data_->str_num_[number_-1] +n;}
-	if(n >= data_->str_countmax_)
-	{
-		baseio->SetError(16);//ERROR16
-		return;
-	}
-	if(n != data_->str_count_)
-	{
-		cerr << "Index already filled" << endl;
-		return;
-	}
-	data_->str_[n] = _str;
-	data_->str_num_[number_]++;
-	data_->str_count_++;
-}
-
-
-
 //Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex Data_PrimaryVertex 
 BaseIO* Data_PrimaryVertex::baseio = 0;
 Data_PrimaryVertex::Data_PrimaryVertex(UInt_t size, std::string prefix = "") : 
@@ -633,7 +529,7 @@ void PrimaryVertex::NumTracks(UChar_t _NumTracks)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(17);//ERROR17
+		baseio->SetError(16);//ERROR16
 		return;
 	}
 	data_->NumTracks_[number_] = _NumTracks;
@@ -643,7 +539,7 @@ void PrimaryVertex::Vx(Float_t _Vx)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(18);//ERROR18
+		baseio->SetError(17);//ERROR17
 		return;
 	}
 	data_->Vx_[number_] = _Vx;
@@ -653,7 +549,7 @@ void PrimaryVertex::Vy(Float_t _Vy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(19);//ERROR19
+		baseio->SetError(18);//ERROR18
 		return;
 	}
 	data_->Vy_[number_] = _Vy;
@@ -663,7 +559,7 @@ void PrimaryVertex::Vz(Float_t _Vz)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(20);//ERROR20
+		baseio->SetError(19);//ERROR19
 		return;
 	}
 	data_->Vz_[number_] = _Vz;
@@ -673,7 +569,7 @@ void PrimaryVertex::ChiQ(Float_t _ChiQ)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(21);//ERROR21
+		baseio->SetError(20);//ERROR20
 		return;
 	}
 	data_->ChiQ_[number_] = _ChiQ;
@@ -683,7 +579,7 @@ void PrimaryVertex::NDOF(Float_t _NDOF)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(22);//ERROR22
+		baseio->SetError(21);//ERROR21
 		return;
 	}
 	data_->NDOF_[number_] = _NDOF;
@@ -693,7 +589,7 @@ void PrimaryVertex::SumPtQ(Float_t _SumPtQ)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(23);//ERROR23
+		baseio->SetError(22);//ERROR22
 		return;
 	}
 	data_->SumPtQ_[number_] = _SumPtQ;
@@ -859,7 +755,7 @@ void IOEventInfo::EventNumber(UInt_t _EventNumber)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(24);//ERROR24
+		baseio->SetError(23);//ERROR23
 		return;
 	}
 	data_->EventNumber_[number_] = _EventNumber;
@@ -869,7 +765,7 @@ void IOEventInfo::LumiSectionNumber(UInt_t _LumiSectionNumber)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(25);//ERROR25
+		baseio->SetError(24);//ERROR24
 		return;
 	}
 	data_->LumiSectionNumber_[number_] = _LumiSectionNumber;
@@ -879,7 +775,7 @@ void IOEventInfo::RunNumber(UInt_t _RunNumber)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(26);//ERROR26
+		baseio->SetError(25);//ERROR25
 		return;
 	}
 	data_->RunNumber_[number_] = _RunNumber;
@@ -889,7 +785,7 @@ void IOEventInfo::TimeUnix(UInt_t _TimeUnix)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(27);//ERROR27
+		baseio->SetError(26);//ERROR26
 		return;
 	}
 	data_->TimeUnix_[number_] = _TimeUnix;
@@ -899,7 +795,7 @@ void IOEventInfo::TimeMuSec(UInt_t _TimeMuSec)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(28);//ERROR28
+		baseio->SetError(27);//ERROR27
 		return;
 	}
 	data_->TimeMuSec_[number_] = _TimeMuSec;
@@ -909,7 +805,7 @@ void IOEventInfo::AK5PFRho(Float_t _AK5PFRho)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(29);//ERROR29
+		baseio->SetError(28);//ERROR28
 		return;
 	}
 	data_->AK5PFRho_[number_] = _AK5PFRho;
@@ -919,7 +815,7 @@ void IOEventInfo::AK5PFSigma(Float_t _AK5PFSigma)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(30);//ERROR30
+		baseio->SetError(29);//ERROR29
 		return;
 	}
 	data_->AK5PFSigma_[number_] = _AK5PFSigma;
@@ -930,7 +826,7 @@ void IOEventInfo::TriggerHLT(UChar_t _TriggerHLT, UInt_t n)
 	if(number_ != 0){n = data_->TriggerHLT_num_[number_-1] +n;}
 	if(n >= data_->TriggerHLT_countmax_)
 	{
-		baseio->SetError(31);//ERROR31
+		baseio->SetError(30);//ERROR30
 		return;
 	}
 	if(n != data_->TriggerHLT_count_)
@@ -981,6 +877,8 @@ prefix_(prefix)
 	MaxPtFraction_ = new Float_t[size_];
 	EnergyCorrection_ = new Float_t[size_];
 	EnergyCorrectionUnc_ = new Float_t[size_];
+	BTagCSV_ = new Float_t[size_];
+	BTagCSVv2_ = new Float_t[size_];
 }
 
 Data_IOPFJet::~Data_IOPFJet()
@@ -1015,6 +913,8 @@ Data_IOPFJet::~Data_IOPFJet()
 	delete[] MaxPtFraction_;
 	delete[] EnergyCorrection_;
 	delete[] EnergyCorrectionUnc_;
+	delete[] BTagCSV_;
+	delete[] BTagCSVv2_;
 }
 
 void Data_IOPFJet::Fill()
@@ -1055,6 +955,8 @@ void Data_IOPFJet::SetUpWrite(TTree* tree)
 	tree->Branch((prefix_ + "_MaxPtFraction").c_str(), MaxPtFraction_, (prefix_ + "_MaxPtFraction[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_EnergyCorrection").c_str(), EnergyCorrection_, (prefix_ + "_EnergyCorrection[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_EnergyCorrectionUnc").c_str(), EnergyCorrectionUnc_, (prefix_ + "_EnergyCorrectionUnc[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_BTagCSV").c_str(), BTagCSV_, (prefix_ + "_BTagCSV[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_BTagCSVv2").c_str(), BTagCSVv2_, (prefix_ + "_BTagCSVv2[" + prefix_ + "_count]/F").c_str());
 }
 
 void Data_IOPFJet::SetUpRead(TTree* tree)
@@ -1090,6 +992,8 @@ void Data_IOPFJet::SetUpRead(TTree* tree)
 	tree->SetBranchAddress((prefix_ + "_MaxPtFraction").c_str(), MaxPtFraction_);
 	tree->SetBranchAddress((prefix_ + "_EnergyCorrection").c_str(), EnergyCorrection_);
 	tree->SetBranchAddress((prefix_ + "_EnergyCorrectionUnc").c_str(), EnergyCorrectionUnc_);
+	tree->SetBranchAddress((prefix_ + "_BTagCSV").c_str(), BTagCSV_);
+	tree->SetBranchAddress((prefix_ + "_BTagCSVv2").c_str(), BTagCSVv2_);
 }
 
 void Data_IOPFJet::Load(TTree* tree, bool load)
@@ -1125,6 +1029,8 @@ void Data_IOPFJet::Load(TTree* tree, bool load)
 	tree->SetBranchStatus((prefix_ + "_MaxPtFraction").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_EnergyCorrection").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_EnergyCorrectionUnc").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_BTagCSV").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_BTagCSVv2").c_str(), load);
 }
 
 
@@ -1302,11 +1208,21 @@ Float_t IOPFJet::EnergyCorrectionUnc() const
 	return data_->EnergyCorrectionUnc_[number_];
 }
 
+Float_t IOPFJet::BTagCSV() const
+{
+	return data_->BTagCSV_[number_];
+}
+
+Float_t IOPFJet::BTagCSVv2() const
+{
+	return data_->BTagCSVv2_[number_];
+}
+
 void IOPFJet::TriggerMatching(UInt_t _TriggerMatching)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(32);//ERROR32
+		baseio->SetError(31);//ERROR31
 		return;
 	}
 	data_->TriggerMatching_[number_] = _TriggerMatching;
@@ -1316,7 +1232,7 @@ void IOPFJet::NumChargedHadrons(Int_t _NumChargedHadrons)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(33);//ERROR33
+		baseio->SetError(32);//ERROR32
 		return;
 	}
 	data_->NumChargedHadrons_[number_] = _NumChargedHadrons;
@@ -1326,7 +1242,7 @@ void IOPFJet::NumNeutralHadrons(Int_t _NumNeutralHadrons)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(34);//ERROR34
+		baseio->SetError(33);//ERROR33
 		return;
 	}
 	data_->NumNeutralHadrons_[number_] = _NumNeutralHadrons;
@@ -1336,7 +1252,7 @@ void IOPFJet::NumPhotons(Int_t _NumPhotons)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(35);//ERROR35
+		baseio->SetError(34);//ERROR34
 		return;
 	}
 	data_->NumPhotons_[number_] = _NumPhotons;
@@ -1346,7 +1262,7 @@ void IOPFJet::NumElectrons(Int_t _NumElectrons)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(36);//ERROR36
+		baseio->SetError(35);//ERROR35
 		return;
 	}
 	data_->NumElectrons_[number_] = _NumElectrons;
@@ -1356,7 +1272,7 @@ void IOPFJet::NumMuons(Int_t _NumMuons)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(37);//ERROR37
+		baseio->SetError(36);//ERROR36
 		return;
 	}
 	data_->NumMuons_[number_] = _NumMuons;
@@ -1366,7 +1282,7 @@ void IOPFJet::NumForwardEMs(Int_t _NumForwardEMs)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(38);//ERROR38
+		baseio->SetError(37);//ERROR37
 		return;
 	}
 	data_->NumForwardEMs_[number_] = _NumForwardEMs;
@@ -1376,7 +1292,7 @@ void IOPFJet::NumForwardHads(Int_t _NumForwardHads)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(39);//ERROR39
+		baseio->SetError(38);//ERROR38
 		return;
 	}
 	data_->NumForwardHads_[number_] = _NumForwardHads;
@@ -1386,7 +1302,7 @@ void IOPFJet::px(Float_t _px)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(40);//ERROR40
+		baseio->SetError(39);//ERROR39
 		return;
 	}
 	data_->px_[number_] = _px;
@@ -1396,7 +1312,7 @@ void IOPFJet::py(Float_t _py)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(41);//ERROR41
+		baseio->SetError(40);//ERROR40
 		return;
 	}
 	data_->py_[number_] = _py;
@@ -1406,7 +1322,7 @@ void IOPFJet::pz(Float_t _pz)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(42);//ERROR42
+		baseio->SetError(41);//ERROR41
 		return;
 	}
 	data_->pz_[number_] = _pz;
@@ -1416,7 +1332,7 @@ void IOPFJet::e(Float_t _e)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(43);//ERROR43
+		baseio->SetError(42);//ERROR42
 		return;
 	}
 	data_->e_[number_] = _e;
@@ -1426,7 +1342,7 @@ void IOPFJet::Area(Float_t _Area)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(44);//ERROR44
+		baseio->SetError(43);//ERROR43
 		return;
 	}
 	data_->Area_[number_] = _Area;
@@ -1436,7 +1352,7 @@ void IOPFJet::Mass(Float_t _Mass)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(45);//ERROR45
+		baseio->SetError(44);//ERROR44
 		return;
 	}
 	data_->Mass_[number_] = _Mass;
@@ -1446,7 +1362,7 @@ void IOPFJet::ChargedHadronEnergy(Float_t _ChargedHadronEnergy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(46);//ERROR46
+		baseio->SetError(45);//ERROR45
 		return;
 	}
 	data_->ChargedHadronEnergy_[number_] = _ChargedHadronEnergy;
@@ -1456,7 +1372,7 @@ void IOPFJet::NeutralHadronEnergy(Float_t _NeutralHadronEnergy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(47);//ERROR47
+		baseio->SetError(46);//ERROR46
 		return;
 	}
 	data_->NeutralHadronEnergy_[number_] = _NeutralHadronEnergy;
@@ -1466,7 +1382,7 @@ void IOPFJet::PhotonEnergy(Float_t _PhotonEnergy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(48);//ERROR48
+		baseio->SetError(47);//ERROR47
 		return;
 	}
 	data_->PhotonEnergy_[number_] = _PhotonEnergy;
@@ -1476,7 +1392,7 @@ void IOPFJet::ElectronEnergy(Float_t _ElectronEnergy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(49);//ERROR49
+		baseio->SetError(48);//ERROR48
 		return;
 	}
 	data_->ElectronEnergy_[number_] = _ElectronEnergy;
@@ -1486,7 +1402,7 @@ void IOPFJet::MuonEnergy(Float_t _MuonEnergy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(50);//ERROR50
+		baseio->SetError(49);//ERROR49
 		return;
 	}
 	data_->MuonEnergy_[number_] = _MuonEnergy;
@@ -1496,7 +1412,7 @@ void IOPFJet::ForwardEM(Float_t _ForwardEM)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(51);//ERROR51
+		baseio->SetError(50);//ERROR50
 		return;
 	}
 	data_->ForwardEM_[number_] = _ForwardEM;
@@ -1506,7 +1422,7 @@ void IOPFJet::ForwardHad(Float_t _ForwardHad)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(52);//ERROR52
+		baseio->SetError(51);//ERROR51
 		return;
 	}
 	data_->ForwardHad_[number_] = _ForwardHad;
@@ -1516,7 +1432,7 @@ void IOPFJet::ChargedPtMomPA(Float_t _ChargedPtMomPA)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(53);//ERROR53
+		baseio->SetError(52);//ERROR52
 		return;
 	}
 	data_->ChargedPtMomPA_[number_] = _ChargedPtMomPA;
@@ -1526,7 +1442,7 @@ void IOPFJet::ChargedPtMomPB(Float_t _ChargedPtMomPB)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(54);//ERROR54
+		baseio->SetError(53);//ERROR53
 		return;
 	}
 	data_->ChargedPtMomPB_[number_] = _ChargedPtMomPB;
@@ -1536,7 +1452,7 @@ void IOPFJet::ConstituentPtMomPA(Float_t _ConstituentPtMomPA)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(55);//ERROR55
+		baseio->SetError(54);//ERROR54
 		return;
 	}
 	data_->ConstituentPtMomPA_[number_] = _ConstituentPtMomPA;
@@ -1546,7 +1462,7 @@ void IOPFJet::ConstituentPtMomPB(Float_t _ConstituentPtMomPB)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(56);//ERROR56
+		baseio->SetError(55);//ERROR55
 		return;
 	}
 	data_->ConstituentPtMomPB_[number_] = _ConstituentPtMomPB;
@@ -1556,7 +1472,7 @@ void IOPFJet::PtFractionWrongPrimaryVertex(Float_t _PtFractionWrongPrimaryVertex
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(57);//ERROR57
+		baseio->SetError(56);//ERROR56
 		return;
 	}
 	data_->PtFractionWrongPrimaryVertex_[number_] = _PtFractionWrongPrimaryVertex;
@@ -1566,7 +1482,7 @@ void IOPFJet::MaxChargedPtFraction(Float_t _MaxChargedPtFraction)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(58);//ERROR58
+		baseio->SetError(57);//ERROR57
 		return;
 	}
 	data_->MaxChargedPtFraction_[number_] = _MaxChargedPtFraction;
@@ -1576,7 +1492,7 @@ void IOPFJet::MaxPtFraction(Float_t _MaxPtFraction)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(59);//ERROR59
+		baseio->SetError(58);//ERROR58
 		return;
 	}
 	data_->MaxPtFraction_[number_] = _MaxPtFraction;
@@ -1586,7 +1502,7 @@ void IOPFJet::EnergyCorrection(Float_t _EnergyCorrection)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(60);//ERROR60
+		baseio->SetError(59);//ERROR59
 		return;
 	}
 	data_->EnergyCorrection_[number_] = _EnergyCorrection;
@@ -1596,149 +1512,134 @@ void IOPFJet::EnergyCorrectionUnc(Float_t _EnergyCorrectionUnc)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(61);//ERROR61
+		baseio->SetError(60);//ERROR60
 		return;
 	}
 	data_->EnergyCorrectionUnc_[number_] = _EnergyCorrectionUnc;
 }
 
-
-
-//Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET 
-BaseIO* Data_IOMET::baseio = 0;
-Data_IOMET::Data_IOMET(UInt_t size, std::string prefix = "") : 
-size_(size),
-prefix_(prefix)
+void IOPFJet::BTagCSV(Float_t _BTagCSV)
 {
-	pfmetpx_ = new Float_t[size_];
-	pfmetpy_ = new Float_t[size_];
-	pfmetpxcorr_ = new Float_t[size_];
-	pfmetpycorr_ = new Float_t[size_];
-}
-
-Data_IOMET::~Data_IOMET()
-{
-	delete[] pfmetpx_;
-	delete[] pfmetpy_;
-	delete[] pfmetpxcorr_;
-	delete[] pfmetpycorr_;
-}
-
-void Data_IOMET::Fill()
-{
-	count_ = 0;
-}
-
-void Data_IOMET::SetUpWrite(TTree* tree)
-{
-	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
-	tree->Branch((prefix_ + "_pfmetpx").c_str(), pfmetpx_, (prefix_ + "_pfmetpx[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_pfmetpy").c_str(), pfmetpy_, (prefix_ + "_pfmetpy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_pfmetpxcorr").c_str(), pfmetpxcorr_, (prefix_ + "_pfmetpxcorr[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_pfmetpycorr").c_str(), pfmetpycorr_, (prefix_ + "_pfmetpycorr[" + prefix_ + "_count]/F").c_str());
-}
-
-void Data_IOMET::SetUpRead(TTree* tree)
-{
-	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
-	tree->SetBranchAddress((prefix_ + "_pfmetpx").c_str(), pfmetpx_);
-	tree->SetBranchAddress((prefix_ + "_pfmetpy").c_str(), pfmetpy_);
-	tree->SetBranchAddress((prefix_ + "_pfmetpxcorr").c_str(), pfmetpxcorr_);
-	tree->SetBranchAddress((prefix_ + "_pfmetpycorr").c_str(), pfmetpycorr_);
-}
-
-void Data_IOMET::Load(TTree* tree, bool load)
-{
-	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_pfmetpx").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_pfmetpy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_pfmetpxcorr").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_pfmetpycorr").c_str(), load);
-}
-
-
-
-//IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == 
-BaseIO* IOMET::baseio = 0;
-IOMET::IOMET(Data_IOMET* data, UInt_t number) : 
-number_(number),
-data_(data)
-{
-	Init();
-}
-
-IOMET::IOMET(const IOMET& _iomet) : 
-number_( _iomet.number_),
-data_( _iomet.data_)
-{
-}
-
-void IOMET::Init()
-{
-	if(baseio->IsWritable())
+	if(number_ >= data_->size_)
 	{
-		data_->count_ = number_+1;
+		baseio->SetError(61);//ERROR61
+		return;
 	}
+	data_->BTagCSV_[number_] = _BTagCSV;
 }
 
-Float_t IOMET::pfmetpx() const
-{
-	return data_->pfmetpx_[number_];
-}
-
-Float_t IOMET::pfmetpy() const
-{
-	return data_->pfmetpy_[number_];
-}
-
-Float_t IOMET::pfmetpxcorr() const
-{
-	return data_->pfmetpxcorr_[number_];
-}
-
-Float_t IOMET::pfmetpycorr() const
-{
-	return data_->pfmetpycorr_[number_];
-}
-
-void IOMET::pfmetpx(Float_t _pfmetpx)
+void IOPFJet::BTagCSVv2(Float_t _BTagCSVv2)
 {
 	if(number_ >= data_->size_)
 	{
 		baseio->SetError(62);//ERROR62
 		return;
 	}
-	data_->pfmetpx_[number_] = _pfmetpx;
+	data_->BTagCSVv2_[number_] = _BTagCSVv2;
 }
 
-void IOMET::pfmetpy(Float_t _pfmetpy)
+
+
+//Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString Data_IOString 
+BaseIO* Data_IOString::baseio = 0;
+Data_IOString::Data_IOString(UInt_t size, std::string prefix = "") : 
+size_(size),
+prefix_(prefix)
 {
-	if(number_ >= data_->size_)
+	str_num_ = new UInt_t[size_];
+	str_ = new Char_t[size_*100];
+	str_countmax_ = size_*100;
+}
+
+Data_IOString::~Data_IOString()
+{
+	delete[] str_;
+	delete[] str_num_;
+}
+
+void Data_IOString::Fill()
+{
+	count_ = 0;
+	str_count_ = 0;
+}
+
+void Data_IOString::SetUpWrite(TTree* tree)
+{
+	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
+	tree->Branch((prefix_ + "_str_count").c_str(), &str_count_, (prefix_ + "_str_count/i").c_str());
+	tree->Branch((prefix_ + "_str_num").c_str(), str_num_, (prefix_ + "_str_num[" + prefix_ + "_count]/i").c_str());
+	tree->Branch((prefix_ + "_str").c_str(), str_, (prefix_ + "_str[" + prefix_ + "_str_count]/B").c_str());
+}
+
+void Data_IOString::SetUpRead(TTree* tree)
+{
+	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
+	tree->SetBranchAddress((prefix_ + "_str_count").c_str(), &str_count_);
+	tree->SetBranchAddress((prefix_ + "_str_num").c_str(), str_num_);
+	tree->SetBranchAddress((prefix_ + "_str").c_str(), str_);
+}
+
+void Data_IOString::Load(TTree* tree, bool load)
+{
+	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_str_count").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_str_num").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_str").c_str(), load);
+}
+
+
+
+//IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == IOString == 
+BaseIO* IOString::baseio = 0;
+IOString::IOString(Data_IOString* data, UInt_t number) : 
+number_(number),
+data_(data)
+{
+	Init();
+}
+
+IOString::IOString(const IOString& _iostring) : 
+number_( _iostring.number_),
+data_( _iostring.data_)
+{
+}
+
+void IOString::Init()
+{
+	if(baseio->IsWritable())
+	{
+		if(number_ == 0) {data_->str_num_[number_] = 0;}
+		else {data_->str_num_[number_] = data_->str_num_[number_-1];}
+		data_->count_ = number_+1;
+	}
+}
+
+UInt_t IOString::Num_str() const
+{
+	return number_ == 0 ? data_->str_num_[number_] : data_->str_num_[number_] - data_->str_num_[number_-1];
+}
+
+Char_t IOString::str(UInt_t n) const
+{
+	return number_ == 0 ? data_->str_[n] : data_->str_[data_->str_num_[number_-1]  + n];
+}
+
+void IOString::str(Char_t _str, UInt_t n)
+{
+	if(number_ != 0){n = data_->str_num_[number_-1] +n;}
+	if(n >= data_->str_countmax_)
 	{
 		baseio->SetError(63);//ERROR63
 		return;
 	}
-	data_->pfmetpy_[number_] = _pfmetpy;
-}
-
-void IOMET::pfmetpxcorr(Float_t _pfmetpxcorr)
-{
-	if(number_ >= data_->size_)
+	if(n != data_->str_count_)
 	{
-		baseio->SetError(64);//ERROR64
+		cerr << "Index already filled" << endl;
 		return;
 	}
-	data_->pfmetpxcorr_[number_] = _pfmetpxcorr;
-}
-
-void IOMET::pfmetpycorr(Float_t _pfmetpycorr)
-{
-	if(number_ >= data_->size_)
-	{
-		baseio->SetError(65);//ERROR65
-		return;
-	}
-	data_->pfmetpycorr_[number_] = _pfmetpycorr;
+	data_->str_[n] = _str;
+	data_->str_num_[number_]++;
+	data_->str_count_++;
 }
 
 
@@ -1934,7 +1835,7 @@ void GenInfo::PDGID1(Int_t _PDGID1)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(66);//ERROR66
+		baseio->SetError(64);//ERROR64
 		return;
 	}
 	data_->PDGID1_[number_] = _PDGID1;
@@ -1944,7 +1845,7 @@ void GenInfo::PDGID2(Int_t _PDGID2)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(67);//ERROR67
+		baseio->SetError(65);//ERROR65
 		return;
 	}
 	data_->PDGID2_[number_] = _PDGID2;
@@ -1954,7 +1855,7 @@ void GenInfo::NumPUInteractions(Int_t _NumPUInteractions)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(68);//ERROR68
+		baseio->SetError(66);//ERROR66
 		return;
 	}
 	data_->NumPUInteractions_[number_] = _NumPUInteractions;
@@ -1964,7 +1865,7 @@ void GenInfo::NumPUInteractionsBefore(Int_t _NumPUInteractionsBefore)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(69);//ERROR69
+		baseio->SetError(67);//ERROR67
 		return;
 	}
 	data_->NumPUInteractionsBefore_[number_] = _NumPUInteractionsBefore;
@@ -1974,7 +1875,7 @@ void GenInfo::NumPUInteractionsAfter(Int_t _NumPUInteractionsAfter)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(70);//ERROR70
+		baseio->SetError(68);//ERROR68
 		return;
 	}
 	data_->NumPUInteractionsAfter_[number_] = _NumPUInteractionsAfter;
@@ -1984,7 +1885,7 @@ void GenInfo::Weight(Float_t _Weight)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(71);//ERROR71
+		baseio->SetError(69);//ERROR69
 		return;
 	}
 	data_->Weight_[number_] = _Weight;
@@ -1994,7 +1895,7 @@ void GenInfo::x1(Float_t _x1)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(72);//ERROR72
+		baseio->SetError(70);//ERROR70
 		return;
 	}
 	data_->x1_[number_] = _x1;
@@ -2004,7 +1905,7 @@ void GenInfo::x2(Float_t _x2)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(73);//ERROR73
+		baseio->SetError(71);//ERROR71
 		return;
 	}
 	data_->x2_[number_] = _x2;
@@ -2014,7 +1915,7 @@ void GenInfo::RenScale(Float_t _RenScale)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(74);//ERROR74
+		baseio->SetError(72);//ERROR72
 		return;
 	}
 	data_->RenScale_[number_] = _RenScale;
@@ -2024,7 +1925,7 @@ void GenInfo::FacScale(Float_t _FacScale)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(75);//ERROR75
+		baseio->SetError(73);//ERROR73
 		return;
 	}
 	data_->FacScale_[number_] = _FacScale;
@@ -2034,7 +1935,7 @@ void GenInfo::METx(Float_t _METx)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(76);//ERROR76
+		baseio->SetError(74);//ERROR74
 		return;
 	}
 	data_->METx_[number_] = _METx;
@@ -2044,7 +1945,7 @@ void GenInfo::METy(Float_t _METy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(77);//ERROR77
+		baseio->SetError(75);//ERROR75
 		return;
 	}
 	data_->METy_[number_] = _METy;
@@ -2054,10 +1955,169 @@ void GenInfo::NumTrueInteractions(Float_t _NumTrueInteractions)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(78);//ERROR78
+		baseio->SetError(76);//ERROR76
 		return;
 	}
 	data_->NumTrueInteractions_[number_] = _NumTrueInteractions;
+}
+
+
+
+//Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET Data_IOMET 
+BaseIO* Data_IOMET::baseio = 0;
+Data_IOMET::Data_IOMET(UInt_t size, std::string prefix = "") : 
+size_(size),
+prefix_(prefix)
+{
+	px_ = new Float_t[size_];
+	py_ = new Float_t[size_];
+	pxUnc_ = new Float_t[size_];
+	pyUnc_ = new Float_t[size_];
+	pxpyUnc_ = new Float_t[size_];
+}
+
+Data_IOMET::~Data_IOMET()
+{
+	delete[] px_;
+	delete[] py_;
+	delete[] pxUnc_;
+	delete[] pyUnc_;
+	delete[] pxpyUnc_;
+}
+
+void Data_IOMET::Fill()
+{
+	count_ = 0;
+}
+
+void Data_IOMET::SetUpWrite(TTree* tree)
+{
+	tree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());
+	tree->Branch((prefix_ + "_px").c_str(), px_, (prefix_ + "_px[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_py").c_str(), py_, (prefix_ + "_py[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_pxUnc").c_str(), pxUnc_, (prefix_ + "_pxUnc[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_pyUnc").c_str(), pyUnc_, (prefix_ + "_pyUnc[" + prefix_ + "_count]/F").c_str());
+	tree->Branch((prefix_ + "_pxpyUnc").c_str(), pxpyUnc_, (prefix_ + "_pxpyUnc[" + prefix_ + "_count]/F").c_str());
+}
+
+void Data_IOMET::SetUpRead(TTree* tree)
+{
+	tree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);
+	tree->SetBranchAddress((prefix_ + "_px").c_str(), px_);
+	tree->SetBranchAddress((prefix_ + "_py").c_str(), py_);
+	tree->SetBranchAddress((prefix_ + "_pxUnc").c_str(), pxUnc_);
+	tree->SetBranchAddress((prefix_ + "_pyUnc").c_str(), pyUnc_);
+	tree->SetBranchAddress((prefix_ + "_pxpyUnc").c_str(), pxpyUnc_);
+}
+
+void Data_IOMET::Load(TTree* tree, bool load)
+{
+	tree->SetBranchStatus((prefix_ + "_count").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_px").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_py").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_pxUnc").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_pyUnc").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_pxpyUnc").c_str(), load);
+}
+
+
+
+//IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == IOMET == 
+BaseIO* IOMET::baseio = 0;
+IOMET::IOMET(Data_IOMET* data, UInt_t number) : 
+number_(number),
+data_(data)
+{
+	Init();
+}
+
+IOMET::IOMET(const IOMET& _iomet) : 
+number_( _iomet.number_),
+data_( _iomet.data_)
+{
+}
+
+void IOMET::Init()
+{
+	if(baseio->IsWritable())
+	{
+		data_->count_ = number_+1;
+	}
+}
+
+Float_t IOMET::px() const
+{
+	return data_->px_[number_];
+}
+
+Float_t IOMET::py() const
+{
+	return data_->py_[number_];
+}
+
+Float_t IOMET::pxUnc() const
+{
+	return data_->pxUnc_[number_];
+}
+
+Float_t IOMET::pyUnc() const
+{
+	return data_->pyUnc_[number_];
+}
+
+Float_t IOMET::pxpyUnc() const
+{
+	return data_->pxpyUnc_[number_];
+}
+
+void IOMET::px(Float_t _px)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(77);//ERROR77
+		return;
+	}
+	data_->px_[number_] = _px;
+}
+
+void IOMET::py(Float_t _py)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(78);//ERROR78
+		return;
+	}
+	data_->py_[number_] = _py;
+}
+
+void IOMET::pxUnc(Float_t _pxUnc)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(79);//ERROR79
+		return;
+	}
+	data_->pxUnc_[number_] = _pxUnc;
+}
+
+void IOMET::pyUnc(Float_t _pyUnc)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(80);//ERROR80
+		return;
+	}
+	data_->pyUnc_[number_] = _pyUnc;
+}
+
+void IOMET::pxpyUnc(Float_t _pxpyUnc)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(81);//ERROR81
+		return;
+	}
+	data_->pxpyUnc_[number_] = _pxpyUnc;
 }
 
 
@@ -2193,7 +2253,7 @@ void IOSuperCluster::x(Float_t _x)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(79);//ERROR79
+		baseio->SetError(82);//ERROR82
 		return;
 	}
 	data_->x_[number_] = _x;
@@ -2203,7 +2263,7 @@ void IOSuperCluster::y(Float_t _y)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(80);//ERROR80
+		baseio->SetError(83);//ERROR83
 		return;
 	}
 	data_->y_[number_] = _y;
@@ -2213,7 +2273,7 @@ void IOSuperCluster::z(Float_t _z)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(81);//ERROR81
+		baseio->SetError(84);//ERROR84
 		return;
 	}
 	data_->z_[number_] = _z;
@@ -2223,7 +2283,7 @@ void IOSuperCluster::Energy(Float_t _Energy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(82);//ERROR82
+		baseio->SetError(85);//ERROR85
 		return;
 	}
 	data_->Energy_[number_] = _Energy;
@@ -2233,7 +2293,7 @@ void IOSuperCluster::RawEnergy(Float_t _RawEnergy)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(83);//ERROR83
+		baseio->SetError(86);//ERROR86
 		return;
 	}
 	data_->RawEnergy_[number_] = _RawEnergy;
@@ -2243,7 +2303,7 @@ void IOSuperCluster::PhiWidth(Float_t _PhiWidth)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(84);//ERROR84
+		baseio->SetError(87);//ERROR87
 		return;
 	}
 	data_->PhiWidth_[number_] = _PhiWidth;
@@ -2253,7 +2313,7 @@ void IOSuperCluster::EtaWidth(Float_t _EtaWidth)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(85);//ERROR85
+		baseio->SetError(88);//ERROR88
 		return;
 	}
 	data_->EtaWidth_[number_] = _EtaWidth;
@@ -2362,7 +2422,7 @@ void PFIsolation::Charged(Float_t _Charged)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(86);//ERROR86
+		baseio->SetError(89);//ERROR89
 		return;
 	}
 	data_->Charged_[number_] = _Charged;
@@ -2372,7 +2432,7 @@ void PFIsolation::Neutral(Float_t _Neutral)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(87);//ERROR87
+		baseio->SetError(90);//ERROR90
 		return;
 	}
 	data_->Neutral_[number_] = _Neutral;
@@ -2382,7 +2442,7 @@ void PFIsolation::Hadron(Float_t _Hadron)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(88);//ERROR88
+		baseio->SetError(91);//ERROR91
 		return;
 	}
 	data_->Hadron_[number_] = _Hadron;
@@ -2392,7 +2452,7 @@ void PFIsolation::Photon(Float_t _Photon)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(89);//ERROR89
+		baseio->SetError(92);//ERROR92
 		return;
 	}
 	data_->Photon_[number_] = _Photon;
@@ -2409,15 +2469,12 @@ prefix_(prefix)
 	PDGID_ = new Int_t[size_];
 	Status_ = new Int_t[size_];
 	Info_ = new Int_t[size_];
-	Mother_ = new Int_t[size_];
 	IndirectMother_ = new Int_t[size_];
+	Mother_ = new Int_t[size_];
 	px_ = new Float_t[size_];
 	py_ = new Float_t[size_];
 	pz_ = new Float_t[size_];
 	e_ = new Float_t[size_];
-	vx_ = new Float_t[size_];
-	vy_ = new Float_t[size_];
-	vz_ = new Float_t[size_];
 }
 
 Data_SelectedGenParticle::~Data_SelectedGenParticle()
@@ -2425,15 +2482,12 @@ Data_SelectedGenParticle::~Data_SelectedGenParticle()
 	delete[] PDGID_;
 	delete[] Status_;
 	delete[] Info_;
-	delete[] Mother_;
 	delete[] IndirectMother_;
+	delete[] Mother_;
 	delete[] px_;
 	delete[] py_;
 	delete[] pz_;
 	delete[] e_;
-	delete[] vx_;
-	delete[] vy_;
-	delete[] vz_;
 }
 
 void Data_SelectedGenParticle::Fill()
@@ -2447,15 +2501,12 @@ void Data_SelectedGenParticle::SetUpWrite(TTree* tree)
 	tree->Branch((prefix_ + "_PDGID").c_str(), PDGID_, (prefix_ + "_PDGID[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_Status").c_str(), Status_, (prefix_ + "_Status[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_Info").c_str(), Info_, (prefix_ + "_Info[" + prefix_ + "_count]/I").c_str());
-	tree->Branch((prefix_ + "_Mother").c_str(), Mother_, (prefix_ + "_Mother[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_IndirectMother").c_str(), IndirectMother_, (prefix_ + "_IndirectMother[" + prefix_ + "_count]/I").c_str());
+	tree->Branch((prefix_ + "_Mother").c_str(), Mother_, (prefix_ + "_Mother[" + prefix_ + "_count]/I").c_str());
 	tree->Branch((prefix_ + "_px").c_str(), px_, (prefix_ + "_px[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_py").c_str(), py_, (prefix_ + "_py[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_pz").c_str(), pz_, (prefix_ + "_pz[" + prefix_ + "_count]/F").c_str());
 	tree->Branch((prefix_ + "_e").c_str(), e_, (prefix_ + "_e[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_vx").c_str(), vx_, (prefix_ + "_vx[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_vy").c_str(), vy_, (prefix_ + "_vy[" + prefix_ + "_count]/F").c_str());
-	tree->Branch((prefix_ + "_vz").c_str(), vz_, (prefix_ + "_vz[" + prefix_ + "_count]/F").c_str());
 }
 
 void Data_SelectedGenParticle::SetUpRead(TTree* tree)
@@ -2464,15 +2515,12 @@ void Data_SelectedGenParticle::SetUpRead(TTree* tree)
 	tree->SetBranchAddress((prefix_ + "_PDGID").c_str(), PDGID_);
 	tree->SetBranchAddress((prefix_ + "_Status").c_str(), Status_);
 	tree->SetBranchAddress((prefix_ + "_Info").c_str(), Info_);
-	tree->SetBranchAddress((prefix_ + "_Mother").c_str(), Mother_);
 	tree->SetBranchAddress((prefix_ + "_IndirectMother").c_str(), IndirectMother_);
+	tree->SetBranchAddress((prefix_ + "_Mother").c_str(), Mother_);
 	tree->SetBranchAddress((prefix_ + "_px").c_str(), px_);
 	tree->SetBranchAddress((prefix_ + "_py").c_str(), py_);
 	tree->SetBranchAddress((prefix_ + "_pz").c_str(), pz_);
 	tree->SetBranchAddress((prefix_ + "_e").c_str(), e_);
-	tree->SetBranchAddress((prefix_ + "_vx").c_str(), vx_);
-	tree->SetBranchAddress((prefix_ + "_vy").c_str(), vy_);
-	tree->SetBranchAddress((prefix_ + "_vz").c_str(), vz_);
 }
 
 void Data_SelectedGenParticle::Load(TTree* tree, bool load)
@@ -2481,15 +2529,12 @@ void Data_SelectedGenParticle::Load(TTree* tree, bool load)
 	tree->SetBranchStatus((prefix_ + "_PDGID").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_Status").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_Info").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_Mother").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_IndirectMother").c_str(), load);
+	tree->SetBranchStatus((prefix_ + "_Mother").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_px").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_py").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_pz").c_str(), load);
 	tree->SetBranchStatus((prefix_ + "_e").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_vx").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_vy").c_str(), load);
-	tree->SetBranchStatus((prefix_ + "_vz").c_str(), load);
 }
 
 
@@ -2532,14 +2577,14 @@ Int_t SelectedGenParticle::Info() const
 	return data_->Info_[number_];
 }
 
-Int_t SelectedGenParticle::Mother() const
-{
-	return data_->Mother_[number_];
-}
-
 Int_t SelectedGenParticle::IndirectMother() const
 {
 	return data_->IndirectMother_[number_];
+}
+
+Int_t SelectedGenParticle::Mother() const
+{
+	return data_->Mother_[number_];
 }
 
 Float_t SelectedGenParticle::px() const
@@ -2562,26 +2607,11 @@ Float_t SelectedGenParticle::e() const
 	return data_->e_[number_];
 }
 
-Float_t SelectedGenParticle::vx() const
-{
-	return data_->vx_[number_];
-}
-
-Float_t SelectedGenParticle::vy() const
-{
-	return data_->vy_[number_];
-}
-
-Float_t SelectedGenParticle::vz() const
-{
-	return data_->vz_[number_];
-}
-
 void SelectedGenParticle::PDGID(Int_t _PDGID)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(90);//ERROR90
+		baseio->SetError(93);//ERROR93
 		return;
 	}
 	data_->PDGID_[number_] = _PDGID;
@@ -2591,7 +2621,7 @@ void SelectedGenParticle::Status(Int_t _Status)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(91);//ERROR91
+		baseio->SetError(94);//ERROR94
 		return;
 	}
 	data_->Status_[number_] = _Status;
@@ -2601,37 +2631,37 @@ void SelectedGenParticle::Info(Int_t _Info)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(92);//ERROR92
+		baseio->SetError(95);//ERROR95
 		return;
 	}
 	data_->Info_[number_] = _Info;
-}
-
-void SelectedGenParticle::Mother(Int_t _Mother)
-{
-	if(number_ >= data_->size_)
-	{
-		baseio->SetError(93);//ERROR93
-		return;
-	}
-	data_->Mother_[number_] = _Mother;
 }
 
 void SelectedGenParticle::IndirectMother(Int_t _IndirectMother)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(94);//ERROR94
+		baseio->SetError(96);//ERROR96
 		return;
 	}
 	data_->IndirectMother_[number_] = _IndirectMother;
+}
+
+void SelectedGenParticle::Mother(Int_t _Mother)
+{
+	if(number_ >= data_->size_)
+	{
+		baseio->SetError(97);//ERROR97
+		return;
+	}
+	data_->Mother_[number_] = _Mother;
 }
 
 void SelectedGenParticle::px(Float_t _px)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(95);//ERROR95
+		baseio->SetError(98);//ERROR98
 		return;
 	}
 	data_->px_[number_] = _px;
@@ -2641,7 +2671,7 @@ void SelectedGenParticle::py(Float_t _py)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(96);//ERROR96
+		baseio->SetError(99);//ERROR99
 		return;
 	}
 	data_->py_[number_] = _py;
@@ -2651,7 +2681,7 @@ void SelectedGenParticle::pz(Float_t _pz)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(97);//ERROR97
+		baseio->SetError(100);//ERROR100
 		return;
 	}
 	data_->pz_[number_] = _pz;
@@ -2661,40 +2691,10 @@ void SelectedGenParticle::e(Float_t _e)
 {
 	if(number_ >= data_->size_)
 	{
-		baseio->SetError(98);//ERROR98
-		return;
-	}
-	data_->e_[number_] = _e;
-}
-
-void SelectedGenParticle::vx(Float_t _vx)
-{
-	if(number_ >= data_->size_)
-	{
-		baseio->SetError(99);//ERROR99
-		return;
-	}
-	data_->vx_[number_] = _vx;
-}
-
-void SelectedGenParticle::vy(Float_t _vy)
-{
-	if(number_ >= data_->size_)
-	{
-		baseio->SetError(100);//ERROR100
-		return;
-	}
-	data_->vy_[number_] = _vy;
-}
-
-void SelectedGenParticle::vz(Float_t _vz)
-{
-	if(number_ >= data_->size_)
-	{
 		baseio->SetError(101);//ERROR101
 		return;
 	}
-	data_->vz_[number_] = _vz;
+	data_->e_[number_] = _e;
 }
 
 
@@ -4464,8 +4464,8 @@ IOMuon_container_(200, "IOMuon"),
 PrimaryVertex_container_(200, "PrimaryVertex"),
 IOEventInfo_container_(1, "IOEventInfo"),
 IOPFJet_container_(200, "IOPFJet"),
-IOMET_container_(1, "IOMET"),
 GenInfo_container_(1, "GenInfo"),
+IOMET_container_(10, "IOMET"),
 SelectedGenParticle_container_(10000, "SelectedGenParticle"),
 AllGenParticle_container_(10000, "AllGenParticle"),
 IOElectron_container_(200, "IOElectron"),
@@ -4480,18 +4480,18 @@ treename_(treename)
 {
 	IOMuon::baseio = this;
 	Data_IOMuon::baseio = this;
-	IOString::baseio = this;
-	Data_IOString::baseio = this;
 	PrimaryVertex::baseio = this;
 	Data_PrimaryVertex::baseio = this;
 	IOEventInfo::baseio = this;
 	Data_IOEventInfo::baseio = this;
 	IOPFJet::baseio = this;
 	Data_IOPFJet::baseio = this;
-	IOMET::baseio = this;
-	Data_IOMET::baseio = this;
+	IOString::baseio = this;
+	Data_IOString::baseio = this;
 	GenInfo::baseio = this;
 	Data_GenInfo::baseio = this;
+	IOMET::baseio = this;
+	Data_IOMET::baseio = this;
 	IOSuperCluster::baseio = this;
 	Data_IOSuperCluster::baseio = this;
 	PFIsolation::baseio = this;
@@ -4537,8 +4537,8 @@ void BaseIO::SetFile(TFile* file)
 		PrimaryVertex_container_.SetUpWrite(tree_);
 		IOEventInfo_container_.SetUpWrite(tree_);
 		IOPFJet_container_.SetUpWrite(tree_);
-		IOMET_container_.SetUpWrite(tree_);
 		GenInfo_container_.SetUpWrite(tree_);
+		IOMET_container_.SetUpWrite(tree_);
 		SelectedGenParticle_container_.SetUpWrite(tree_);
 		AllGenParticle_container_.SetUpWrite(tree_);
 		IOElectron_container_.SetUpWrite(tree_);
@@ -4553,8 +4553,8 @@ void BaseIO::SetFile(TFile* file)
 		PrimaryVertex_container_.SetUpRead(tree_);
 		IOEventInfo_container_.SetUpRead(tree_);
 		IOPFJet_container_.SetUpRead(tree_);
-		IOMET_container_.SetUpRead(tree_);
 		GenInfo_container_.SetUpRead(tree_);
+		IOMET_container_.SetUpRead(tree_);
 		SelectedGenParticle_container_.SetUpRead(tree_);
 		AllGenParticle_container_.SetUpRead(tree_);
 		IOElectron_container_.SetUpRead(tree_);
@@ -4573,8 +4573,8 @@ void BaseIO::StartFilling(){
 	PrimaryVertex_container_.Fill();
 	IOEventInfo_container_.Fill();
 	IOPFJet_container_.Fill();
-	IOMET_container_.Fill();
 	GenInfo_container_.Fill();
+	IOMET_container_.Fill();
 	SelectedGenParticle_container_.Fill();
 	AllGenParticle_container_.Fill();
 	IOElectron_container_.Fill();
@@ -4636,19 +4636,6 @@ void BaseIO::LoadIOPFJet(bool load)
 	IOPFJet_container_.Load(tree_, load);
 }
 
-UInt_t BaseIO::NumIOMETs()
-{
-	return IOMET_container_.count_;
-}
-IOMET BaseIO::GetIOMET(UInt_t n)
-{
-	return IOMET(&IOMET_container_, n);
-}
-void BaseIO::LoadIOMET(bool load)
-{
-	IOMET_container_.Load(tree_, load);
-}
-
 UInt_t BaseIO::NumGenInfos()
 {
 	return GenInfo_container_.count_;
@@ -4660,6 +4647,19 @@ GenInfo BaseIO::GetGenInfo(UInt_t n)
 void BaseIO::LoadGenInfo(bool load)
 {
 	GenInfo_container_.Load(tree_, load);
+}
+
+UInt_t BaseIO::NumIOMETs()
+{
+	return IOMET_container_.count_;
+}
+IOMET BaseIO::GetIOMET(UInt_t n)
+{
+	return IOMET(&IOMET_container_, n);
+}
+void BaseIO::LoadIOMET(bool load)
+{
+	IOMET_container_.Load(tree_, load);
 }
 
 UInt_t BaseIO::NumSelectedGenParticles()
