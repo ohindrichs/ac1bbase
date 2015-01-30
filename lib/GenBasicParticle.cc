@@ -10,6 +10,11 @@ GenBasicParticle GenBasicParticle::GetMother(Int_t n)
 	return GenBasicParticle(GLAN->GetAllGenParticle(Mother(n)));
 }
 
+GenBasicParticle GenBasicParticle::GetDaughter(Int_t n)
+{
+	return GenBasicParticle(GLAN->GetAllGenParticle(Daughter(n)));
+}
+
 bool GenBasicParticle::HasMother(Int_t pdgid)
 {
 	for(UInt_t m = 0 ; m < Num_Mother() ; ++m)

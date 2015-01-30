@@ -83,8 +83,8 @@ I: PDGID, Status, Mother[100], Daughter[100]
 EndClass
 
 BeginClass: SelectedGenParticle[10000]
-F: px, py, pz, e, vx, vy, vz
-I: PDGID, Status, Info, Mother, IndirectMother
+F: px, py, pz, e
+I: PDGID, Status, Info, IndirectMother, Mother
 EndClass
 
 BeginClass: PFIsolation

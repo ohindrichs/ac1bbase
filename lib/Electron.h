@@ -13,7 +13,7 @@ class Electron : public IOElectron, public TLorentzVector, public TriggerObject
 		bool IsEB() const {return IOElectron::Info() & 1<<0;}
 		bool IsEE() const {return IOElectron::Info() & 1<<1;}
 		bool HasMatchedConversion() const {return IOElectron::Info() & 1<<10;}
-		int Charge() const {return (IOElectron::Info() & 1 << 11) ? 1 : -1;}
+		int Charge() const {return GSFTrack().Charge();}
 
 };
 #endif

@@ -19,7 +19,7 @@ bool OMuon::ID(Int_t idtyp) const
 		if(NumMatchedStations() <= 1) return(false);
 		if(TMath::Abs(InnerTrack(0).Dxy()) > 0.2) return(false);
 		if(TMath::Abs(InnerTrack(0).Dz()) > 0.5) return(false);
-		if(Pt() > 200.) return(true);	
+		//if(Pt() > 200.) return(true);	
 		if(ChiQ()/NDOF() > 10.) return(false);
 		//if((PFR4().Charged())/Pt() > 0.1) return(false);
 		if((PFR4().Charged() + PFR4().Neutral() + PFR4().Photon())/Pt() > 0.2) return(false);
