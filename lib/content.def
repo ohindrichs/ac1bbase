@@ -87,6 +87,10 @@ F: px, py, pz, e
 I: PDGID, Status, Info, IndirectMother, Mother
 EndClass
 
+BeginClass: IOGenAK4Jet[200]
+F: e, px, py, pz, einvisible
+EndClass
+
 BeginClass: PFIsolation
 F: Charged, Neutral, Hadron, Photon
 #I: NumCharged, NumNeutral, NumHadron, NumPhoton

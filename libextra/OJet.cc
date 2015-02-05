@@ -2,9 +2,10 @@
 #include "OJet.h"
 #include "GenBasicParticle.h"
 #include "GenSelectedParticle.h"
+#include "GenJet.h"
 #include "Analyse.h"
 
-OJet::OJet(IOPFJet jet) : Jet(jet), genp_(0), mcflavour(0)
+OJet::OJet(IOPFJet jet) : Jet(jet), genp_(0), mcflavour(0), genjet(-2)
 {}
 
 bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons) const
@@ -22,6 +23,19 @@ bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electron
 		if(DeltaR(*ph) < 0.5) return(false);
 	}
 	return(true);
+}
+
+void OJet::MatchGenJet()
+{
+	if(genjet != -2) {return;}
+	genjet = -1;
+	for(UInt_t i = 0 ; i < GLAN->NumIOGenAK4Jets() ; i++)
+	{
+		GenJet mp(GLAN->GetIOGenAK4Jet(i));
+		if(DeltaR(mp) > 0.4) continue;
+		if(genjet != -1 && Abs(Pt() - GenJet(GLAN->GetIOGenAK4Jet(genjet)).Pt()) < Abs(Pt() - mp.Pt())) continue;
+		genjet = i;
+	}
 }
 
 void OJet::CalculateMCFlavour()

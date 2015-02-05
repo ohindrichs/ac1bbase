@@ -4,8 +4,8 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/BASEIOLUMI.h ${CMAKE_CURRE
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-set(ATheads GenSelectedParticle.h Photon.h SuperCluster.h GenBasicParticle.h Muon.h Electron.h Jet.h Analyse.h Luminosity.h Run.h TriggerSelection.h TriggerObject.h iohelper.h ${PROJECT_BINARY_DIR}/lib/BASEIO.h ${PROJECT_BINARY_DIR}/lib/BASEIORUN.h ${PROJECT_BINARY_DIR}/lib/BASEIOLUMI.h)
-set(ATSrcs GenSelectedParticle.cc Photon.cc SuperCluster.cc GenBasicParticle.cc Muon.cc Electron.cc Jet.cc Analyse.cc Luminosity.cc Run.cc TriggerSelection.cc TriggerObject.cc iohelper.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIO.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIORUN.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIOLUMI.cc)
+set(ATheads GenJet.h GenSelectedParticle.h Photon.h SuperCluster.h GenBasicParticle.h Muon.h Electron.h Jet.h Analyse.h Luminosity.h Run.h TriggerSelection.h TriggerObject.h iohelper.h ${PROJECT_BINARY_DIR}/lib/BASEIO.h ${PROJECT_BINARY_DIR}/lib/BASEIORUN.h ${PROJECT_BINARY_DIR}/lib/BASEIOLUMI.h)
+set(ATSrcs GenJet.cc GenSelectedParticle.cc Photon.cc SuperCluster.cc GenBasicParticle.cc Muon.cc Electron.cc Jet.cc Analyse.cc Luminosity.cc Run.cc TriggerSelection.cc TriggerObject.cc iohelper.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIO.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIORUN.cc ${CMAKE_CURRENT_BINARY_DIR}/BASEIOLUMI.cc)
 
 add_library(AnalysisTool SHARED ${ATSrcs} ${ATheads})
 target_link_libraries(AnalysisTool ${ROOT_LIBRARIES})
