@@ -12,6 +12,8 @@ class GenBasicParticle : public AllGenParticle, public TLorentzVector
 		GenBasicParticle GetMother(Int_t n);
 		GenBasicParticle GetDaughter(Int_t n);
 		bool HasMother(Int_t pdgid);
+		bool HasAnyMother(Int_t pdgid, int level = 8);
+		void DecayProducts(vector<GenBasicParticle>& decayprods);
 
 };
 #endif

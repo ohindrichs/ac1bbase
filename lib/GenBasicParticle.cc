@@ -23,3 +23,37 @@ bool GenBasicParticle::HasMother(Int_t pdgid)
 	}
 	return false;
 }
+
+void GenBasicParticle::DecayProducts(vector<GenBasicParticle>& decayprods)
+{
+	if(Status() == 1)
+	{
+		return;	
+	}
+
+	if(Num_Daughter() == 1 && GetDaughter(0).PDGID() == PDGID())
+	{
+		GetDaughter(0).DecayProducts(decayprods);
+		return;
+	}
+	
+	for(UInt_t m = 0 ; m < Num_Daughter() ; ++m)
+	{
+		decayprods.push_back(GetDaughter(m));
+	}
+}
+
+bool GenBasicParticle::HasAnyMother(Int_t pdgid, int level)
+{
+	if(level == 0){return false;}
+	level--;
+	//cout << "start " << PDGID() << endl;
+	if(PDGID() == pdgid){return true;}
+	for(UInt_t m = 0 ; m < Num_Mother() ; ++m)
+	{
+		GenBasicParticle gp(GetMother(m));
+		bool found = gp.HasAnyMother(pdgid, level);
+		if(found){return true;}
+	}
+	return false;
+}
