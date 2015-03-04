@@ -19,6 +19,8 @@
 Analyse* GLAN = 0;
 Analyse::Analyse(int argc, char** argv, bool batchmode) : 
 	BASEIO::BaseIO("UREVENT", false),
+	currentmin(-1),
+	currentmax(-1),
 	currentfile(0),
 	printinfo(1),
 	processed(0),
@@ -96,6 +98,7 @@ void Analyse::GetEvent(Long64_t num)
 		{
 			currentfile = TFile::Open((fileprefix + filenames[0]).c_str());
 			SetFile(currentfile);
+			FileChanged();
 			currentmin = 0;
 			currentmax = filelimits[0];
 		}
@@ -105,6 +108,7 @@ void Analyse::GetEvent(Long64_t num)
 			{
 				currentfile = TFile::Open((fileprefix + filenames[i]).c_str());
 				SetFile(currentfile);
+				FileChanged();
 				currentmax = filelimits[i];
 				currentmin = filelimits[i-1];
 				break;

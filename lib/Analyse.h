@@ -85,6 +85,7 @@ class Analyse : public BASEIO::BaseIO
 	virtual Int_t AnalyseEvent(){return(1);};
 	//executed once at the beginning of a the loop
 	virtual void BeginLoop(){};
+	virtual void FileChanged(){};
 	//executed once at the end of a loop
 	virtual void EndLoop(){};
 
