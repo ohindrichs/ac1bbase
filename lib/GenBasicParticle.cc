@@ -24,6 +24,25 @@ bool GenBasicParticle::HasMother(Int_t pdgid)
 	return false;
 }
 
+void GenBasicParticle::StableDecayProducts(vector<GenBasicParticle>& decayprods, int level)
+{
+	level--;
+	if(level == 0){cerr << "WARNING StableDecayProducts: reached max number of recursions." << endl; return;}
+	if(Status() == 1)
+	{
+		if(!any_of(decayprods.begin(), decayprods.end(), [&](GenBasicParticle& A){return(*this == A);}))
+		{
+			decayprods.push_back(*this);
+		}
+		return;	
+	}
+	
+	for(UInt_t m = 0 ; m < Num_Daughter() ; ++m)
+	{
+		GetDaughter(m).StableDecayProducts(decayprods, level);
+	}
+}
+
 void GenBasicParticle::DecayProducts(vector<GenBasicParticle>& decayprods)
 {
 	if(Status() == 1)
