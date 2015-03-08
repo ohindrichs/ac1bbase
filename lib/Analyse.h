@@ -14,6 +14,7 @@
 //#include <boost/algorithm/string.hpp>
 
 class TFile;
+class TH1D;
 
 using namespace std;
 using namespace TMath;
@@ -71,6 +72,13 @@ class Analyse : public BASEIO::BaseIO
 	bool GetHLTriggerResult(UInt_t index);
 	Int_t GetHLTriggerIndex(string triggername);
 	Int_t GetHLTPrescale(UInt_t triggerindex);
+
+	bool ismc;
+	Long64_t totalnumberofevents;
+	TH1D* mc_mu_in;
+	TH1D* mc_mu_out;
+	TH1D* mc_pu_in;
+	TH1D* mc_pu_out;
 	public:
 	Analyse(int argc = 0, char** argv = 0, bool batchmode = false);
 	virtual ~Analyse();
@@ -125,15 +133,15 @@ class Analyse : public BASEIO::BaseIO
 	void WriteLumiFile(string filename, string mode = "recreate");
 //	//Use JSON filter
 	bool LoadJSON(string filename);
-//	
-//	bool IsData() const {return(NumTruePileUpInteractions() == -1);}
-//	bool IsMC() const {return(NumTruePileUpInteractions() != -1);}
 
 //Event data
 	UInt_t Run() {return(GetIOEventInfo(0).RunNumber());}
 	UInt_t LumiBlock() {return(GetIOEventInfo(0).LumiSectionNumber());}
 	UInt_t Number() {return(GetIOEventInfo(0).EventNumber());}
 	Float_t AK5PFRho() {return(GetIOEventInfo(0).AK5PFRho());}
+	bool IsMC() const {return(ismc);}
+	bool IsData() const {return(!ismc);}
+	Long64_t TotalNumberOfEvents() const {return(totalnumberofevents);}
 
 };
 

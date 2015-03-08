@@ -11,6 +11,7 @@
 #include <TMath.h>
 #include <TH1D.h>
 #include <TStopwatch.h>
+#include <TROOT.h>
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -35,7 +36,9 @@ Analyse::Analyse(int argc, char** argv, bool batchmode) :
 	maxLumi(0),
 	jsonfilter(false),
 	batch_myid(-1),
-	batch_numjobs(-1)
+	batch_numjobs(-1),
+	ismc(false),
+	totalnumberofevents(0)
 {
 	GLAN = this;
 }
@@ -56,7 +59,6 @@ Analyse::~Analyse()
 	{
 		delete currentfile;
 	}
-cout << "~Analyse()" << endl;
 }
 
 Int_t Analyse::AddFile(string filename)
@@ -250,7 +252,7 @@ Long64_t Analyse::Loop(Long64_t start, Long64_t end)
 			timeremain = watch.RealTime()/processed*(end-start-processed);
 			watch.Continue();
 			if(Batch_MyId() != -1) cerr << "JOB " << Batch_MyId() << ": ";
-			cerr << "Processed: " << processed << "/" << end - start << ", Event: " << UInt_t(Number()) << ", Run: " << Run() << ", LumiBlock: " << LumiBlock() << ", Time: " << int(timeremain)/3600 << ":" << int(timeremain)%3600/60 << ":" << int(timeremain)%60 << endl;
+			cerr << "Processed: " << processed << "/" << end - start << ", Event: " << UInt_t(Number()) << ", Run: " << Run() << ", LumiBlock: " << LumiBlock() << ", Time: " << int(timeremain)/3600 << ":" << int(timeremain)%3600/60 << ":" << int(timeremain)%60 << ", Mem: " << mem_usage()/1024./1024. << "Mb" << endl;
 		}
 
 		if(evres == -1){break;}
@@ -356,8 +358,9 @@ void Analyse::WriteLumiFile(string filename, string mode)
 
 int Analyse::AddLumiFile(string filename, bool updatefiles)
 {
-	TFile* lumifile = TFile::Open(filename.c_str());
-	if(lumifile->IsZombie())
+	TFile* lumifile = 0;
+	lumifile = TFile::Open(filename.c_str());
+	if(lumifile == 0 || lumifile->IsZombie())
 	{
 		cerr << "ERROR AddLumiFile: " << filename << " is not a valid file." << endl;
 		return(-1);
@@ -413,8 +416,29 @@ int Analyse::AddLumiFile(string filename, bool updatefiles)
 			runlist[runinfo.RunNumber()] = RunInfo(runinfo);
 		}
 	}
-
 	lumicalculation = true;
+
+	TH1D* mu = 0;
+	lumifile->GetObject("mc_mu", mu);
+	TH1D* pu = 0;
+	lumifile->GetObject("mc_pu", pu);
+	if(mu != 0 && pu != 0)
+	{
+	gROOT->cd();
+	mc_mu_in = new TH1D(*mu);
+	mc_pu_in = new TH1D(*pu);
+	if(mc_mu_in->GetEntries() == 0)
+	{
+		ismc = false;
+		TH1D* da_mu = static_cast<TH1D*>(lumifile->Get("da_mu"));
+		totalnumberofevents += da_mu->GetEntries();
+	}
+	else
+	{
+		ismc = true;
+		totalnumberofevents += mc_mu_in->GetEntries();
+	}
+	}
 	lumifile->Close();
 	return(1);
 }
