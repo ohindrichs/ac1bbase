@@ -10,9 +10,6 @@
 #include <vector>
 #include <string>
 
-//#include <boost/regex.hpp>
-//#include <boost/algorithm/string.hpp>
-
 class TFile;
 class TH1D;
 
@@ -35,18 +32,19 @@ class Analyse : public BASEIO::BaseIO
 	TFile* currentfile;
 	Int_t printinfo;
 	Long64_t processed;
+	Long64_t analyzed;
 	void GetEvent(Long64_t num);
 	Int_t AddFile(string filename);
 
 	//dupcheck
 	bool duplicatecheck;
-	map< UInt_t, map< UInt_t, map< Double_t, UInt_t> > > eventlist;
+	map< UInt_t, map< UInt_t, map< UInt_t, UInt_t> > > eventlist;
 
-    //Skimming
-    TTree* skimtree;
-    map< UInt_t, map< UInt_t, UInt_t > > selected;
-    string skimfilename;
-    TFile* skimfile;
+	//Skimming
+	TTree* skimtree;
+	map< UInt_t, map< UInt_t, UInt_t > > selected;
+	string skimfilename;
+	TFile* skimfile;
 
 	//Lumi calculation
 	map< UInt_t, map< UInt_t, Luminosity > > lumilist;
@@ -74,11 +72,10 @@ class Analyse : public BASEIO::BaseIO
 	Int_t GetHLTPrescale(UInt_t triggerindex);
 
 	bool ismc;
-	Long64_t totalnumberofevents;
 	TH1D* mc_mu_in;
-	TH1D* mc_mu_out;
 	TH1D* mc_pu_in;
-	TH1D* mc_pu_out;
+	TH1D* pu_reweight;
+	Long64_t totalnumberofevents;
 	public:
 	Analyse(int argc = 0, char** argv = 0, bool batchmode = false);
 	virtual ~Analyse();
@@ -87,6 +84,9 @@ class Analyse : public BASEIO::BaseIO
 	Int_t Batch_NumJobs() const {return(batch_numjobs);} 
 	Long64_t GetNumAddedEvents() const {return(filelimits[filelimits.size()-1]);};
 	string GetCurrentFileName() const {if(currentfile != 0) {return(currentfile->GetName());} else {return("NO FILE OPENED");}}
+
+	TH1D* SetupPileupWeighting(string filename, string histname, bool mu = true);
+	double GetPileupWeight();
 
 	//virtual dummies:
 	//executed for each event in the loop
@@ -101,6 +101,7 @@ class Analyse : public BASEIO::BaseIO
 	Long64_t Loop(Long64_t start = 0, Long64_t end = -1);
 	//Number of Processed Events
 	Long64_t Processed() const {return(processed);}
+	Long64_t Analyzed() const {return(analyzed);}
 
 	//setting output: -1 no output, the p-th events are printed
 	void SetPrintInfo(Int_t p = -1) {printinfo = p;}
@@ -122,19 +123,19 @@ class Analyse : public BASEIO::BaseIO
 	Int_t IsLumiAvailable();
 	Double_t GetInstLumi();
 	Double_t GetAvgPU(); 
-//	Double_t GetLumi(Int_t format = 0);
-//	void PrintPrescaleInfo(string triggername);
-//	void PrintPrescaleInfoB(string triggername);
-//	void PrintLumiOfRuns();
-//	void PrintLumiOfLumiSectionsInRun(UInt_t runnumber);
-//	//very special don't use!
+	//	Double_t GetLumi(Int_t format = 0);
+	//	void PrintPrescaleInfo(string triggername);
+	//	void PrintPrescaleInfoB(string triggername);
+	//	void PrintLumiOfRuns();
+	//	void PrintLumiOfLumiSectionsInRun(UInt_t runnumber);
+	//	//very special don't use!
 	Int_t SetLumi(UInt_t run, UInt_t block, Float_t lumival, Float_t avgpu = -1);
 	void ResetLumiValues();
 	void WriteLumiFile(string filename, string mode = "recreate");
-//	//Use JSON filter
+	//	//Use JSON filter
 	bool LoadJSON(string filename);
 
-//Event data
+	//Event data
 	UInt_t Run() {return(GetIOEventInfo(0).RunNumber());}
 	UInt_t LumiBlock() {return(GetIOEventInfo(0).LumiSectionNumber());}
 	UInt_t Number() {return(GetIOEventInfo(0).EventNumber());}

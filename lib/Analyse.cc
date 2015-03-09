@@ -25,6 +25,7 @@ Analyse::Analyse(int argc, char** argv, bool batchmode) :
 	currentfile(0),
 	printinfo(1),
 	processed(0),
+	analyzed(0),
 	duplicatecheck(false),
 	skimtree(0),
 	skimfilename("None"),
@@ -38,6 +39,7 @@ Analyse::Analyse(int argc, char** argv, bool batchmode) :
 	batch_myid(-1),
 	batch_numjobs(-1),
 	ismc(false),
+	pu_reweight(0),
 	totalnumberofevents(0)
 {
 	GLAN = this;
@@ -196,6 +198,7 @@ Long64_t Analyse::Loop(Long64_t start, Long64_t end)
 	}
 
 	processed = 0;
+	analyzed = 0;
 	BeginLoop();
 	if(Batch_MyId() != -1) cerr << "JOB " << Batch_MyId() << ": ";
 	cerr << GetNumAddedEvents() << " Events are added." << endl;
@@ -203,11 +206,11 @@ Long64_t Analyse::Loop(Long64_t start, Long64_t end)
 	if(Batch_MyId() != -1) cerr << "JOB " << Batch_MyId() << ": ";
 	cerr << "Events " << start << " - " << end << " will be processed (" << end - start << " Events)." << endl;
 	TStopwatch watch;
-	Int_t evres = 0; 
 	double timeremain;
 	watch.Start();
 	for(Long64_t i = start ; i < end ; i++)
 	{
+		Int_t evres = 0; 
 		GetEvent(i);
 
 		if(IsBatchSelected(Run(), LumiBlock()))
@@ -217,18 +220,11 @@ Long64_t Analyse::Loop(Long64_t start, Long64_t end)
 				cerr << "ERROR " << NumErrors() << "in Event: Nr: " << UInt_t(Number()) << ", Run: " << Run() << ", LumiBlock: " << LumiBlock() << ". It's rejected!" << endl;
 				continue;
 			}
-			if(jsonfilter)
+			if(!jsonfilter || jsonlist[Run()][LumiBlock()])
 			{
-				if(jsonlist[Run()][LumiBlock()])
-				{
-					evres = AnalyseEvent();
-				}
-				else
-				{
-					evres = 0;
-				}
+				evres = AnalyseEvent();
+				analyzed++;
 			}
-			else evres = AnalyseEvent();
 
 			if(duplicatecheck)
 			{
@@ -252,7 +248,8 @@ Long64_t Analyse::Loop(Long64_t start, Long64_t end)
 			timeremain = watch.RealTime()/processed*(end-start-processed);
 			watch.Continue();
 			if(Batch_MyId() != -1) cerr << "JOB " << Batch_MyId() << ": ";
-			cerr << "Processed: " << processed << "/" << end - start << ", Event: " << UInt_t(Number()) << ", Run: " << Run() << ", LumiBlock: " << LumiBlock() << ", Time: " << int(timeremain)/3600 << ":" << int(timeremain)%3600/60 << ":" << int(timeremain)%60 << ", Mem: " << mem_usage()/1024./1024. << "Mb" << endl;
+			//cerr << "Processed: " << processed << "/" << end - start << ", Event: " << UInt_t(Number()) << ", Run: " << Run() << ", LumiBlock: " << LumiBlock() << ", Time: " << int(timeremain)/3600 << ":" << int(timeremain)%3600/60 << ":" << int(timeremain)%60 << ", Mem: " << mem_usage()/1024./1024. << "Mb" << endl;
+			cerr << "Processed: " << processed << "/" << end - start << ", Analyzed: " << analyzed << ", Time: " << int(timeremain)/3600 << ":" << int(timeremain)%3600/60 << ":" << int(timeremain)%60 << ", Mem: " << mem_usage()/1024./1024. << "Mb" << endl;
 		}
 
 		if(evres == -1){break;}
@@ -841,6 +838,51 @@ bool Analyse::LoadJSON(string filename)
 		runbraoff = lumibraoff;
 	}
 	return(result);
+}
+
+TH1D* Analyse::SetupPileupWeighting(string filename, string histname, bool mu)
+{
+	if(IsData()) {return(0);}
+	TFile* pufile = TFile::Open(filename.c_str(), "read");
+	TH1D* outhist = 0;
+	pufile->GetObject(histname.c_str(), outhist);
+	TH1D* inhist = mc_pu_in;
+	if(mu){inhist = mc_mu_in;}
+	if(outhist->GetNbinsX() != inhist->GetNbinsX() || outhist->GetXaxis()->GetXmin() != inhist->GetXaxis()->GetXmin() || outhist->GetXaxis()->GetXmax() != inhist->GetXaxis()->GetXmax()) {cerr << "ERROR SetupPileupWeighting: binning of PU histograms not compatible (exit)." << endl; exit(-1);}
+	TDirectory* curdir = gDirectory;
+	gROOT->cd();
+	pu_reweight = new TH1D(*outhist);
+	double iout = outhist->Integral();
+	double iin = inhist->Integral();
+	for(int b = 1 ; b <= pu_reweight->GetNbinsX() ; ++b)
+	{
+		double weight = 0.;
+		if(inhist->GetBinContent(b) == 0 && outhist->GetBinContent(b) != 0)
+		{cerr << "WARNING SetupPileupWeighting: you request weights for PU that is not available in the input distribution." << endl;}
+		else if(inhist->GetBinContent(b) != 0 && outhist->GetBinContent(b) != 0)
+		{
+			weight = outhist->GetBinContent(b)/inhist->GetBinContent(b)*iin/iout;
+		}
+		pu_reweight->SetBinContent(b, weight);
+	}
+	if(mu) {pu_reweight->SetBinContent(0, 1);} else {pu_reweight->SetBinContent(0, 0);}
+	curdir->cd();
+	return(pu_reweight);
+}
+
+double Analyse::GetPileupWeight()
+{
+	if(IsData() || pu_reweight == 0) {return(1.);}
+	double val = -1;
+	if(pu_reweight->GetBinContent(0) == 1)
+	{
+		val = GetGenInfo(0).NumTrueInteractions();
+	}
+	else if(pu_reweight->GetBinContent(0) == 0)
+	{
+		val = GetGenInfo(0).NumPUInteractions();
+	}
+	return(pu_reweight->GetBinContent(pu_reweight->FindFixBin(val)));
 }
 
 //Double_t Analyse::GetPileUpMaxWeight(vector<Double_t>& datadist) const
