@@ -1,5 +1,16 @@
 #!/bin/python2
-import sys, os
+import sys, os, re
+
+def nameandlength(string):
+	string = string.strip()
+	temp = string.split('[')
+	name = temp[0]
+	length = -1
+	if len(temp) == 2: 
+		endpos = temp[1].find(']')
+		length = int(temp[1][:endpos])
+	return([name, length])
+
 
 def linesplit(line):
 	line = line.strip()
@@ -18,14 +29,13 @@ def cleandatavecs(string):
 	vec = [v.strip() for v in vec if '[' in v]
 	res = []
 	for d in vec:
-		temp = d.split('[')
-		name = temp[0]
-		length = -1
-		if temp[1] != ']':
-			length = int(temp[1][:-1])
-		res.append([name, length])
+		res.append(nameandlength(d))
 	return res
 
+def getbranchinfo(string):
+	vec = string.split(',')
+	return([nameandlength(v) for v in vec])
+		
 
 
 class CLASS:
@@ -34,16 +44,10 @@ class CLASS:
 	def __init__(self, name, config):
 		print name
 		print config
-		self.sizehint = 0
 		self.datamember = {}
 		self.datavecs = {}
 		self.vectorclass = False
 		self.name = name
-		if '[' in name:
-			temp = name.split('[')
-			print temp
-			self.name = temp[0]
-			self.sizehint = int(temp[1][:-1])
 		for line in config:
 			info = linesplit(line)
 			if info[0] == 'BeginClass':
@@ -443,15 +447,27 @@ sourcefilename = sys.argv[2] + '.cc'
 
 
 classes = {}
+branches = {}
 
 configf = open(configfile)
 
 classname = ''
 classconfig = []
 for l in configf:
-	l=l.strip()
-	if l.startswith('#'):
+	l = l.split('#')[0]
+	l = re.sub('\s+', ' ', l).strip()
+	if len(l) == 0:
 		continue
+	if l.startswith('Branch'):
+		l = l.split(':')
+		branchinfo = getbranchinfo(l[1])
+		cname = l[0].split('Branch')[1].strip()
+		if cname in branches:
+			branches[cname] += branchinfo
+		else:
+			branches[cname] = branchinfo
+		continue
+
 	if l.startswith('BeginClass'):
 		classconfig = [l]
 		l = l.split(':', 1)[1]
@@ -462,6 +478,8 @@ for l in configf:
 		classes[classname] = CLASS(classname, classconfig)
 		continue
 	classconfig.append(l)
+
+print branches
 
 classdef = ''
 classdef += '#ifndef CLASS_'+sys.argv[2]+'\n'	
@@ -497,9 +515,9 @@ classdef += '{\n'
 for n,c in classes.iteritems():
 	classdef += '\tfriend class ' + c.name + ';\n' 	
 classdef += '\tprivate:\n'	
-for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classdef += '\t\tData_' + c.name + ' ' + c.name + '_container_;\n' 	
+for n,L in branches.iteritems():
+	for c in L:
+		classdef += '\t\tData_' + n + ' ' + c[0] + '_container_;\n' 	
 classdef += '\t\tbool writable_;\n'	
 classdef += '\t\tInt_t error_[1000];\n'	
 classdef += '\t\tUInt_t errorcount_;\n'	
@@ -517,28 +535,29 @@ classdef += '\t\tUInt_t NumErrors();\n'
 classdef += '\t\tvoid StartFilling();\n'
 classdef += '\t\tUInt_t GetEntries();\n'
 classdef += '\t\tvoid GetEntry(UInt_t n);\n'
-for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classdef += '\t\tUInt_t Num' + c.name + 's();\n' 	
-		classdef += '\t\t'+c.name+' Get' + c.name + '(UInt_t n);\n' 	
-		classdef += '\t\tvoid Load' + c.name + '(bool load);\n' 	
+for n,L in branches.iteritems():
+	for c in L:
+		classdef += '\t\tUInt_t Num' + c[0] + 's();\n' 	
+		classdef += '\t\t'+n+' Get' + c[0] + '(UInt_t n);\n' 	
+		classdef += '\t\tvoid Load' + c[0] + '(bool load);\n' 	
 classdef += '};\n'	
 classdef += '}\n'
 classdef += '#endif\n'
 
 classcode += 'BaseIO::BaseIO(std::string treename, bool writable) : \n'
-for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classcode += c.name + '_container_(' + str(c.sizehint) + ', "' + c.name +'"),\n' 	
+for n,L in branches.iteritems():
+	for c in L:
+		classcode += c[0] + '_container_(' + str(c[1]) + ', "' + c[0] +'"),\n' 	
 classcode += 'writable_(writable),\n'
 classcode += 'errorcount_(0),\n'
 classcode += 'tree_(0),\n'
 classcode += 'copytree_(0),\n'
 classcode += 'treename_(treename)\n'
 classcode += '{\n'
-for n,c in classes.iteritems():
-	classcode += '\t' + c.name+'::baseio = this;\n'
-	classcode += '\tData_' + c.name+'::baseio = this;\n'
+for n,L in branches.iteritems():
+	for c in L:
+		classcode += '\t' + n +'::baseio = this;\n'
+		classcode += '\tData_' + n +'::baseio = this;\n'
 classcode += '}\n\n'
 classcode += 'BaseIO::~BaseIO()\n'
 classcode += '{\n'
@@ -560,16 +579,16 @@ classcode += '\t\tfile->cd();\n'
 classcode += '\t\ttree_ = new TTree(treename_.c_str(), treename_.c_str(), 1);\n'
 classcode += '\t\ttree_->Branch("ERROR_COUNT", &errorcount_, "ERROR_COUNT/i");\n'
 classcode += '\t\ttree_->Branch("ERROR", error_, "ERROR[ERROR_COUNT]/I");\n'
-for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classcode += '\t\t' + c.name + '_container_.SetUpWrite(tree_);\n' 	
+for n,L in branches.iteritems():
+	for c in L:
+		classcode += '\t\t' + c[0] + '_container_.SetUpWrite(tree_);\n' 	
 classcode += '\t}\n'
 classcode += '\telse\n'
 classcode += '\t{\n'
 classcode += '\t\tfile->GetObject(treename_.c_str(), tree_);\n'
-for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classcode += '\t\t' + c.name + '_container_.SetUpRead(tree_);\n' 	
+for n,L in branches.iteritems():
+	for c in L:
+		classcode += '\t\t' + c[0] + '_container_.SetUpRead(tree_);\n' 	
 classcode += '\t}\n'
 classcode += '}\n\n'
 classcode += 'bool BaseIO::IsWritable() const {return writable_;}\n' 	
@@ -579,25 +598,25 @@ classcode += '\ttree_->Fill();\n'
 classcode += '}\n'
 classcode += 'void BaseIO::StartFilling()' 
 classcode += '{\n'
-for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classcode += '\t' + c.name + '_container_.Fill();\n'
+for n,L in branches.iteritems():
+	for c in L:
+		classcode += '\t' + c[0] + '_container_.Fill();\n'
 classcode += '}\n'
 classcode += 'UInt_t BaseIO::GetEntries() {return tree_->GetEntries();}\n'
 classcode += 'void BaseIO::GetEntry(UInt_t n) {tree_->GetEntry(n);}\n'
-for n,c in classes.iteritems():
-	if c.sizehint != 0:
-		classcode += 'UInt_t BaseIO::Num' + c.name + 's()\n' 	
+for n,L in branches.iteritems():
+	for c in L:
+		classcode += 'UInt_t BaseIO::Num' + c[0] + 's()\n' 	
 		classcode += '{\n'
-		classcode += '\treturn ' + c.name + '_container_.count_;\n'
+		classcode += '\treturn ' + c[0] + '_container_.count_;\n'
 		classcode += '}\n'
-		classcode += c.name+' BaseIO::Get' + c.name + '(UInt_t n)\n' 	
+		classcode += n+' BaseIO::Get' + c[0] + '(UInt_t n)\n' 	
 		classcode += '{\n'
-		classcode += '\treturn ' + c.name + '(&' + c.name + '_container_, n);\n'
+		classcode += '\treturn ' + n + '(&' + c[0] + '_container_, n);\n'
 		classcode += '}\n'
-		classcode += 'void BaseIO::Load' + c.name + '(bool load)\n' 	
+		classcode += 'void BaseIO::Load' + c[0] + '(bool load)\n' 	
 		classcode += '{\n'
-		classcode += '\t' + c.name + '_container_.Load(tree_, load);\n'
+		classcode += '\t' + c[0] + '_container_.Load(tree_, load);\n'
 		classcode += '}\n\n'
 classcode += '}\n'
 		
