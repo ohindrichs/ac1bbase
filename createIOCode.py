@@ -446,7 +446,7 @@ headerfilename = sys.argv[2] + '.h'
 sourcefilename = sys.argv[2] + '.cc'
 
 
-classes = {}
+classes = []
 branches = {}
 
 configf = open(configfile)
@@ -475,7 +475,7 @@ for l in configf:
 		classname = l.split(' ')[0]
 		continue
 	if l.startswith('EndClass'):
-		classes[classname] = CLASS(classname, classconfig)
+		classes.append(CLASS(classname, classconfig))
 		continue
 	classconfig.append(l)
 
@@ -491,14 +491,14 @@ classdef += '#include <iostream>\n'
 classdef += 'using namespace std;\n'
 classdef += 'namespace ' + sys.argv[2] + '{\n'
 classdef += 'class BaseIO;\n'
-for n,c in classes.iteritems():
+for c in classes:
 	classdef += 'class Data_' + c.name + ';\n'	
 	classdef += 'class ' + c.name + ';\n'	
 
 classcode = ''
 
 classcode += 'namespace ' + sys.argv[2] + '{\n'
-for n,c in classes.iteritems():
+for c in classes:
 	classdef += c.writedataclassdef()
 	classdef += '\n\n'
 	classcode += '//'+ ('Data_'+c.name + ' ')*10 + '\n'
@@ -512,7 +512,7 @@ for n,c in classes.iteritems():
 
 classdef += 'class BaseIO\n'	
 classdef += '{\n'	
-for n,c in classes.iteritems():
+for c in classes:
 	classdef += '\tfriend class ' + c.name + ';\n' 	
 classdef += '\tprivate:\n'	
 for n,L in branches.iteritems():
@@ -554,10 +554,9 @@ classcode += 'tree_(0),\n'
 classcode += 'copytree_(0),\n'
 classcode += 'treename_(treename)\n'
 classcode += '{\n'
-for n,L in branches.iteritems():
-	for c in L:
-		classcode += '\t' + n +'::baseio = this;\n'
-		classcode += '\tData_' + n +'::baseio = this;\n'
+for c in classes:
+	classcode += '\t' + c.name +'::baseio = this;\n'
+	classcode += '\tData_' + c.name +'::baseio = this;\n'
 classcode += '}\n\n'
 classcode += 'BaseIO::~BaseIO()\n'
 classcode += '{\n'

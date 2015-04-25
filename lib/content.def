@@ -37,6 +37,7 @@ i: TriggerMatching
 i: Info
 MemberClass IOTrack: InnerTrack[1] 
 MemberClass PFIsolation: PFR4
+MemberClass DetIsolation: DetR3
 EndClass
 Branch IOMuon: IOMuon[200]
 
@@ -109,10 +110,10 @@ F: Charged, Neutral, Hadron, Photon
 #I: NumCharged, NumNeutral, NumHadron, NumPhoton
 EndClass
 
-#BeginClass: DetIsolation
-#F: Track, ECal, HCal
+BeginClass: DetIsolation
+F: Track, ECal, HCal
 #I: NumTrack, NumECal, NumHCal
-#EndClass
+EndClass
 
 #BeginClass: IOPosition
 #D: x, y, z

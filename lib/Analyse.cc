@@ -190,6 +190,8 @@ void Analyse::Batch_Prepare(UInt_t jobnum, UInt_t totaljobnum)
 	//GetEvent(0);
 }
 
+UInt_t Analyse::CheckDuplicate() {return(eventlist[Run()][LumiBlock()][Number()]);}
+
 Long64_t Analyse::Loop(Long64_t start, Long64_t end)
 {
 	if(end == -1 || end > GetNumAddedEvents())
@@ -464,14 +466,24 @@ void Analyse::ResetLumiValues()
 	}
 }
 
-//Int_t Analyse::GetNumHLTriggers() const
-//{
-//	if(runlist.find(Run()) != runlist.end())
-//	{
-//		return(runlist.at(Run()).NumHLT());
-//	}
-//	return(-1);
-//}
+Int_t Analyse::GetNumHLTriggers()
+{
+	if(runlist.find(Run()) != runlist.end())
+	{
+		return(runlist.at(Run()).NumHLT());
+	}
+	return(-1);
+}
+
+string Analyse::GetHLTNames(UInt_t index)
+{
+	if(runlist.find(Run()) != runlist.end())
+	{
+		return(runlist.at(Run()).HLTName(index));
+	}
+	return("Index out of range.");
+}
+
 
 Int_t Analyse::GetHLTriggerIndex(string triggername)
 {

@@ -67,10 +67,6 @@ class Analyse : public BASEIO::BaseIO
 	map< UInt_t, map< UInt_t, bool > > batchselection;
 	bool IsBatchSelected(UInt_t run, UInt_t lumiblock);
 
-	bool GetHLTriggerResult(UInt_t index);
-	Int_t GetHLTriggerIndex(string triggername);
-	Int_t GetHLTPrescale(UInt_t triggerindex);
-
 	bool ismc;
 	TH1D* mc_mu_in;
 	TH1D* mc_pu_in;
@@ -108,7 +104,7 @@ class Analyse : public BASEIO::BaseIO
 
 	//tool to check for duplicated events
 	void EnableDuplicateCheck(bool switchval = true) {duplicatecheck = switchval;}
-	UInt_t CheckDuplicate() {return(eventlist[Run()][LumiBlock()][Number()]);}
+	UInt_t CheckDuplicate();
 
 	//Skiming
 	//Int_t PrepareSkimming(string filename);
@@ -117,6 +113,13 @@ class Analyse : public BASEIO::BaseIO
 	//trigger information
 	TriggerSelection* AddTriggerSelection(string id, vector<string> triggernames, bool useprescaled = false);
 	TriggerSelection* GetTriggerSelection(string id);
+	//simple trigger information use Add/GetTriggerSelection instead.
+	bool GetHLTriggerResult(UInt_t index);
+	Int_t GetHLTriggerIndex(string triggername);
+	Int_t GetHLTPrescale(UInt_t triggerindex);
+	Int_t GetNumHLTriggers();
+	string GetHLTNames(UInt_t index);
+
 
 	//Lumi calculation
 	int AddLumiFile(string filename, bool updatefiles = false);
