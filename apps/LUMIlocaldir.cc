@@ -6,6 +6,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include <TH1D.h>
+#include <TROOT.h>
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -15,8 +16,6 @@ using namespace std;
 class MyAnalysis : public Analyse
 {
 	private:
-		TH1D* truepileupdist;
-		TH1D* vertexdist;
 	public:
 		MyAnalysis() 
 		{
@@ -58,16 +57,42 @@ int main(int argc, char** argv)
 	}
 
 	MyAnalysis ana;
+	TH1D* mc_mu = 0;
+	TH1D* mc_pu = 0;
+	TH1D* mc_pup = 0;
+	TH1D* mc_pum = 0;
 	for(list<string>::iterator it = filenames.begin() ; it != filenames.end() ; ++it)
 	{
-		ana.AddLumiFile(localdir + "/" + *it, true);
+		string fullfilename(localdir + "/" + *it);
+		ana.AddLumiFile(fullfilename, true);
+		TFile* eventsfile = TFile::Open(fullfilename.c_str(), "read");
+		TH1D* mu = static_cast<TH1D*>(eventsfile->Get("makeroottree/mu"));
+		TH1D* pu = static_cast<TH1D*>(eventsfile->Get("makeroottree/pu"));
+		TH1D* pum = static_cast<TH1D*>(eventsfile->Get("makeroottree/pum"));
+		TH1D* pup = static_cast<TH1D*>(eventsfile->Get("makeroottree/pup"));
+		if(mc_mu == 0)
+		{
+			gROOT->cd();
+			mc_mu = new TH1D(*mu);
+			mc_pu = new TH1D(*pu);
+			mc_pup = new TH1D(*pup);
+			mc_pum = new TH1D(*pum);
+		}
+		else
+		{
+			mc_mu->Add(mu);
+			mc_pu->Add(pu);
+			mc_pup->Add(pup);
+			mc_pum->Add(pum);
+		}
+		eventsfile->Close();
 	}
 
 	ana.ResetLumiValues();
 
-	TH1D* muhist = new TH1D("DAmudist", "DAmudist", 200, 0., 100.);
-	//if(ana.IsData())
-	if(false)
+	TH1D* da_mu = new TH1D(*mc_mu);
+	da_mu->Reset();
+	if(mc_mu->GetEntries() == 0)
 	{
 		fstream file("lumi.cvs");
 		char line[1000];
@@ -97,8 +122,7 @@ int main(int argc, char** argv)
 				}
 				if(ana.SetLumi(run, block, lumirecorded/1000000., avgpu) == 1)
 				{
-					//muhist->Fill(atof(strs[7].c_str())*766./693.);
-					muhist->Fill(avgpu);
+					da_mu->Fill(avgpu);
 				}
 			}
 			file.close();
@@ -109,9 +133,13 @@ int main(int argc, char** argv)
 		}
 	}
 	//ana.PrintLumiOfRuns();
-	ana.WriteLumiFile(localdir + "/LUMI_INFO.root");
+	ana.WriteLumiFile(localdir + "/LUMI_INFO.root", "recreate");
 	TFile* lumfile = new TFile((localdir + "/LUMI_INFO.root").c_str(), "update");
-	muhist->Write();
+	mc_mu->Write("mc_mu");
+	mc_pu->Write("mc_pu");
+	mc_pup->Write("mc_pup");
+	mc_pum->Write("mc_pum");
+	da_mu->Write("da_mu");
  	lumfile->Write();
 	lumfile->Close();
 }
