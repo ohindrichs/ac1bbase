@@ -106,7 +106,7 @@ EndClass
 Branch IOGenAK4Jet: IOGenAK4Jet[200]
 
 BeginClass: PFIsolation
-F: Charged, Neutral, Hadron, Photon
+F: Charged, Neutral, Hadron, Photon, ChargedPU
 #I: NumCharged, NumNeutral, NumHadron, NumPhoton
 EndClass
 
