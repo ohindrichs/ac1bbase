@@ -55,7 +55,7 @@ bool OElectron::Clean() const
 	return(true);
 }
 
-bool OElectron::ID(Int_t idtyp) const
+bool OElectron::ID(Int_t idtyp, Int_t isotyp) const
 {
 	if(!Clean()) return(false);
 	if(idtyp == 0) return(true);
@@ -70,9 +70,9 @@ bool OElectron::ID(Int_t idtyp) const
 			if(Abs(GSFTrack().Dxy()) > 0.02){return(false);}
 			if(Abs(GSFTrack().Dz()) > 0.1){return(false);}
 			if(Abs((1. - ESCOverETrack())/ECalEnergy()) > 0.05){return(false);}
-			if(CorPFIsolation2012() > 0.15){return(false);}
 			if(HasMatchedConversion()){return(false);}
 			if(GSFTrack().NMissingInnerHits() > 1){return(false);}
+			if(isotyp == 1 && CorPFIsolation2012() > 0.15){return(false);}
 			return(true);
 		}
 		if(IsEE())
@@ -84,9 +84,9 @@ bool OElectron::ID(Int_t idtyp) const
 			if(Abs(GSFTrack().Dxy()) > 0.02){return(false);}
 			if(Abs(GSFTrack().Dz()) > 0.1){return(false);}
 			if(Abs((1. - ESCOverETrack())/ECalEnergy()) > 0.05){return(false);}
-			if(CorPFIsolation2012() > 0.15){return(false);}
 			if(HasMatchedConversion()){return(false);}
 			if(GSFTrack().NMissingInnerHits() > 1){return(false);}
+			if(isotyp == 1 && CorPFIsolation2012() > 0.15){return(false);}
 			return(true);
 		}
 	}
@@ -101,9 +101,9 @@ bool OElectron::ID(Int_t idtyp) const
 			if(Abs(GSFTrack().Dxy()) > 0.02){return(false);}
 			if(Abs(GSFTrack().Dz()) > 0.2){return(false);}
 			if(Abs((1. - ESCOverETrack())/ECalEnergy()) > 0.05){return(false);}
-			if(CorPFIsolation2012() > 0.15){return(false);}
 			if(HasMatchedConversion()){return(false);}
 			if(GSFTrack().NMissingInnerHits() > 1){return(false);}
+			if(isotyp == 1 && CorPFIsolation2012() > 0.15){return(false);}
 			return(true);
 		}
 		if(IsEE())
@@ -115,9 +115,9 @@ bool OElectron::ID(Int_t idtyp) const
 			if(Abs(GSFTrack().Dxy()) > 0.02){return(false);}
 			if(Abs(GSFTrack().Dz()) > 0.2){return(false);}
 			if(Abs((1. - ESCOverETrack())/ECalEnergy()) > 0.05){return(false);}
-			if(CorPFIsolation2012() > 0.15){return(false);}
 			if(HasMatchedConversion()){return(false);}
 			if(GSFTrack().NMissingInnerHits() > 1){return(false);}
+			if(isotyp == 1 && CorPFIsolation2012() > 0.15){return(false);}
 			return(true);
 		}
 	}

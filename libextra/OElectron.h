@@ -15,7 +15,7 @@ class OElectron : public Electron
 		//OElectron(){}
 		double CorPFIsolation2011() const;
 		double CorPFIsolation2012() const;
-		bool ID(Int_t idtyp = 1) const;
+		bool ID(Int_t idtyp = 1, Int_t isotyp = 1) const;
 		bool Clean() const;
 		GenBasicParticle* GenParticle() const {return(genp_);}
 		void SetGen(GenBasicParticle* genp);
