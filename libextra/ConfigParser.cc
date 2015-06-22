@@ -24,7 +24,7 @@ ConfigParser::ConfigParser(string filename)
 		{
 			line = line.substr(0, commentpos);
 		}
-		cout << line << endl;
+
 		size_t eqpos = line.find("=");
 		if(eqpos == string::npos) {continue;}
 
@@ -33,34 +33,9 @@ ConfigParser::ConfigParser(string filename)
 
 		parameter = cleanspaces(parameter);
 		val = cleanspaces(val);
-		cout << parameter << ":" << val << endl;
+		//cout << parameter << ":" << val << endl;
 
 		info[parameter] = val;
 	}
 }
 
-//int ConfigParser::GetInt(string name)
-//{
-//	int i;
-//	istringstream(info[name]) >> i;
-//	return(i);
-//}
-//
-//vector<int> ConfigParser::GetVInt(string name)
-//{
-//	vector<int> res;
-//	string buff;
-//	for(char l : info[name])
-//	{
-//		if(l == ',')
-//		{
-//			res.push_back(0);
-//			istringstream(info[name]) >> res.back();
-//			buff = "";
-//			continue;
-//		}
-//		buff.push_back(l);
-//	}
-//	return(res);
-//}
-//
