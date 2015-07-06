@@ -59,7 +59,7 @@ i: TriggerMatching
 MemberClass IOTrack: GSFTrack
 F: DeltaEtaSCTrack, DeltaPhiSCTrack, ESCOverETrack, ECalEnergy
 F: E1x5, E2x5, E5x5, R9
-F: SigmaIEtaIEta, SigmaIPhiIPhi, SigmaIEtaIPhi
+F: SigmaIEtaIEta, SigmaIPhiIPhi, SigmaIEtaIPhi, Full5x5SigmaIEtaIEta
 F: EHCalTowerOverECalD1, EHCalTowerOverECalD2
 i: Info
 MemberClass PFIsolation: PFR3
