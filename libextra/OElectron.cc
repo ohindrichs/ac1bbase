@@ -44,10 +44,10 @@ bool OElectron::Clean() const
 {
     TVector3 spike;
     TVector3 test(SuperCluster(SC()).Vect());
-    spike.SetPtEtaPhi(1., -1.76, 1.37);
-    if(spike.DeltaR(test) < 0.05){return(false);}
-    spike.SetPtEtaPhi(1., 2.37, 2.69);
-    if(spike.DeltaR(test) < 0.05){return(false);}
+    //spike.SetPtEtaPhi(1., -1.76, 1.37);
+    //if(spike.DeltaR(test) < 0.05){return(false);}
+    //spike.SetPtEtaPhi(1., 2.37, 2.69);
+    //if(spike.DeltaR(test) < 0.05){return(false);}
 
 	if(Abs(test.Eta()) > 2.5) return(false);
 	if(Abs(test.Eta()) < 1.566 && Abs(test.Eta()) > 1.4442) return(false);

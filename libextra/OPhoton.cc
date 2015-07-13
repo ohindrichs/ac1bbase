@@ -46,13 +46,13 @@ bool OPhoton::Clean() const
 	SuperCluster sc(SC());
 	if(sc.Eta() > 2.5) return(false);
 	if(sc.Eta() > 1.4442 && sc.Eta() < 1.566) return(false);
-	if(R9() > 1.) return(false);
-	if(R9() < 0.003) return(false);
-	TVector3 spike;
-	spike.SetPtEtaPhi(1., -1.76, 1.37);
-	if(spike.DeltaR(sc.Vect()) < 0.05){return(false);}
-	spike.SetPtEtaPhi(1., 2.37, 2.69);
-	if(spike.DeltaR(sc.Vect()) < 0.05){return(false);}
+	//if(R9() > 1.) return(false);
+	//if(R9() < 0.003) return(false);
+	//TVector3 spike;
+	//spike.SetPtEtaPhi(1., -1.76, 1.37);
+	//if(spike.DeltaR(sc.Vect()) < 0.05){return(false);}
+	//spike.SetPtEtaPhi(1., 2.37, 2.69);
+	//if(spike.DeltaR(sc.Vect()) < 0.05){return(false);}
 	return(true);
 }
 

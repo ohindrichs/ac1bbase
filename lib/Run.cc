@@ -98,13 +98,13 @@ void RunInfo::FillOutPut(BASEIORUN::IORunInfo& runinfo) const
 	BASEIORUN::String(runinfo.HLTNamesTauMatched()).Set(combinestring(hlttaunames));
 	BASEIORUN::String(runinfo.HLTNamesPhMatched()).Set(combinestring(hltphotonnames));
 	BASEIORUN::String(runinfo.HLTNamesJetMatched()).Set(combinestring(hltjetnames));
-	for(UInt_t i = 0 ; i < NumHLT() ; i++)
+	for(UInt_t j = 0 ; j < NumHLTColumns() ; j++)
 	{
-		for(UInt_t j = 0 ; j < NumHLTColumns() ; j++)
+		for(UInt_t i = 0 ; i < NumHLT() ; i++)
 		{
-			runinfo.HLTPrescaleTable(i+NumHLT()*j, hltprescales[i][j]);
-			runinfo.HLTSeedAlgoPrescaleTable(i+NumHLT()*j, hltseedalgoprescales[i][j]);
-			runinfo.HLTSeedTechPrescaleTable(i+NumHLT()*j, hltseedtechprescales[i][j]);
+			runinfo.HLTPrescaleTable(hltprescales[i][j], i+NumHLT()*j);
+			runinfo.HLTSeedAlgoPrescaleTable(hltseedalgoprescales[i][j], i+NumHLT()*j);
+			runinfo.HLTSeedTechPrescaleTable(hltseedtechprescales[i][j], i+NumHLT()*j);
 		}
 	}
 }

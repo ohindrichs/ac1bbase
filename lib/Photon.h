@@ -18,7 +18,7 @@ class Photon : public IOPhoton, public TLorentzVector, public TriggerObject
 		bool HasConversionTracks() const {return IOPhoton::Info() & 1<<3;}
 		bool HasPixelSeed() const {return IOPhoton::Info() & 1<<4;}
 		bool HasPromptElectron() const {return IOPhoton::Info() & 1<<5;}
-		bool R9() const {return E3x3()/SC().RawEnergy();}
+		int R9() const {return E3x3()/SC().RawEnergy();}
 		//SuperCluster SC();
 
 };
