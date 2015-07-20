@@ -34,22 +34,29 @@ bool OMuon::IsGoodTRK() const
 
 bool OMuon::IsMatched() const
 {
-		//if(Pt() > 200.) return(true);	
-		if(ChiQ()/NDOF() > 10.) return(false);
-		return(true);
+
+	if(ChiQ()/NDOF() > 10.) return(false);
+	return(true);
 }
 
-bool OMuon::IsISO() const
+bool OMuon::IsISO(IDS idtyp) const
 {
-		//if((PFR4().Charged())/Pt() > 0.1) return(false);
-		if((PFR4().Charged() + PFR4().Neutral() + PFR4().Photon())/Pt() > 0.2) return(false);
-		return(true);
+	if(idtyp == TIGHT_15)
+	{
+		if((PFR4().Charged())/Pt() > 0.05) return(false);
+	}
+	else if(idtyp == LOOSE_15)
+	{
+		if((PFR4().Charged())/Pt() > 0.1) return(false);
+	}
+	//if((PFR4().Charged() + PFR4().Neutral() + PFR4().Photon())/Pt() > 0.2) return(false);
+	return(true);
 }
 
-bool OMuon::ID(Int_t idtyp) const
+bool OMuon::ID(IDS idtyp) const
 {
-	if(idtyp == 0) return(true);
-	if(idtyp == 1)
+	if(idtyp == ID_NONE) return(true);
+	if(idtyp == TIGHT_15)
 	{
 		if(TMath::Abs(Eta()) > 2.4) return(false);
 		if(!IsGlobal()) return(false);

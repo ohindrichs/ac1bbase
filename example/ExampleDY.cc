@@ -28,7 +28,7 @@ void ExampleDY::SelectRECOParticles()
 	for(UInt_t i = 0 ; i < NumIOMuons() ; i++)
 	{   
 		OMuon mu(GetIOMuon(i));
-		if(mu.Pt() > 20. && Abs(mu.Eta()) < 2.4 && mu.ID(1))
+		if(mu.Pt() > 20. && Abs(mu.Eta()) < 2.4 && mu.ID(OMuon::TIGHT_15))
 		{   
 			SMuons.push_back(move(mu));
 			AllMuons.push_back(&SMuons.back());

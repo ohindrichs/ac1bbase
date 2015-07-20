@@ -8,7 +8,10 @@ string cleanspaces(const string& str)
 	string nstr;
 	for(char l : str)
 	{
-		if(l != ' ' && l != '\t') nstr.push_back(l);
+		if(!isspace(l))
+		{
+			nstr.push_back(l);
+		}
 	}
 	return(nstr);
 }

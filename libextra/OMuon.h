@@ -12,12 +12,13 @@ class OMuon : public Muon
 {
 		GenBasicParticle* genp_;
 	public:
+		enum IDS {ID_NONE, TIGHT_15, LOOSE_15};
 		OMuon(IOMuon mu);
 		bool IsGoodSA() const;
 		bool IsGoodTRK() const;
 		bool IsMatched() const;
-		bool IsISO() const;
-		bool ID(Int_t idtyp = 1) const;
+		bool IsISO(IDS idtyp = TIGHT_15) const;
+		bool ID(IDS idtyp = TIGHT_15) const;
 		GenBasicParticle* GenParticle() const {return(genp_);}
 		void SetGen(GenBasicParticle* genp);
 		
