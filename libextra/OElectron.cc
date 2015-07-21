@@ -78,7 +78,7 @@ bool OElectron::ID(IDS idtyp, bool iso) const
 		{
 			if(Abs(DeltaEtaSCTrack()) > 0.008925){return(false);}
 			if(Abs(DeltaPhiSCTrack()) > 0.035973){return(false);}
-			if(SigmaIEtaIEta() > 0.009996){return(false);}
+			if(Full5x5SigmaIEtaIEta() > 0.009996){return(false);}
 			if(EHCalTowerOverECalD1() + EHCalTowerOverECalD2() > 0.050537){return(false);}
 			if(Abs(GSFTrack().Dxy()) > 0.012235){return(false);}
 			if(Abs(GSFTrack().Dz()) > 0.042020){return(false);}
@@ -92,7 +92,7 @@ bool OElectron::ID(IDS idtyp, bool iso) const
 		{   
 			if(Abs(DeltaEtaSCTrack()) > 0.007429){return(false);}
 			if(Abs(DeltaPhiSCTrack()) > 0.067879){return(false);}
-			if(SigmaIEtaIEta() > 0.030135){return(false);}
+			if(Full5x5SigmaIEtaIEta() > 0.030135){return(false);}
 			if(EHCalTowerOverECalD1() + EHCalTowerOverECalD2() > 0.086782){return(false);}
 			if(Abs(GSFTrack().Dxy()) > 0.036719){return(false);}
 			if(Abs(GSFTrack().Dz()) > 0.138142){return(false);}
@@ -109,7 +109,7 @@ bool OElectron::ID(IDS idtyp, bool iso) const
 		{
 			if(Abs(DeltaEtaSCTrack()) > 0.009277){return(false);}
 			if(Abs(DeltaPhiSCTrack()) > 0.094739){return(false);}
-			if(SigmaIEtaIEta() > 0.010331){return(false);}
+			if(Full5x5SigmaIEtaIEta() > 0.010331){return(false);}
 			if(EHCalTowerOverECalD1() + EHCalTowerOverECalD2() > 0.093068){return(false);}
 			if(Abs(GSFTrack().Dxy()) > 0.035904){return(false);}
 			if(Abs(GSFTrack().Dz()) > 0.075496){return(false);}
@@ -123,7 +123,7 @@ bool OElectron::ID(IDS idtyp, bool iso) const
 		{   
 			if(Abs(DeltaEtaSCTrack()) > 0.009833){return(false);}
 			if(Abs(DeltaPhiSCTrack()) > 0.149934){return(false);}
-			if(SigmaIEtaIEta() > 0.031838){return(false);}
+			if(Full5x5SigmaIEtaIEta() > 0.031838){return(false);}
 			if(EHCalTowerOverECalD1() + EHCalTowerOverECalD2() > 0.115754){return(false);}
 			if(Abs(GSFTrack().Dxy()) > 0.099266){return(false);}
 			if(Abs(GSFTrack().Dz()) > 0.197897){return(false);}
