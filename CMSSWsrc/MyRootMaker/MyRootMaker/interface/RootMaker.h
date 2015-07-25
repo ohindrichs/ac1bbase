@@ -239,6 +239,8 @@ class RootMaker : public edm::EDAnalyzer{
 		double cMuEtaMax;
 		vector<string> cMuHLTriggerMatching;
 		int cMuNum;
+		double cMuFilterPtMin;
+		double cMuFilterEtaMax;
 		double cElPtMin;
 		double cElTrackIso;
 		double cElEtaMax;

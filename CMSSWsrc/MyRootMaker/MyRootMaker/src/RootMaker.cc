@@ -40,6 +40,8 @@ RootMaker::RootMaker(const edm::ParameterSet& iConfig) :
 	cMuEtaMax(iConfig.getUntrackedParameter<double>("RecMuonEtaMax", 1000000.)),
 	cMuHLTriggerMatching(iConfig.getUntrackedParameter<vector<string> >("RecMuonHLTriggerMatching")),
 	cMuNum(iConfig.getUntrackedParameter<int>("RecMuonNum", 0)),
+	cMuFilterPtMin(iConfig.getUntrackedParameter<double>("RecMuonFilterPtMin", 0.)),
+	cMuFilterEtaMax(iConfig.getUntrackedParameter<double>("RecMuonFilterEtaMax", 1000000.)),
 	cElPtMin(iConfig.getUntrackedParameter<double>("RecElectronPtMin", 0.)),
 	cElTrackIso(iConfig.getUntrackedParameter<double>("RecElectronTrackIso", 1000000.)),
 	cElEtaMax(iConfig.getUntrackedParameter<double>("RecElectronEtaMax", 1000000.)),
@@ -203,6 +205,7 @@ void RootMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 			}
 		}
 		allnames += HLTConfiguration.triggerName(i) + string(" ");
+		//cout << HLTConfiguration.triggerName(i) << endl;
 	}
 	String(runinfo.HLTNames()).Set(allnames);
 
@@ -310,11 +313,13 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	evinfo.TimeUnix(iEvent.time().unixTime());
 	evinfo.TimeMuSec(iEvent.time().microsecondOffset());
 	edm::Handle<double> rho;
-	iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho", "ROOTMAKER"), rho);
-	evinfo.AK5PFRho(*rho);
-	edm::Handle<double> sigma;
-	iEvent.getByLabel(edm::InputTag("kt6PFJets", "sigma", "ROOTMAKER"), sigma);
-	evinfo.AK5PFSigma(*sigma);
+//	//iEvent.getByLabel(edm::InputTag("ak4PFJetsCHS", "rho", "ROOTMAKER"), rho);
+//	iEvent.getByLabel(edm::InputTag("ak4PFJetsCHS", "rho", "RECO"), rho);
+//	evinfo.AK5PFRho(*rho);
+//	edm::Handle<double> sigma;
+//	//iEvent.getByLabel(edm::InputTag("ak4PFJetsCHS", "sigma", "ROOTMAKER"), sigma);
+//	iEvent.getByLabel(edm::InputTag("ak4PFJetsCHS", "sigma", "RECO"), sigma);
+//	evinfo.AK5PFSigma(*sigma);
 
 	edm::Handle<vector<PileupSummaryInfo> > PUInfo;
 	iEvent.getByLabel(edm::InputTag("addPileupInfo"), PUInfo);
@@ -439,7 +444,7 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	{
 		IOMET met = baseio.GetIOMET(0);
 		edm::Handle<reco::PFMETCollection> pfMet;
-		iEvent.getByLabel(edm::InputTag("pfMet"), pfMet);
+		iEvent.getByLabel(edm::InputTag("pfChMet"), pfMet);
 		if(pfMet.isValid() && pfMet->size() > 0)
 		{
 			met.px((*pfMet)[0].px());
@@ -448,39 +453,39 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
 			met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
 		}
-		met = baseio.GetIOMET(1);
-		edm::Handle<reco::PFMETCollection> pfMetT0;
-		iEvent.getByLabel(edm::InputTag("pfMetT0pc"), pfMetT0);
-		if(pfMetT0.isValid() && pfMetT0->size() > 0)
-		{
-			met.px((*pfMetT0)[0].px());
-			met.py((*pfMetT0)[0].py());
-			met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
-			met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
-			met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
-		}
-		met = baseio.GetIOMET(2);
-		edm::Handle<reco::PFMETCollection> pfMetT1;
-		iEvent.getByLabel(edm::InputTag("pfMetT1"), pfMetT1);
-		if(pfMetT1.isValid() && pfMetT1->size() > 0)
-		{
-			met.px((*pfMetT1)[0].px());
-			met.py((*pfMetT1)[0].py());
-			met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
-			met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
-			met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
-		}
-		met = baseio.GetIOMET(3);
-		edm::Handle<reco::PFMETCollection> pfMetT0T1;
-		iEvent.getByLabel(edm::InputTag("pfMetT0pcT1"), pfMetT0T1);
-		if(pfMetT0T1.isValid() && pfMetT0T1->size() > 0)
-		{
-			met.px((*pfMetT0T1)[0].px());
-			met.py((*pfMetT0T1)[0].py());
-			met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
-			met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
-			met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
-		}
+	//	met = baseio.GetIOMET(1);
+	//	edm::Handle<reco::PFMETCollection> pfMetT0;
+	//	iEvent.getByLabel(edm::InputTag("pfMetT0pc"), pfMetT0);
+	//	if(pfMetT0.isValid() && pfMetT0->size() > 0)
+	//	{
+	//		met.px((*pfMetT0)[0].px());
+	//		met.py((*pfMetT0)[0].py());
+	//		met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
+	//		met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
+	//		met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
+	//	}
+	//	met = baseio.GetIOMET(2);
+	//	edm::Handle<reco::PFMETCollection> pfMetT1;
+	//	iEvent.getByLabel(edm::InputTag("pfMetT1"), pfMetT1);
+	//	if(pfMetT1.isValid() && pfMetT1->size() > 0)
+	//	{
+	//		met.px((*pfMetT1)[0].px());
+	//		met.py((*pfMetT1)[0].py());
+	//		met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
+	//		met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
+	//		met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
+	//	}
+	//	met = baseio.GetIOMET(3);
+	//	edm::Handle<reco::PFMETCollection> pfMetT0T1;
+	//	iEvent.getByLabel(edm::InputTag("pfMetT0pcT1"), pfMetT0T1);
+	//	if(pfMetT0T1.isValid() && pfMetT0T1->size() > 0)
+	//	{
+	//		met.px((*pfMetT0T1)[0].px());
+	//		met.py((*pfMetT0T1)[0].py());
+	//		met.pxUnc((*pfMet)[0].getSignificanceMatrix()(0,0));
+	//		met.pyUnc((*pfMet)[0].getSignificanceMatrix()(1,1));
+	//		met.pxpyUnc((*pfMet)[0].getSignificanceMatrix()(1,0));
+	//	}
 		//edm::Handle<reco::PFMETCollection> pfMetType0Type1;
 		//iEvent.getByLabel(edm::InputTag("pfType0Type1CorrectedMet"), pfMetType0Type1);
 		//if(pfMetType0Type1.isValid() && pfMetType0Type1->size() > 0)
@@ -497,6 +502,7 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		iEvent.getByLabel(edm::InputTag("generator"), HEPMC);
 		if(HEPMC.isValid())
 		{
+			//cout << "numweights: " << HEPMC->weights().size() << endl; 
 			gi.Weight(HEPMC->weight());
 			gi.PDGID1(HEPMC->pdf()->id.first);
 			gi.x1(HEPMC->pdf()->x.first);
@@ -505,6 +511,14 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			gi.RenScale(HEPMC->qScale());
 			gi.FacScale(HEPMC->qScale());
 		}
+
+		edm::Handle<LHEEventProduct> lheinfo;
+		iEvent.getByLabel(edm::InputTag("externalLHEProducer"), lheinfo);
+		//cout << lheinfo->weights().size() << endl;
+	//for(size_t w = 0 ; w < lheinfo->weights().size() ; ++w)
+	//{
+	//	cout << w << " " << lheinfo->weights()[w].id << " " << lheinfo->weights()[w].wgt << endl;
+	//}
 		if(PUInfo.isValid())
 		{
 			for(vector<PileupSummaryInfo>::const_iterator PVI = PUInfo->begin(); PVI != PUInfo->end(); ++PVI)
@@ -542,6 +556,25 @@ void RootMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		}
 
 	}  
+
+	if(cgenak5jets)
+	{
+		edm::Handle<GenJetCollection> GenAK5Jets;
+		iEvent.getByLabel(edm::InputTag("ak4GenJets"), GenAK5Jets);
+		if(GenAK5Jets.isValid())
+		{
+			for(GenJetCollection::const_iterator it = GenAK5Jets->begin() ; it != GenAK5Jets->end() ; ++it)
+			{
+				if(it->pt() < 15.) continue;
+				IOGenAK4Jet gj = baseio.GetIOGenAK4Jet(baseio.NumIOGenAK4Jets());
+				gj.e(it->energy());
+				gj.px(it->px());
+				gj.py(it->py());
+				gj.pz(it->pz());
+				gj.einvisible(it->invisibleEnergy());
+			}
+		}
+	}
 
 	if(cgen)
 	{
@@ -660,6 +693,7 @@ bool RootMaker::AddMuons(const edm::Event& iEvent)
 	for(unsigned i = 0 ; i < Muons->size() ; i++)
 	{
 		MuonRef mu(Muons, i);
+		if(mu->pt() < cMuFilterPtMin || TMath::Abs(mu->eta()) > cMuFilterEtaMax){continue;}
 		IOMuon muout(baseio.GetIOMuon(baseio.NumIOMuons()));
 		muout.px(mu->px());
 		muout.py(mu->py());
@@ -695,8 +729,15 @@ bool RootMaker::AddMuons(const edm::Event& iEvent)
 		const reco::MuonPFIsolation pfisor04 = mu->pfIsolationR04();
 		PFIsolation r4(muout.PFR4());
 		r4.Charged(pfisor04.sumChargedHadronPt);
+		r4.ChargedPU(pfisor04.sumPUPt);
 		r4.Neutral(pfisor04.sumNeutralHadronEt);
 		r4.Photon(pfisor04.sumPhotonEt);
+		//DetIsolation
+		const reco::MuonIsolation isor03 = mu->isolationR03();
+		DetIsolation detr3(muout.DetR3());
+		detr3.Track(isor03.sumPt);
+		detr3.ECal(isor03.emEt);
+		detr3.HCal(isor03.hadEt);
 	
 		UInt_t info = 0;
 		info |= mu->isGlobalMuon() << 0;
@@ -723,7 +764,7 @@ bool RootMaker::AddPhotons(const edm::Event& iEvent, const edm::EventSetup& iSet
 	int NumGood = 0;
 	edm::Handle<PhotonCollection> Photons;
 	iEvent.getByLabel(edm::InputTag("photons"), Photons);
-
+	cout << Photons.isValid() << " " << Photons->size() << endl;
 	if(Photons.isValid() && Photons->size() > 0)
 	{
 		edm::Handle<GsfElectronCollection> Electrons;
@@ -749,6 +790,7 @@ bool RootMaker::AddPhotons(const edm::Event& iEvent, const edm::EventSetup& iSet
 			phout.EHCalTowerOverECalD2(ph->hadronicDepth2OverEm());
 			PFIsolation r3(phout.PFR3());
 			r3.Charged(ph->chargedHadronIso());
+			r3.ChargedPU(ph->sumPUPt());
 			r3.Neutral(ph->neutralHadronIso());
 			r3.Photon(ph->photonIso());
 			IOSuperCluster phsc(phout.SC());
@@ -824,8 +866,9 @@ bool RootMaker::AddAK5PFJets(const edm::Event& iEvent, const edm::EventSetup& iS
 	int NumGood = 0;
 
 	edm::Handle<PFJetCollection> ak5pfJets;
-	iEvent.getByLabel(edm::InputTag("ak4PFJets"), ak5pfJets);
-	const JetCorrector* corrector = JetCorrector::getJetCorrector((string("ak4PF")+cJetCorrection).c_str(), iSetup);
+	iEvent.getByLabel(edm::InputTag("ak4PFJetsCHS"), ak5pfJets);
+	const JetCorrector* corrector = JetCorrector::getJetCorrector((string("ak4PFCHS")+cJetCorrection).c_str(), iSetup);
+	//const JetCorrector* corrector = JetCorrector::getJetCorrector("ak4PFCHSL2Relative", iSetup);
 
 	edm::Handle<reco::JetTagCollection> bTagCSVHandle;
 	iEvent.getByLabel("combinedSecondaryVertexBJetTags", bTagCSVHandle);
@@ -834,10 +877,10 @@ bool RootMaker::AddAK5PFJets(const edm::Event& iEvent, const edm::EventSetup& iS
 	iEvent.getByLabel("combinedInclusiveSecondaryVertexV2BJetTags", bTagCSVv2Handle);
 	const reco::JetTagCollection& bTagCSVv2s = *(bTagCSVv2Handle.product());
 
-	edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-	iSetup.get<JetCorrectionsRecord>().get("AK4PF",JetCorParColl);
-	JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
-	JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
+	//edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+	//iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl);
+	//JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+	//JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 	for(unsigned i = 0 ; i < ak5pfJets->size() ; i++)
 	{
 		PFJet corjet((*ak5pfJets)[i]);
@@ -887,9 +930,9 @@ bool RootMaker::AddAK5PFJets(const edm::Event& iEvent, const edm::EventSetup& iS
 			jetout.NumForwardHads(corjet.HFHadronMultiplicity());
 			jetout.NumForwardEMs(corjet.HFEMMultiplicity());
 			jetout.EnergyCorrection(1./jec);
-			jecUnc->setJetEta(corjet.eta());
-			jecUnc->setJetPt(corjet.pt());
-			jetout.EnergyCorrectionUnc(jecUnc->getUncertainty(true));
+			//jecUnc->setJetEta(corjet.eta());
+			//jecUnc->setJetPt(corjet.pt());
+			//jetout.EnergyCorrectionUnc(jecUnc->getUncertainty(true));
 			JetShape shape = getJetShape(corjet);
 			jetout.Mass(shape.mass);
 			jetout.ChargedPtMomPA(shape.chargeda);
@@ -905,7 +948,7 @@ bool RootMaker::AddAK5PFJets(const edm::Event& iEvent, const edm::EventSetup& iS
 			}
 		}
 	}
-	delete jecUnc;
+	//delete jecUnc;
 	if(NumGood >= cAK5PFNum){return true;}
 	return(false);
 }
@@ -938,6 +981,7 @@ bool RootMaker::AddElectrons(const edm::Event& iEvent, const edm::EventSetup& iS
 			elout.R9(el->r9());
 			elout.ECalEnergy(el->correctedEcalEnergy());
 			elout.SigmaIEtaIEta(el->sigmaIetaIeta());
+			elout.Full5x5SigmaIEtaIEta(el->full5x5_sigmaIetaIeta());
 			elout.SigmaIPhiIPhi(el->sigmaIphiIphi());
 			elout.EHCalTowerOverECalD1(el->hcalDepth1OverEcalBc());
 			elout.EHCalTowerOverECalD2(el->hcalDepth2OverEcalBc());
@@ -950,6 +994,7 @@ bool RootMaker::AddElectrons(const edm::Event& iEvent, const edm::EventSetup& iS
 			FillSC(elsc, sc);
 			PFIsolation r3(elout.PFR3());
 			r3.Charged(el->pfIsolationVariables().sumChargedHadronPt);
+			r3.ChargedPU(el->pfIsolationVariables().sumPUPt);
 			r3.Neutral(el->pfIsolationVariables().sumNeutralHadronEt);
 			r3.Photon(el->pfIsolationVariables().sumPhotonEt);
 			UInt_t info = 0;

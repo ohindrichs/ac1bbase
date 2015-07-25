@@ -2,6 +2,8 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("ROOTMAKER")
 
+
+
 # initialize MessageLogger and output report
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
@@ -18,6 +20,9 @@ process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')	
 process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
+#process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+
+
 
 process.MessageLogger.cerr.threshold = 'INFO'
 #process.MessageLogger.categories.append('PATSummaryTables')
@@ -114,31 +119,45 @@ process.maxEvents = cms.untracked.PSet(
 #                )
 #
 ####### Jet MET corrections
-process.load('RecoJets.Configuration.RecoPFJets_cff')
-process.kt6PFJets.doRhoFastjet = True
-process.kt6PFJets.doAreaFastjet = True
-process.kt6PFJets.voronoiRfact = 0.9
-#
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
-
-#process.load('RecoMET.METProducers.PFMET_cfi')
-process.load("RecoMET.METProducers.METSigParams_cfi")
-process.pfMet = cms.EDProducer(
-"PFMETProducer",
-process.METSignificance_params,
-src = cms.InputTag("particleFlow"),
-alias = cms.string('pfMet'),
-globalThreshold = cms.double(0.0),
-calculateSignificance = cms.bool(True),
-jets = cms.InputTag("ak4PFJets")
+#process.load('JetMETCorrections.Configuration.JetCorrectionServicesAllAlgos_cff')
+process.ak4PFCHSL1FastL2L3 = cms.ESProducer(
+'JetCorrectionESChain',
+correctors = cms.vstring('ak4PFCHSL1Fastjet','ak4PFCHSL2Relative','ak4PFCHSL3Absolute')
 )
-process.load('JetMETCorrections.Type1MET.correctionTermsPfMetType0PFCandidate_cff')
-process.load('JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff')
-process.load('JetMETCorrections.Type1MET.correctedMet_cff')
-process.metAnalysisSequence=cms.Sequence(process.pfMet*process.correctionTermsPfMetType0PFCandidate*process.correctionTermsPfMetType1Type2*process.pfMetT0pc*process.pfMetT0pcT1*process.pfMetT1)
+process.ak5PFCHSL1FastL2L3 = cms.ESProducer(
+'JetCorrectionESChain',
+correctors = cms.vstring('ak5PFCHSL1Fastjet','ak5PFCHSL2Relative','ak5PFCHSL3Absolute')
+)
+process.ak8PFCHSL1FastL2L3 = cms.ESProducer(
+'JetCorrectionESChain',
+correctors = cms.vstring('ak8PFCHSL1Fastjet','ak8PFCHSL2Relative','ak8PFCHSL3Absolute')
+)
+process.ak4PFJetsCHSL1FastL2L3  = cms.EDProducer('PFJetCorrectionProducer',
+     src         = cms.InputTag('ak4PFJetsCHS'),
+     correctors  = cms.VInputTag('ak4PFCHSL1FastL2L3')
+     )
+
+process.JetSequence=cms.Sequence(process.ak4PFJetsCHSL1FastL2L3)
+#process.load('RecoMET.METProducers.PFMET_cfi')
+#process.load("RecoMET.METProducers.METSigParams_cfi")
+process.pfMetCHS = cms.EDProducer(
+"PFMETProducer",
+src = cms.InputTag("particleFlow"),
+alias = cms.string('pfMetCHS'),
+globalThreshold = cms.double(0.0),
+calculateSignificance = cms.bool(False),
+#srcJets = cms.InputTag("ak4PFJetsCHSL1FastL2L3")
+#srcLeptons = cms.InputTag("ak4PFJetsCHSL1FastL2L3")
+)
+#process.load('JetMETCorrections.Type1MET.correctionTermsPfMetType0PFCandidate_cff')
+#process.load('JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff')
+#process.load('JetMETCorrections.Type1MET.correctedMet_cff')
+#process.metAnalysisSequence=cms.Sequence(process.pfMet*process.correctionTermsPfMetType0PFCandidate*process.correctionTermsPfMetType1Type2*process.pfMetT0pc*process.pfMetT0pcT1*process.pfMetT1)
+process.METSequence=cms.Sequence(process.pfMetCHS)
 
 #process.jet_step = cms.Path(process.kt6PFJets)
-process.jet_step = cms.Path(process.kt6PFJets*process.metAnalysisSequence)
+process.jet_step = cms.Path(process.JetSequence*process.METSequence)
 #
 #######PF ISO calculation for Electrons
 ##from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso, setupPFPhotonIso
@@ -222,50 +241,45 @@ RecTrackEtaMax = cms.untracked.double(2.5),
 RecTrackNum = cms.untracked.int32(100000),
 RecTrackFilterPtMin = cms.untracked.double(18.),
 
-RecSuperCluster = cms.untracked.bool(True),
+RecSuperCluster = cms.untracked.bool(False),
 RecSuperClusterFilterPtMin = cms.untracked.double(8.),
 RecSuperClusterBasicCluster = cms.untracked.bool(False),
 RecSuperClusterHit = cms.untracked.bool(False),
 
 RecMuon = cms.untracked.bool(True),
-RecMuonPtMin = cms.untracked.double(20),
+RecMuonPtMin = cms.untracked.double(15),
 RecMuonTrackIso = cms.untracked.double(1000000),
 RecMuonEtaMax = cms.untracked.double(2.5),
 RecMuonNum = cms.untracked.int32(1000),
+RecMuonFilterPtMin = cms.untracked.double(15.),
 RecMuonHLTriggerMatching = cms.untracked.vstring(
-'HLT_Mu17_Mu8_v.*:FilterTrue',
-'HLT_Mu17_TkMu8_v.*:FilterTrue',
-'HLT_Mu22_TkMu22_v.*:FilterTrue',
-'HLT_Mu(8|17)_v.*',
-'HLT_IsoMu(24|30)_v.*',
-'HLT_IsoMu(24|30)_eta2p1_v.*',
-'HLT_Mu40_v.*',
-'HLT_Mu50_eta2p1_v.*',
-'HLT_Mu40_eta2p1_v.*'
+'HLT_Mu17_Mu8_DZ_v.*:FilterTrue',
+'HLT_Mu17_TkMu8_DZ_v.*:FilterTrue',
+'HLT_IsoMu20_v.*',
+'HLT_IsoMu20_eta2p1_v.*',
+'HLT_IsoMu24_eta2p1_v.*',
+'HLT_IsoMu27_v.*'
 ),
 #RecMassMuMuMin = cms.untracked.double(2.6),
 #RecMassMuMuMax = cms.untracked.double(3.5),
 
 RecPhoton = cms.untracked.bool(True),
 RecPhotonHLTriggerMatching = cms.untracked.vstring(),
-RecPhotonPtMin = cms.untracked.double(10.),
+RecPhotonPtMin = cms.untracked.double(15.),
 RecPhotonEtaMax = cms.untracked.double(2.5),
 RecPhotonNum = cms.untracked.int32(100000),
-RecPhotonFilterPtMin = cms.untracked.double(10),
+RecPhotonFilterPtMin = cms.untracked.double(15),
 
 RecElectron = cms.untracked.bool(True),
 RecElectronHLTriggerMatching = cms.untracked.vstring(
-'HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v.*:FilterTrue',
-'HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v.*:FilterTrue',
-'HLT_Ele27_WP80_v.*',
-'HLT_Ele80_CaloIdVT_TrkIdT_v.*',
-'HLT_Ele80_CaloIdVT_GsfTrkIdT_v.*'
+'HLT_Ele27_WP85_Gsf_v.*',
+'HLT_Ele27_eta2p1_WP75_Gsf_v.*'
 ),
-RecElectronPtMin = cms.untracked.double(20.),
+RecElectronPtMin = cms.untracked.double(15.),
 RecElectronTrackIso = cms.untracked.double(1000000.),
 RecElectronEta = cms.untracked.double(2.5),
 RecElectronNum = cms.untracked.int32(100000),
-RecElectronFilterPtMin = cms.untracked.double(20.),
+RecElectronFilterPtMin = cms.untracked.double(15.),
 
 RecTau = cms.untracked.bool(False),
 RecTauHLTriggerMatching = cms.untracked.vstring(),
@@ -300,6 +314,7 @@ RecAK5JPTFilterPtMin = cms.untracked.double(20.),
 
 #JetCorrection = cms.untracked.string('L1FastL2L3Residual'),#Data
 JetCorrection = cms.untracked.string('L1FastL2L3'),#MC
+#JetCorrection = cms.untracked.string('L2L3'),#MC
 RecJetHLTriggerMatching = cms.untracked.vstring(),
 
 RecAK5PFJet = cms.untracked.bool(True),
