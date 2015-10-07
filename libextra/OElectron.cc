@@ -42,10 +42,16 @@ OElectron::OElectron(IOElectron el) : Electron(el), genp_(0)
 
 double OElectron::CorPFIsolation2015() const
 {
-	double eta = Abs(SuperCluster(SC()).Eta());
+	//double eta = Abs(SuperCluster(SC()).Eta());
+	double eta = Abs(Eta());
 	double effarea = 0.;
 	effarea = 0.;
-	if(eta < 1.3){ effarea = 0.0988;}
+//	if(eta < 1.3){ effarea = 0.0988;}
+//	else if(eta < 2.0){ effarea = 0.0572;}
+//	else if(eta < 2.2){ effarea = 0.0842;}
+//	else if(eta < 2.5){ effarea = 0.1530;}
+	if(eta < 0.8){ effarea = 0.1013;}
+	else if(eta < 1.3){ effarea = 0.0988;}
 	else if(eta < 2.0){ effarea = 0.0572;}
 	else if(eta < 2.2){ effarea = 0.0842;}
 	else if(eta < 2.5){ effarea = 0.1530;}

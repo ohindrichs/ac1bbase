@@ -95,21 +95,25 @@ int main(int argc, char** argv)
 	if(mc_mu->GetEntries() == 0)
 	{
 		fstream file("lumi.cvs");
-		char line[1000];
+		string line;
 		Float_t lumirecorded;
 		Float_t avgpu;
 		UInt_t run;
 		UInt_t block;
+		Float_t lumirecordedsum = 0.;
 		if(file.is_open())
 		{
-			file.getline(line, 1000);
 			while(!file.eof())
 			{
-				file.getline(line,1000);
+				getline(file, line);
+				//cout << line << endl;
+				if(line[0] == '#') {continue;}
 				vector<std::string> strs;
 				boost::split(strs, line, boost::is_any_of(","));
-				if(strs.size() != 8) continue;
-				run = atoi(strs[0].c_str());
+				if(strs.size() != 9) continue;
+				vector<std::string> runs;
+				boost::split(runs, strs[0], boost::is_any_of(":"));
+				run = atoi(runs[0].c_str());
 				vector<std::string> blocks;
 				boost::split(blocks, strs[1], boost::is_any_of(":"));
 				block = atoi(blocks[0].c_str());
@@ -120,12 +124,14 @@ int main(int argc, char** argv)
 					cout << "WARNING Lumi value is 0. Run: " << run << ", Block: " << block << endl;
 					continue;
 				}
-				if(ana.SetLumi(run, block, lumirecorded/1000000., avgpu) == 1)
+				if(ana.SetLumi(run, block, lumirecorded, avgpu) == 1)
 				{
-					da_mu->Fill(avgpu);
+					da_mu->Fill(avgpu, lumirecorded);
+					lumirecordedsum += lumirecorded;
 				}
 			}
 			file.close();
+			cout << "INFO: luminosity is " << lumirecordedsum << "/pb." << endl;
 		}
 		else
 		{

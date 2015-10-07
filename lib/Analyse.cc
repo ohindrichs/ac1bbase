@@ -439,6 +439,7 @@ int Analyse::AddLumiFile(string filename, bool updatefiles)
 	}
 	}
 	lumifile->Close();
+	cout << "AddLumiFileEnd" << endl;
 	return(1);
 }
 
@@ -960,6 +961,7 @@ double Analyse::GetPileupWeight()
 //	return(numgoodprimvertices);
 //}
 
+
 Long64_t mem_usage()
 {
 	ifstream stat_stream("/proc/self/stat",ios_base::in);
@@ -984,4 +986,3 @@ Long64_t mem_usage()
 	stat_stream.close();
 	return(rss*sysconf(_SC_PAGE_SIZE));
 }
-

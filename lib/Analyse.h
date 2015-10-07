@@ -152,4 +152,5 @@ class Analyse : public BASEIO::BaseIO
 extern Analyse* GLAN;
 
 Long64_t mem_usage();
+
 #endif

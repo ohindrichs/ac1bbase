@@ -43,11 +43,12 @@ bool OMuon::IsISO(IDS idtyp) const
 {
 	if(idtyp == TIGHT_15)
 	{
-		if((PFR4().Charged())/Pt() > 0.05) return(false);
+		//if((PFR4().Charged())/Pt() > 0.05) return(false);
+		if((DetR3().Track())/Pt() > 0.05) return(false);
 	}
 	else if(idtyp == LOOSE_15)
 	{
-		if((PFR4().Charged())/Pt() > 0.1) return(false);
+		if((DetR3().Track())/Pt() > 0.1) return(false);
 	}
 	//if((PFR4().Charged() + PFR4().Neutral() + PFR4().Photon())/Pt() > 0.2) return(false);
 	return(true);
