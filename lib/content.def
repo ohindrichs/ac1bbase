@@ -1,7 +1,7 @@
 BeginClass: IOEventInfo
 i: EventNumber, LumiSectionNumber, RunNumber, TimeUnix, TimeMuSec
 b: TriggerHLT[150]
-F: AK5PFRho, AK5PFSigma 
+F: Rho 
 EndClass
 Branch IOEventInfo: IOEventInfo[1]
 
@@ -80,7 +80,7 @@ EndClass
 Branch IOPhoton: IOPhoton[200]
 
 BeginClass: GenInfo
-F: Weight, x1, x2, RenScale, FacScale
+F: Weights[1000], x1, x2, RenScale, FacScale
 I: PDGID1, PDGID2
 F: METx, METy
 I: NumPUInteractions, NumPUInteractionsBefore, NumPUInteractionsAfter
@@ -106,7 +106,7 @@ EndClass
 Branch IOGenAK4Jet: IOGenAK4Jet[200]
 
 BeginClass: PFIsolation
-F: Charged, Neutral, Hadron, Photon, ChargedPU
+F: Charged, Neutral, Photon, ChargedPU
 #I: NumCharged, NumNeutral, NumHadron, NumPhoton
 EndClass
 

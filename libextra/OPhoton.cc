@@ -67,16 +67,16 @@ bool OPhoton::ID(Int_t idtyp) const
 		if(IsEB())
 		{
 			if(SigmaIEtaIEta() > 0.011) return(false);
-			if(Max(PFR3().Photon() - GLAN->AK5PFRho()*EAphoton(), 0.) - 0.7 - 0.005*Pt() > 0.) return(false);
-			if(Max(PFR3().Charged() - GLAN->AK5PFRho()*EAcharged(), 0.) - 1.5 > 0.) return(false);
-			if(Max(PFR3().Neutral() - GLAN->AK5PFRho()*EAneutral(), 0.) - 1.0 - 0.04*Pt() > 0.) return(false);
+			if(Max(PFR3().Photon() - GLAN->Rho()*EAphoton(), 0.) - 0.7 - 0.005*Pt() > 0.) return(false);
+			if(Max(PFR3().Charged() - GLAN->Rho()*EAcharged(), 0.) - 1.5 > 0.) return(false);
+			if(Max(PFR3().Neutral() - GLAN->Rho()*EAneutral(), 0.) - 1.0 - 0.04*Pt() > 0.) return(false);
 		}
 		else if(IsEE())
 		{
 			if(SigmaIEtaIEta() > 0.033) return(false);
-			if(Max(PFR3().Photon() - GLAN->AK5PFRho()*EAphoton(), 0.) - 1.0 - 0.005*Pt() > 0.) return(false);
-			if(Max(PFR3().Charged() - GLAN->AK5PFRho()*EAcharged(), 0.) - 1.2 > 0.) return(false);
-			if(Max(PFR3().Neutral() - GLAN->AK5PFRho()*EAneutral(), 0.) - 1.5 - 0.04*Pt() > 0.) return(false);
+			if(Max(PFR3().Photon() - GLAN->Rho()*EAphoton(), 0.) - 1.0 - 0.005*Pt() > 0.) return(false);
+			if(Max(PFR3().Charged() - GLAN->Rho()*EAcharged(), 0.) - 1.2 > 0.) return(false);
+			if(Max(PFR3().Neutral() - GLAN->Rho()*EAneutral(), 0.) - 1.5 - 0.04*Pt() > 0.) return(false);
 		}
 		else
 		{

@@ -855,7 +855,9 @@ bool Analyse::LoadJSON(string filename)
 
 TH1D* Analyse::SetupPileupWeighting(string filename, string histname, bool mu)
 {
+cout << "STARTHERE WGT" << endl;
 	if(IsData()) {return(0);}
+cout << "STARTHERE WGT" << endl;
 	TFile* pufile = TFile::Open(filename.c_str(), "read");
 	TH1D* outhist = 0;
 	pufile->GetObject(histname.c_str(), outhist);
@@ -876,6 +878,7 @@ TH1D* Analyse::SetupPileupWeighting(string filename, string histname, bool mu)
 		{
 			weight = outhist->GetBinContent(b)/inhist->GetBinContent(b)*iin/iout;
 		}
+		cout << b << " WGT " << weight << endl;
 		pu_reweight->SetBinContent(b, weight);
 	}
 	if(mu) {pu_reweight->SetBinContent(0, 1);} else {pu_reweight->SetBinContent(0, 0);}

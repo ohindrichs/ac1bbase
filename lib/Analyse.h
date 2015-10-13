@@ -142,7 +142,7 @@ class Analyse : public BASEIO::BaseIO
 	UInt_t Run() {return(GetIOEventInfo(0).RunNumber());}
 	UInt_t LumiBlock() {return(GetIOEventInfo(0).LumiSectionNumber());}
 	UInt_t Number() {return(GetIOEventInfo(0).EventNumber());}
-	Float_t AK5PFRho() {return(GetIOEventInfo(0).AK5PFRho());}
+	Float_t Rho() {return(GetIOEventInfo(0).Rho());}
 	bool IsMC() const {return(ismc);}
 	bool IsData() const {return(!ismc);}
 	Long64_t TotalNumberOfEvents() const {return(totalnumberofevents);}
