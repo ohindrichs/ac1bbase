@@ -41,6 +41,12 @@ MemberClass DetIsolation: DetR3
 EndClass
 Branch IOMuon: IOMuon[200]
 
+BeginClass: SubJet
+F: px, py, pz, e
+I: np
+F: pucorr
+EndClass
+
 BeginClass: IOPFJet
 F: px, py, pz, e, Area, Mass
 i: TriggerMatching
@@ -50,8 +56,10 @@ F: ChargedPtMomPA, ChargedPtMomPB, ConstituentPtMomPA, ConstituentPtMomPB
 F: PtFractionWrongPrimaryVertex, MaxChargedPtFraction, MaxPtFraction
 F: EnergyCorrection, EnergyCorrectionUnc
 F: BTagCSV, BTagCSVv2
+MemberClass SubJet: SubJets[5]
 EndClass
-Branch IOPFJet: IOPFJet[200]
+Branch IOPFJet: IOPFAK4Jet[200]
+Branch IOPFJet: IOPFAK8Jet[200]
 
 BeginClass: IOElectron
 F: px, py, pz
@@ -100,10 +108,10 @@ I: PDGID, Status, Info, IndirectMother, Mother
 EndClass
 Branch SelectedGenParticle: SelectedGenParticle[10000]
 
-BeginClass: IOGenAK4Jet
+BeginClass: IOGenJet
 F: e, px, py, pz, einvisible
 EndClass
-Branch IOGenAK4Jet: IOGenAK4Jet[200]
+Branch IOGenJet: IOGenAK4Jet[200]
 
 BeginClass: PFIsolation
 F: Charged, Neutral, Photon, ChargedPU

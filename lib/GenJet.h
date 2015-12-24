@@ -5,9 +5,9 @@
 
 using namespace BASEIO;
 
-class GenJet : public IOGenAK4Jet, public TLorentzVector
+class GenJet : public IOGenJet, public TLorentzVector
 {
 	public:
-		GenJet(IOGenAK4Jet p);
+		GenJet(IOGenJet p);
 };
 #endif
