@@ -56,7 +56,7 @@ F: ChargedPtMomPA, ChargedPtMomPB, ConstituentPtMomPA, ConstituentPtMomPB
 F: PtFractionWrongPrimaryVertex, MaxChargedPtFraction, MaxPtFraction
 F: EnergyCorrection, EnergyCorrectionUnc
 F: BTagCSV, BTagCSVv2
-MemberClass SubJet: SubJets[5]
+MemberClass SubJet: SubJets[21]
 EndClass
 Branch IOPFJet: IOPFAK4Jet[200]
 Branch IOPFJet: IOPFAK8Jet[200]
