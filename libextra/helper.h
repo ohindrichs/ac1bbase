@@ -4,9 +4,9 @@
 #include <map>
 #include <vector>
 //#include <Analyse.h> 
-#include <GenBasicParticle.h> 
-#include <OMuon.h> 
-#include <OElectron.h> 
+#include "GenBasicParticle.h" 
+#include "OMuon.h" 
+#include "OElectron.h" 
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -67,7 +67,5 @@ bool ptlvsortpt(const TLorentzVector* JA, const TLorentzVector* JB);
 bool ptlvsortetaabs(const TLorentzVector* JA, const TLorentzVector* JB);
 bool ptlvsorteta(const TLorentzVector* JA, const TLorentzVector* JB);
 bool psortpdgid(const GenBasicParticle* JA, const GenBasicParticle* JB);
-bool psortchargemu(const OMuon* JA, const OMuon* JB);
-bool psortchargeel(const OElectron* JA, const OElectron* JB);
 
 #endif

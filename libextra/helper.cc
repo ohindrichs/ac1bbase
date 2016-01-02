@@ -175,15 +175,3 @@ bool psortpdgid(const GenBasicParticle* JA, const GenBasicParticle* JB)
         return(false);
 }
 
-bool psortchargemu(const OMuon* JA, const OMuon* JB)
-{
-        if(JA->Charge() > JB->Charge()) return(true);
-        return(false);
-}
-
-bool psortchargeel(const OElectron* JA, const OElectron* JB)
-{
-        if(JA->Charge() > JB->Charge()) return(true);
-        return(false);
-}
-

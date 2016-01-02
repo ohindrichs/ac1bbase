@@ -1,11 +1,10 @@
 #ifndef CGENSPH
 #define CGENSPH
-#include <BASEIO.h> 
-#include "TLorentzVector.h" 
+#include "LV.h" 
 
 using namespace BASEIO;
 
-class GenSelectedParticle : public SelectedGenParticle, public TLorentzVector
+class GenSelectedParticle : public LV<SelectedGenParticle>
 {
 	public:
 		GenSelectedParticle(SelectedGenParticle p);

@@ -1,11 +1,10 @@
 #ifndef CTRACKH
 #define CTRACKH
-#include <BASEIO.h> 
-#include "TLorentzVector.h" 
+#include "LV.h" 
 
 using namespace BASEIO;
 
-class Track : public IOTrack, public TLorentzVector
+class Track : public LVp<IOTrack>
 {
 	public:
 		Track(IOTrack trk);

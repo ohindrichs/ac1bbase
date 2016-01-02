@@ -1,14 +1,13 @@
 #ifndef CPHOTONH
 #define CPHOTONH
-#include <BASEIO.h> 
-#include "TLorentzVector.h" 
+#include "LV.h" 
 #include "TriggerObject.h"
 
 using namespace BASEIO;
 
 class SuperCluster;
 
-class Photon : public IOPhoton, public TLorentzVector, public TriggerObject
+class Photon : public LVp<IOPhoton>, public TriggerObject
 {
 	public:
 		Photon(IOPhoton ph);

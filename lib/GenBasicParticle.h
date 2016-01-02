@@ -1,11 +1,10 @@
 #ifndef CGENBPH
 #define CGENBPH
-#include <BASEIO.h> 
-#include "TLorentzVector.h" 
+#include "LV.h" 
 
 using namespace BASEIO;
 
-class GenBasicParticle : public AllGenParticle, public TLorentzVector
+class GenBasicParticle : public LV<AllGenParticle>
 {
 	public:
 		GenBasicParticle(AllGenParticle p);

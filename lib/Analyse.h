@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 
+
+
 class TFile;
 class TH1D;
 
@@ -20,10 +22,10 @@ class Analyse : public BASEIO::BaseIO
 {
 	friend class TriggerSelection;
 	friend class TriggerObject;
-	friend class Muon;
 	friend class Electron;
 	friend class Jet;
 	friend class Photon;
+	friend class Muon;
 	private:
 	string fileprefix;
 	vector<string> filenames;

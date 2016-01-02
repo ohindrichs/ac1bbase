@@ -1,12 +1,11 @@
 #ifndef CELECTRONH
 #define CELECTRONH
-#include <BASEIO.h> 
-#include "TLorentzVector.h" 
+#include "LV.h" 
 #include "TriggerObject.h"
 
 using namespace BASEIO;
 
-class Electron : public IOElectron, public TLorentzVector, public TriggerObject
+class Electron : public LVp<IOElectron>, public TriggerObject
 {
 	public:
 		Electron(IOElectron el);
