@@ -68,4 +68,28 @@ bool ptlvsortetaabs(const TLorentzVector* JA, const TLorentzVector* JB);
 bool ptlvsorteta(const TLorentzVector* JA, const TLorentzVector* JB);
 bool psortpdgid(const GenBasicParticle* JA, const GenBasicParticle* JB);
 
+//Statistics
+
+template<typename T> T ME(const T& m){return m;}
+
+template<class InputIt, class UnaryFunction>
+pair<double, double> mean_var(InputIt first, InputIt last, UnaryFunction f = ME)
+{
+	int n = 0;
+	double mean = 0.;
+	for(InputIt it = first ; it != last ; ++it)
+	{
+		mean += f(*it);
+	}
+	mean /= n;
+	double var = 0.;
+	for(InputIt it = first ; it != last ; ++it)
+	{
+		double tmp = (f(*it) - mean);
+		var += tmp*tmp;                        
+	}
+	var /= n-1;
+	return pair<double, double>(mean, var);
+}
+
 #endif

@@ -18,7 +18,7 @@ class OMuon : public Muon
 		bool IsGoodTRK() const;
 		bool IsMatched() const;
 		bool IsISO(IDS idtyp = TIGHT_15) const;
-		bool ID(IDS idtyp = TIGHT_15) const;
+		bool ID(IDS idtyp = TIGHT_15, bool iso = true) const;
 		GenBasicParticle* GenParticle() const {return(genp_);}
 		void SetGen(GenBasicParticle* genp);
 		

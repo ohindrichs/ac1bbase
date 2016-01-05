@@ -54,7 +54,7 @@ bool OMuon::IsISO(IDS idtyp) const
 	return(true);
 }
 
-bool OMuon::ID(IDS idtyp) const
+bool OMuon::ID(IDS idtyp, bool iso) const
 {
 	if(idtyp == ID_NONE) return(true);
 	if(idtyp == TIGHT_15)
@@ -64,7 +64,7 @@ bool OMuon::ID(IDS idtyp) const
 		if(!IsGoodSA()) return(false);
 		if(!IsGoodTRK()) return(false);
 		if(!IsMatched()) return(false);
-		if(!IsISO()) return(false);
+		if(iso || !IsISO()) return(false);
 		return(true);
 	}
 	return(false);
