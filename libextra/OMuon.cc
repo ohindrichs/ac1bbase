@@ -17,8 +17,7 @@ OMuon::OMuon(IOMuon mu) : Muon(mu), genp_(0)
 
 bool OMuon::IsGoodSA() const
 {
-		if(NumValidMuonHits() <= 0) return(false);
-		if(NumMatchedStations() <= 1) return(false);
+		if(NumValidMuonHits() == 0) return(false);
 		return(true);
 }
 
@@ -34,8 +33,10 @@ bool OMuon::IsGoodTRK() const
 
 bool OMuon::IsMatched() const
 {
-
+	if(NumValidMuonHits() <= 0) return(false);
 	if(ChiQ()/NDOF() > 10.) return(false);
+	if(NumMatchedStations() <= 1) return(false);
+	if(!IsPF()) return(false);
 	return(true);
 }
 
@@ -64,7 +65,7 @@ bool OMuon::ID(IDS idtyp, bool iso) const
 		if(!IsGoodSA()) return(false);
 		if(!IsGoodTRK()) return(false);
 		if(!IsMatched()) return(false);
-		if(iso || !IsISO()) return(false);
+		if(iso && !IsISO(TIGHT_15)) return(false);
 		return(true);
 	}
 	return(false);

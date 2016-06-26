@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <regex>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
 
@@ -141,6 +142,23 @@ int main(int argc, char** argv)
 	//ana.PrintLumiOfRuns();
 	ana.WriteLumiFile(localdir + "/LUMI_INFO.root", "recreate");
 	TFile* lumfile = new TFile((localdir + "/LUMI_INFO.root").c_str(), "update");
+	regex myreg("/store/.*");
+    smatch base_match;
+	cout << localdir << endl;
+	regex_search(localdir, base_match, myreg);
+	if(base_match.size() == 1)
+	{
+
+		string xrdprefix = base_match[0].str();
+		xrdprefix = "root://cmseos.fnal.gov/" + xrdprefix + "/";
+		cout << "Using xrootd:" << xrdprefix << endl;
+		TNamed* prefixname = new TNamed("fileprefix", xrdprefix.c_str());
+		prefixname->Write("fileprefix");
+	}
+	else
+	{
+		cout << "WARNING: no xrootd with local file." << endl;
+	}
 	mc_mu->Write("mc_mu");
 	mc_pu->Write("mc_pu");
 	mc_pup->Write("mc_pup");

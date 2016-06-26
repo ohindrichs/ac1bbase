@@ -5,8 +5,8 @@
 
 RunInfo::RunInfo(const BASEIORUN::IORunInfo& runinfo) : 
 runnumber(runinfo.RunNumber()),
-hltnum(runinfo.NumHLTs()),
-hlttablesnum(runinfo.HLTPrescaleColumns())
+hltnum(runinfo.Num_TriggerPS()),
+hlttablesnum(runinfo.TriggerPS(0).Num_PS())
 {
 	splitstring(BASEIORUN::String(runinfo.HLTNames()).Get(), hltnames);
 	splitstring(BASEIORUN::String(runinfo.HLTNamesMuMatched()).Get(), hltmunames);
@@ -14,16 +14,13 @@ hlttablesnum(runinfo.HLTPrescaleColumns())
 	splitstring(BASEIORUN::String(runinfo.HLTNamesTauMatched()).Get(), hlttaunames);
 	splitstring(BASEIORUN::String(runinfo.HLTNamesPhMatched()).Get(), hltphotonnames);
 	splitstring(BASEIORUN::String(runinfo.HLTNamesJetMatched()).Get(), hltjetnames);
-	hltprescales.resize(NumHLT());
-	hltseedalgoprescales.resize(NumHLT());
-	hltseedtechprescales.resize(NumHLT());
+	hltprescales.resize(hltnum);
 	for(UInt_t i = 0 ; i < NumHLT() ; i++)
 	{
+		BASEIORUN::PrescaleRow psrow(runinfo.TriggerPS(i));
 		for(UInt_t j = 0 ; j < NumHLTColumns() ; j++)
 		{
-			hltprescales[i].push_back(runinfo.HLTPrescaleTable(i+NumHLT()*j));
-			hltseedalgoprescales[i].push_back(runinfo.HLTSeedAlgoPrescaleTable(i+NumHLT()*j));
-			hltseedtechprescales[i].push_back(runinfo.HLTSeedTechPrescaleTable(i+NumHLT()*j));
+			hltprescales[i].push_back(psrow.PS(j));
 		}
 	}
 }
@@ -63,48 +60,23 @@ Int_t RunInfo::HLTPrescale(UInt_t trigger, UInt_t table) const
 	}
 }
 
-Int_t RunInfo::HLTSeedTechPrescale(UInt_t trigger, UInt_t table) const 
-{
-	if(trigger < NumHLT() && table < NumHLTColumns())
-	{
-		return(hltseedtechprescales[trigger][table]);
-	}
-	else
-	{
-		return(1);
-	}
-}
 
-Int_t RunInfo::HLTSeedAlgoPrescale(UInt_t trigger, UInt_t table) const 
-{
-	if(trigger < NumHLT() && table < NumHLTColumns())
-	{
-		return(hltseedalgoprescales[trigger][table]);
-	}
-	else
-	{
-		return(1);
-	}
-}
 
 void RunInfo::FillOutPut(BASEIORUN::IORunInfo& runinfo) const
 {
 	runinfo.RunNumber(RunNumber());
-	runinfo.NumHLTs(NumHLT());
-	runinfo.HLTPrescaleColumns(NumHLTColumns());
 	BASEIORUN::String(runinfo.HLTNames()).Set(combinestring(hltnames));
 	BASEIORUN::String(runinfo.HLTNamesMuMatched()).Set(combinestring(hltmunames));
 	BASEIORUN::String(runinfo.HLTNamesElMatched()).Set(combinestring(hltelnames));
 	BASEIORUN::String(runinfo.HLTNamesTauMatched()).Set(combinestring(hlttaunames));
 	BASEIORUN::String(runinfo.HLTNamesPhMatched()).Set(combinestring(hltphotonnames));
 	BASEIORUN::String(runinfo.HLTNamesJetMatched()).Set(combinestring(hltjetnames));
-	for(UInt_t j = 0 ; j < NumHLTColumns() ; j++)
+	for(UInt_t i = 0 ; i < NumHLT() ; i++)
 	{
-		for(UInt_t i = 0 ; i < NumHLT() ; i++)
+		BASEIORUN::PrescaleRow psrow(runinfo.TriggerPS(i));
+		for(UInt_t j = 0 ; j < NumHLTColumns() ; j++)
 		{
-			runinfo.HLTPrescaleTable(hltprescales[i][j], i+NumHLT()*j);
-			runinfo.HLTSeedAlgoPrescaleTable(hltseedalgoprescales[i][j], i+NumHLT()*j);
-			runinfo.HLTSeedTechPrescaleTable(hltseedtechprescales[i][j], i+NumHLT()*j);
+			psrow.PS(hltprescales[i][j], j);
 		}
 	}
 }
