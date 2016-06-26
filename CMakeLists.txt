@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 project(AnalysisPackage)
 set(CMAKE_C_FLAGS "-Wall -g")
-set(CMAKE_CXX_FLAGS "-std=c++11 -g -Wall")
+#set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -g -Wall -D_GLIBCXX_USE_CXX11_ABI=0")
+set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -g -Wall")
 #set(CMAKE_CXX_FLAGS "-O2 -g -std=c++11 -Wall -pedantic")
 
 

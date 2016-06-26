@@ -92,4 +92,19 @@ pair<double, double> mean_var(InputIt first, InputIt last, UnaryFunction f = ME)
 	return pair<double, double>(mean, var);
 }
 
+class Mean_Var
+{
+private:
+	int n_ = 0;
+	double sum_ = 0.;
+	double sumq_ = 0.;
+
+public:
+	void Reset() {n_ = 0; sum_ = 0.; sumq_ = 0.;}
+	void Add(double val) {n_++; sum_ += val; sumq_ += val*val;}
+	double Mean() const {return sum_/n_;} 
+	double Var() const {return (sumq_ + sum_*sum_*(-1./n_))/(n_ - 1.);} 
+	double STD() const {return Sqrt(Var());} 
+};
+
 #endif
