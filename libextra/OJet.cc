@@ -8,19 +8,33 @@
 OJet::OJet(IOPFJet jet) : Jet(jet), genp_(0), mcflavour(0), genjet(-2)
 {}
 
+bool OJet::ID() const
+{
+	if(NumChargedHadrons() + NumNeutralHadrons() + NumPhotons() + NumElectrons() + NumMuons() + NumForwardEMs() + NumForwardHads() <= 1) {return false;}
+	if(NeutralHadronEnergy()/e() >= 0.99){return false;}
+	if(PhotonEnergy()/e() >= 0.99){return false;}
+	if(TMath::Abs(Eta()) < 2.4)
+	{
+		if(ElectronEnergy()/e() >= 0.99){return false;}
+		if(ChargedHadronEnergy()/e() == 0.){return false;}
+		if(NumChargedHadrons() + NumElectrons() + NumMuons() <= 0.){return false;}
+	}
+	return(true);
+}
+
 bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons) const
 {
 	for(OMuon* mu : muons)
 	{
-		if(DeltaR(*mu) < 0.5) return(false);
+		if(DeltaR(*mu) < 0.4) return(false);
 	}
 	for(OElectron* el : electrons)
 	{
-		if(DeltaR(*el) < 0.5) return(false);
+		if(DeltaR(*el) < 0.4) return(false);
 	}
 	for(OPhoton* ph : photons)
 	{
-		if(DeltaR(*ph) < 0.5) return(false);
+		if(DeltaR(*ph) < 0.4) return(false);
 	}
 	return(true);
 }
