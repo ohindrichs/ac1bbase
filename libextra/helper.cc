@@ -2,6 +2,9 @@
 #include <iostream>
 #include <TMath.h>
 
+#include <sys/types.h>
+#include <dirent.h>
+
 using namespace TMath;
 
 string FNbody(string filename)
@@ -25,6 +28,61 @@ string FNnoext(string filename)
 	return filename.substr(0, filename.find_first_of("."));
 }
 
+vector<string> dir_content(const string& dirname)
+{
+	DIR* dirhandle = opendir(dirname.c_str());
+
+	if(!dirhandle)
+	{
+		cerr << "Directory " << dirname << " cannot be opened." << endl;
+		exit(-1);
+	}
+
+	vector<string> filenames;
+	struct dirent* dirinfo;
+	while((dirinfo = readdir(dirhandle)) != 0)
+	{
+		string filename(dirinfo->d_name);
+		filenames.push_back(filename);
+	}
+	return filenames;
+}
+
+vector<string> string_split(const string& in, const vector<string>& splits)
+{
+	vector<pair<size_t, size_t> > positions;
+	positions.push_back(pair<size_t, size_t>(0, 0));
+	for(size_t s = 0 ; s < splits.size() ; ++s)
+	{
+		size_t lastpos = 0;
+		while(lastpos < in.size())
+		{
+			lastpos = in.find(splits[s], lastpos);
+			if(lastpos == string::npos)
+			{
+				break;
+			}
+			else
+			{
+				positions.push_back(pair<size_t, size_t>(lastpos, splits[s].size()));
+				//lastpos += splits[s].size()+1;
+				lastpos += splits[s].size();
+			}
+		}
+
+	}
+	positions.push_back(pair<size_t, size_t>(in.size(), 0));
+	sort(positions.begin(), positions.end(), [](const pair<size_t, size_t>& A, const pair<size_t, size_t>& B){return A.first < B.first;});
+	vector<string> result;
+	for(size_t p = 0 ; p < positions.size()-1 ; ++p)
+	{
+		size_t begin = positions[p].first + positions[p].second;
+		size_t end = positions[p+1].first; 
+		if(end != begin)result.push_back(in.substr(begin, end-begin));
+	}
+	return result;
+}
+
 double ProbToSigma(double prob)
 {
 	return(TMath::Sqrt(2.) * TMath::ErfInverse(prob));
@@ -39,7 +97,9 @@ TH1DCollection::TH1DCollection(string _prefix) : prefix(_prefix) {}
 
 TH1D* TH1DCollection::AddHist(string name, Int_t bins, Double_t min, Double_t max, string xlabel, string ylabel)
 {
-	hmap[name] = new TH1D((prefix+"_"+name).c_str(), (prefix+"_"+name).c_str(), bins, min, max);
+	string hname(name);
+	if(prefix.size() != 0) hname = prefix+"_"+name;
+	hmap[name] = new TH1D(hname.c_str(), hname.c_str(), bins, min, max);
 	hmap[name]->Sumw2();
 	hmap[name]->GetXaxis()->SetTitle(xlabel.c_str());
 	hmap[name]->GetYaxis()->SetTitle(ylabel.c_str());
@@ -48,7 +108,9 @@ TH1D* TH1DCollection::AddHist(string name, Int_t bins, Double_t min, Double_t ma
 
 TH1D* TH1DCollection::AddHist(string name, vector<Double_t>& bins, string xlabel, string ylabel)
 {
-	hmap[name] = new TH1D((prefix+"_"+name).c_str(), (prefix+"_"+name).c_str(), bins.size()-1, bins.data());
+	string hname(name);
+	if(prefix.size() != 0) hname = prefix+"_"+name;
+	hmap[name] = new TH1D(hname.c_str(), hname.c_str(), bins.size()-1, bins.data());
 	hmap[name]->Sumw2();
 	hmap[name]->GetXaxis()->SetTitle(xlabel.c_str());
 	hmap[name]->GetYaxis()->SetTitle(ylabel.c_str());
@@ -74,7 +136,9 @@ TH2DCollection::TH2DCollection(string _prefix) : prefix(_prefix) {}
 
 TH2D* TH2DCollection::AddHist(string name, Int_t xbins, Double_t xmin, Double_t xmax, Int_t ybins, Double_t ymin, Double_t ymax, string xlabel, string ylabel)
 {
-	hmap[name] = new TH2D((prefix+"_"+name).c_str(), (prefix+"_"+name).c_str(), xbins, xmin, xmax, ybins, ymin, ymax);
+	string hname(name);
+	if(prefix.size() != 0) hname = prefix+"_"+name;
+	hmap[name] = new TH2D(hname.c_str(), hname.c_str(), xbins, xmin, xmax, ybins, ymin, ymax);
 	hmap[name]->Sumw2();
 	hmap[name]->GetXaxis()->SetTitle(xlabel.c_str());
 	hmap[name]->GetYaxis()->SetTitle(ylabel.c_str());
@@ -83,7 +147,9 @@ TH2D* TH2DCollection::AddHist(string name, Int_t xbins, Double_t xmin, Double_t 
 
 TH2D* TH2DCollection::AddHist(string name, Int_t xbins, Double_t xmin, Double_t xmax, const vector<Double_t>& ybins, string xlabel, string ylabel)
 {
-	hmap[name] = new TH2D((prefix+"_"+name).c_str(), (prefix+"_"+name).c_str(), xbins, xmin, xmax, ybins.size()-1, ybins.data());
+	string hname(name);
+	if(prefix.size() != 0) hname = prefix+"_"+name;
+	hmap[name] = new TH2D(hname.c_str(), hname.c_str(), xbins, xmin, xmax, ybins.size()-1, ybins.data());
 	hmap[name]->Sumw2();
 	hmap[name]->GetXaxis()->SetTitle(xlabel.c_str());
 	hmap[name]->GetYaxis()->SetTitle(ylabel.c_str());
@@ -92,7 +158,9 @@ TH2D* TH2DCollection::AddHist(string name, Int_t xbins, Double_t xmin, Double_t 
 
 TH2D* TH2DCollection::AddHist(string name, const vector<Double_t>& xbins, Int_t ybins, Double_t ymin, Double_t ymax, string xlabel, string ylabel)
 {
-	hmap[name] = new TH2D((prefix+"_"+name).c_str(), (prefix+"_"+name).c_str(), xbins.size()-1, xbins.data(), ybins, ymin, ymax);
+	string hname(name);
+	if(prefix.size() != 0) hname = prefix+"_"+name;
+	hmap[name] = new TH2D(hname.c_str(), hname.c_str(), xbins.size()-1, xbins.data(), ybins, ymin, ymax);
 	hmap[name]->Sumw2();
 	hmap[name]->GetXaxis()->SetTitle(xlabel.c_str());
 	hmap[name]->GetYaxis()->SetTitle(ylabel.c_str());
@@ -101,7 +169,9 @@ TH2D* TH2DCollection::AddHist(string name, const vector<Double_t>& xbins, Int_t 
 
 TH2D* TH2DCollection::AddHist(string name, const vector<Double_t>& xbins, const vector<Double_t>& ybins, string xlabel, string ylabel)
 {
-	hmap[name] = new TH2D((prefix+"_"+name).c_str(), (prefix+"_"+name).c_str(), xbins.size()-1, xbins.data(), ybins.size()-1, ybins.data());
+	string hname(name);
+	if(prefix.size() != 0) hname = prefix+"_"+name;
+	hmap[name] = new TH2D(hname.c_str(), hname.c_str(), xbins.size()-1, xbins.data(), ybins.size()-1, ybins.data());
 	hmap[name]->Sumw2();
 	hmap[name]->GetXaxis()->SetTitle(xlabel.c_str());
 	hmap[name]->GetYaxis()->SetTitle(ylabel.c_str());

@@ -22,19 +22,19 @@ bool OJet::ID() const
 	return(true);
 }
 
-bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons) const
+bool OJet::Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons, double dr) const
 {
 	for(OMuon* mu : muons)
 	{
-		if(DeltaR(*mu) < 0.4) return(false);
+		if(DeltaR(*mu) < dr) return(false);
 	}
 	for(OElectron* el : electrons)
 	{
-		if(DeltaR(*el) < 0.4) return(false);
+		if(DeltaR(*el) < dr) return(false);
 	}
 	for(OPhoton* ph : photons)
 	{
-		if(DeltaR(*ph) < 0.4) return(false);
+		if(DeltaR(*ph) < dr) return(false);
 	}
 	return(true);
 }
@@ -87,5 +87,16 @@ void OJet::CalculateMCFlavour()
 		}
 	}
 }
+
+
+pair<double, double> OJet::GetMainAxis()
+{
+	double p = (MPhiPhi()+MEtaEta())/2.;
+	double q = MPhiPhi()*MEtaEta()-MPhiEta()*MPhiEta();
+	double la = p + Sqrt(p*p - q);
+	double lb = p - Sqrt(p*p - q);
+	return pair<double, double>(la, lb);
+}
+
 
 void OJet::SetGen(GenBasicParticle* genp) {genp_ = genp;}

@@ -16,7 +16,7 @@ class OJet : public Jet
 		void MatchGenJet();
 	public:
 		OJet(IOPFJet jet);
-		bool Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons) const;
+		bool Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons, double dr = 0.4) const;
 		bool ID() const;
 		GenBasicParticle* GenParticle() const {return(genp_);}
 		void SetGen(GenBasicParticle* genp);
@@ -24,6 +24,7 @@ class OJet : public Jet
 		int GetMCFlavour() {CalculateMCFlavour(); return(mcflavour);}
 		double GetMCPt() {CalculateMCFlavour(); return(mcpt);}
 		int GetGenJet(){MatchGenJet(); return(genjet);}
+		pair<double, double> GetMainAxis();
 		
 };
 #endif

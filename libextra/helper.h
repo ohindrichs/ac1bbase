@@ -21,6 +21,10 @@ string FNfilename(string filename);
 string FNpath(string filename);
 string FNnoext(string filename);
 
+vector<string> dir_content(const string& dirname);
+
+vector<string> string_split(const string& in, const vector<string>& splits);
+
 double ProbToSigma(double prob);
 double SigmaToProb(double sigma);
 
@@ -106,5 +110,12 @@ public:
 	double Var() const {return (sumq_ + sum_*sum_*(-1./n_))/(n_ - 1.);} 
 	double STD() const {return Sqrt(Var());} 
 };
+
+template<typename T> T stringtotype(string s)
+{   
+    T i;
+    istringstream(s) >> i;
+    return(i);
+}
 
 #endif

@@ -194,10 +194,12 @@ UInt_t Analyse::CheckDuplicate() {return(eventlist[Run()][LumiBlock()][Number()]
 
 Long64_t Analyse::Loop(Long64_t start, Long64_t end)
 {
+cout << "Start LOOP" << endl;
 	if(end == -1 || end > GetNumAddedEvents())
 	{
 		end = GetNumAddedEvents();
 	}
+cout << "Start LOOP2" << endl;
 
 	processed = 0;
 	analyzed = 0;
@@ -359,7 +361,8 @@ int Analyse::AddLumiFile(string filename, bool updatefiles)
 {
 	TFile* lumifile = 0;
 	lumifile = TFile::Open(filename.c_str());
-	if(lumifile == 0 || lumifile->IsZombie())
+	cout << "AddLumiFile: " << filename << endl;
+	if(lumifile == 0 || lumifile->IsZombie() || lumifile->TestBit(TFile::kRecovered))
 	{
 		cerr << "ERROR AddLumiFile: " << filename << " is not a valid file." << endl;
 		return(-1);
@@ -439,7 +442,6 @@ int Analyse::AddLumiFile(string filename, bool updatefiles)
 	}
 	}
 	lumifile->Close();
-	cout << "AddLumiFileEnd" << endl;
 	return(1);
 }
 

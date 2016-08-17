@@ -14,6 +14,7 @@ class OMuon : public Muon
 	public:
 		enum IDS {ID_NONE, TIGHT_15, LOOSE_15};
 		OMuon(IOMuon mu);
+		double PFIsolationDB() const;
 		bool IsGoodSA() const;
 		bool IsGoodTRK() const;
 		bool IsMatched() const;

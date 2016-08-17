@@ -1,16 +1,15 @@
 #include "Analyse.h"
+#include "helper.h"
 #include <iostream>
 #include <vector>
 #include <sstream>
 #include <regex>
 #include <fstream>
-#include <boost/algorithm/string.hpp>
+//#include <boost/algorithm/string.hpp>
 
 #include <TH1D.h>
 #include <TROOT.h>
 
-#include <sys/types.h>
-#include <dirent.h>
 
 using namespace std;
 
@@ -37,41 +36,24 @@ int main(int argc, char** argv)
 	}
 	string localdir(argv[1]);
 
-	DIR* dirhandle = opendir(localdir.c_str());
-
-	if(!dirhandle)
-	{
-		cerr << "Directory " << localdir << " cannot be opened." << endl;
-		exit(-1);
-	}
-
-	list<string> filenames;
-	struct dirent* dirinfo;
-	while((dirinfo = readdir(dirhandle)) != 0)
-	{
-		string filename(dirinfo->d_name);
-		if(filename.find(".root") != string::npos && filename.find("LUMI_INFO") == string::npos)
-		{
-			filenames.push_back(filename);
-			cout << filename << endl;
-		}
-	}
+	vector<string> filenames = dir_content(localdir);
 
 	MyAnalysis ana;
-	TH1D* mc_mu = 0;
-	TH1D* mc_pu = 0;
-	TH1D* mc_pup = 0;
-	TH1D* mc_pum = 0;
-	for(list<string>::iterator it = filenames.begin() ; it != filenames.end() ; ++it)
+	TH1D* mc_mu = nullptr;
+	TH1D* mc_pu = nullptr;
+	TH1D* mc_pup = nullptr;
+	TH1D* mc_pum = nullptr;
+	for(vector<string>::iterator it = filenames.begin() ; it != filenames.end() ; ++it)
 	{
+		if(it->find(".root") == string::npos || it->find("LUMI_INFO") != string::npos) {continue;}
 		string fullfilename(localdir + "/" + *it);
 		ana.AddLumiFile(fullfilename, true);
 		TFile* eventsfile = TFile::Open(fullfilename.c_str(), "read");
-		TH1D* mu = static_cast<TH1D*>(eventsfile->Get("makeroottree/mu"));
-		TH1D* pu = static_cast<TH1D*>(eventsfile->Get("makeroottree/pu"));
-		TH1D* pum = static_cast<TH1D*>(eventsfile->Get("makeroottree/pum"));
-		TH1D* pup = static_cast<TH1D*>(eventsfile->Get("makeroottree/pup"));
-		if(mc_mu == 0)
+		TH1D* mu = dynamic_cast<TH1D*>(eventsfile->Get("makeroottree/mu"));
+		TH1D* pu = dynamic_cast<TH1D*>(eventsfile->Get("makeroottree/pu"));
+		TH1D* pum = dynamic_cast<TH1D*>(eventsfile->Get("makeroottree/pum"));
+		TH1D* pup = dynamic_cast<TH1D*>(eventsfile->Get("makeroottree/pup"));
+		if(mc_mu == nullptr)
 		{
 			gROOT->cd();
 			mc_mu = new TH1D(*mu);
@@ -107,19 +89,16 @@ int main(int argc, char** argv)
 			while(!file.eof())
 			{
 				getline(file, line);
-				//cout << line << endl;
-				if(line[0] == '#') {continue;}
-				vector<std::string> strs;
-				boost::split(strs, line, boost::is_any_of(","));
+				vector<string> data = string_split(line, {"#"});
+				if(data.size() == 0) continue;
+				vector<std::string> strs = string_split(data[0], {","});
 				if(strs.size() != 9) continue;
-				vector<std::string> runs;
-				boost::split(runs, strs[0], boost::is_any_of(":"));
-				run = atoi(runs[0].c_str());
-				vector<std::string> blocks;
-				boost::split(blocks, strs[1], boost::is_any_of(":"));
-				block = atoi(blocks[0].c_str());
-				lumirecorded = atof(strs[6].c_str());
-				avgpu = atof(strs[7].c_str());
+				string srun = string_split(strs[0], {":"}).front();
+				run = stringtotype<UInt_t>(srun);
+				string sblock = string_split(strs[1], {":"}).front();
+				block = stringtotype<UInt_t>(sblock);
+				lumirecorded = stringtotype<Float_t>(strs[6]);
+				avgpu = stringtotype<Float_t>(strs[7]);
 				if(lumirecorded == 0.)
 				{
 					cout << "WARNING Lumi value is 0. Run: " << run << ", Block: " << block << endl;
@@ -144,14 +123,13 @@ int main(int argc, char** argv)
 	TFile* lumfile = new TFile((localdir + "/LUMI_INFO.root").c_str(), "update");
 	regex myreg("/store/.*");
     smatch base_match;
-	cout << localdir << endl;
 	regex_search(localdir, base_match, myreg);
 	if(base_match.size() == 1)
 	{
 
 		string xrdprefix = base_match[0].str();
 		xrdprefix = "root://cmseos.fnal.gov/" + xrdprefix + "/";
-		cout << "Using xrootd:" << xrdprefix << endl;
+		cout << "Using: " << xrdprefix << "LUMI_INFO.root"<< endl;
 		TNamed* prefixname = new TNamed("fileprefix", xrdprefix.c_str());
 		prefixname->Write("fileprefix");
 	}

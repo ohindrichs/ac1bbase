@@ -40,18 +40,23 @@ bool OMuon::IsMatched() const
 	return(true);
 }
 
+double OMuon::PFIsolationDB() const
+{
+	return (PFR4().Charged() + Max(PFR4().Neutral() + PFR4().Photon() - 0.5*PFR4().ChargedPU(), 0.))/Pt();
+}
+
 bool OMuon::IsISO(IDS idtyp) const
 {
 	if(idtyp == TIGHT_15)
 	{
-		//if((PFR4().Charged())/Pt() > 0.05) return(false);
-		if((DetR3().Track())/Pt() > 0.05) return(false);
+		//if((DetR3().Track())/Pt() > 0.05) return(false);
+		if(PFIsolationDB() > 0.15) return(false);
 	}
 	else if(idtyp == LOOSE_15)
 	{
-		if((DetR3().Track())/Pt() > 0.1) return(false);
+		//if((DetR3().Track())/Pt() > 0.1) return(false);
+		if(PFIsolationDB() > 0.25) return(false);
 	}
-	//if((PFR4().Charged() + PFR4().Neutral() + PFR4().Photon())/Pt() > 0.2) return(false);
 	return(true);
 }
 

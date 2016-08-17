@@ -52,10 +52,9 @@ F: px, py, pz, e, Area, Mass
 i: TriggerMatching
 F: ChargedHadronEnergy, NeutralHadronEnergy, PhotonEnergy, ElectronEnergy, MuonEnergy, ForwardEM, ForwardHad
 I: NumChargedHadrons, NumNeutralHadrons, NumPhotons, NumElectrons, NumMuons, NumForwardEMs, NumForwardHads
-F: ChargedPtMomPA, ChargedPtMomPB, ConstituentPtMomPA, ConstituentPtMomPB
-F: PtFractionWrongPrimaryVertex, MaxChargedPtFraction, MaxPtFraction
-F: EnergyCorrection, EnergyCorrectionUnc
-F: BTagCSV, BTagCSVv2
+F: DR, MPhiPhi, MPhiEta, MEtaEta
+F: EnergyCorrection
+F: BTagCSVv2, BTagJP, BTagMVA
 MemberClass SubJet: SubJets[60]
 EndClass
 Branch IOPFJet: IOPFAK4Jet[200]

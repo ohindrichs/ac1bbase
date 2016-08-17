@@ -1,5 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/lib ${PROJECT_BINARY_DIR}/lib
-/cvmfs/cms.cern.ch/slc6_amd64_gcc491/external/boost/1.57.0/include)
+include_directories(${CMAKE_SOURCE_DIR}/lib ${PROJECT_BINARY_DIR}/lib ${PROJECT_SOURCE_DIR}/libextra)
 
 #set(LUMIxrootdSrcs LUMIxrootd.cc)
 #add_executable(LUMIxrootd ${LUMIxrootdSrcs})
@@ -7,6 +6,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib ${PROJECT_BINARY_DIR}/lib
 
 set(LUMIlocaldirSrcs LUMIlocaldir.cc)
 add_executable(LUMIlocaldir ${LUMIlocaldirSrcs})
-target_link_libraries(LUMIlocaldir AnalysisTool ${Boost_LIBRARIES} ${ROOT_LIBRARIES})
+target_link_libraries(LUMIlocaldir AnalysisTool AnalysisSupport ${ROOT_LIBRARIES})
+
 
 install(TARGETS LUMIlocaldir DESTINATION bin)
