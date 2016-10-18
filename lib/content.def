@@ -106,6 +106,7 @@ F: px, py, pz, e
 I: PDGID, Status, Info, IndirectMother, Mother
 EndClass
 Branch SelectedGenParticle: SelectedGenParticle[10000]
+Branch SelectedGenParticle: PLObject[200]
 
 BeginClass: IOGenJet
 F: e, px, py, pz, einvisible
