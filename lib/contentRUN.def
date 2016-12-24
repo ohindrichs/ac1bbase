@@ -6,7 +6,7 @@ MemberClass IOString: HLTNamesElMatched
 MemberClass IOString: HLTNamesTauMatched
 MemberClass IOString: HLTNamesPhMatched
 MemberClass IOString: HLTNamesJetMatched
-MemberClass PrescaleRow: TriggerPS[600]
+MemberClass PrescaleRow: TriggerPS[2000]
 EndClass
 Branch IORunInfo: IORunInfo[1]
 

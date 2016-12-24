@@ -48,6 +48,8 @@ int main(int argc, char** argv)
 		if(it->find(".root") == string::npos || it->find("LUMI_INFO") != string::npos) {continue;}
 		string fullfilename(localdir + "/" + *it);
 		ana.AddLumiFile(fullfilename, true);
+		//string xrootdname = "root://cmseos.fnal.gov//store/" + string_split(fullfilename, {"/store/"})[1];
+		//ana.AddLumiFile(xrootdname, true);
 		TFile* eventsfile = TFile::Open(fullfilename.c_str(), "read");
 		TH1D* mu = dynamic_cast<TH1D*>(eventsfile->Get("makeroottree/mu"));
 		TH1D* pu = dynamic_cast<TH1D*>(eventsfile->Get("makeroottree/pu"));
