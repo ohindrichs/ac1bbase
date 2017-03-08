@@ -55,6 +55,7 @@ I: NumChargedHadrons, NumNeutralHadrons, NumPhotons, NumElectrons, NumMuons, Num
 F: DR, MPhiPhi, MPhiEta, MEtaEta
 F: EnergyCorrection
 F: BTagCSVv2, BTagJP, BTagMVA
+F: KMean3
 MemberClass SubJet: SubJets[60]
 EndClass
 Branch IOPFJet: IOPFAK4Jet[200]
@@ -87,7 +88,7 @@ EndClass
 Branch IOPhoton: IOPhoton[200]
 
 BeginClass: GenInfo
-F: Weights[1000], x1, x2, RenScale, FacScale
+F: Weights[1000], x1, x2, RenScale, FacScale, ISRWeights[20], FSRWeights[20]
 I: PDGID1, PDGID2
 F: METx, METy
 I: NumPUInteractions, NumPUInteractionsBefore, NumPUInteractionsAfter
@@ -104,6 +105,7 @@ Branch AllGenParticle: AllGenParticle[10000]
 BeginClass: SelectedGenParticle
 F: px, py, pz, e
 I: PDGID, Status, Info, IndirectMother, Mother
+F: IsoR3
 EndClass
 Branch SelectedGenParticle: SelectedGenParticle[10000]
 Branch SelectedGenParticle: PLObject[200]
