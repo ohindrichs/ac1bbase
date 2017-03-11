@@ -1,6 +1,7 @@
 BeginClass: IOEventInfo
 i: EventNumber, LumiSectionNumber, RunNumber, TimeUnix, TimeMuSec
-b: TriggerHLT[150]
+b: TriggerHLT[300]
+b: TriggerL1[100]
 F: Rho 
 EndClass
 Branch IOEventInfo: IOEventInfo[1]
@@ -87,8 +88,15 @@ MemberClass IOSuperCluster: SC
 EndClass
 Branch IOPhoton: IOPhoton[200]
 
+BeginClass: IOL1Object
+F: px, py, pz
+B: BX, Iso, Qual
+EndClass
+Branch IOL1Object: L1EGamma[200]
+Branch IOL1Object: L1Muon[200]
+
 BeginClass: GenInfo
-F: Weights[1000], x1, x2, RenScale, FacScale, ISRWeights[20], FSRWeights[20]
+F: Weights[1000], x1, x2, RenScale, FacScale
 I: PDGID1, PDGID2
 F: METx, METy
 I: NumPUInteractions, NumPUInteractionsBefore, NumPUInteractionsAfter
@@ -117,17 +125,11 @@ Branch IOGenJet: IOGenAK4Jet[200]
 
 BeginClass: PFIsolation
 F: Charged, Neutral, Photon, ChargedPU
-#I: NumCharged, NumNeutral, NumHadron, NumPhoton
 EndClass
 
 BeginClass: DetIsolation
 F: Track, ECal, HCal
-#I: NumTrack, NumECal, NumHCal
 EndClass
-
-#BeginClass: IOPosition
-#D: x, y, z
-#EndClass
 
 BeginClass: IOSuperCluster
 F: x, y, z
