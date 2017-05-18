@@ -526,6 +526,19 @@ TriggerSelection* Analyse::GetTriggerSelection(string id)
 //	}
 //}
 
+int Analyse::GetPrescaleColumn()
+{
+	if(IsLumiAvailable())
+	{
+		return lumilist.at(Run()).at(LumiBlock()).HLTTable();
+	}
+	else
+	{
+		return(-1);
+	}
+
+}
+
 Int_t Analyse::GetHLTPrescale(UInt_t triggerindex)
 {
 	if(IsLumiAvailable())
