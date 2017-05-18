@@ -2,9 +2,6 @@
 #include <iostream>
 #include <TMath.h>
 
-#include <sys/types.h>
-#include <dirent.h>
-
 using namespace TMath;
 
 string FNbody(string filename)
@@ -28,7 +25,7 @@ string FNnoext(string filename)
 	return filename.substr(0, filename.find_first_of("."));
 }
 
-vector<string> dir_content(const string& dirname)
+vector<string> dir_content(const string& dirname, unsigned char select)
 {
 	DIR* dirhandle = opendir(dirname.c_str());
 
@@ -42,8 +39,11 @@ vector<string> dir_content(const string& dirname)
 	struct dirent* dirinfo;
 	while((dirinfo = readdir(dirhandle)) != 0)
 	{
-		string filename(dirinfo->d_name);
-		filenames.push_back(filename);
+		if(dirinfo->d_type & select)
+		{
+			string filename(dirinfo->d_name);
+			filenames.push_back(filename);
+		}
 	}
 	return filenames;
 }
@@ -244,4 +244,28 @@ bool psortpdgid(const GenBasicParticle* JA, const GenBasicParticle* JB)
         if(JA->PDGID() > JB->PDGID()) return(true);
         return(false);
 }
+
+
+
+
+bool operator<(const Bin& A, const Bin& B)
+{
+    if(B.min() == B.max() && (A.min() <= B.min() && A.max() > B.min()))
+    {
+        return(false);
+    }
+    else if(A.min() == A.max() && (B.min() <= A.min() && B.max() > A.min()))
+    {
+        return(false);
+    }
+    return A.min() < B.min();
+}
+
+
+
+
+
+
+
+
 

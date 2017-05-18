@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <sstream>
 //#include <Analyse.h> 
 #include "GenBasicParticle.h" 
 #include "OMuon.h" 
@@ -13,6 +14,9 @@
 #include "TLorentzVector.h"
 #include "TMath.h"
 
+#include <sys/types.h>
+#include <dirent.h>
+
 using namespace std;
 
 //Path and Filenames
@@ -21,7 +25,7 @@ string FNfilename(string filename);
 string FNpath(string filename);
 string FNnoext(string filename);
 
-vector<string> dir_content(const string& dirname);
+vector<string> dir_content(const string& dirname, unsigned char select = DT_REG|DT_DIR|DT_LNK);
 
 vector<string> string_split(const string& in, const vector<string>& splits);
 
@@ -117,5 +121,23 @@ template<typename T> T stringtotype(string s)
     istringstream(s) >> i;
     return(i);
 }
+
+//BINNER
+class Bin
+{
+    private:
+        double min_;
+        double max_;
+    public:
+        Bin(double min, double max) : min_(min), max_(max) {}
+        Bin(double val) : min_(val), max_(val) {}
+
+        double min() const {return min_;}
+        double max() const {return max_;}
+
+};
+
+bool operator<(const Bin& A, const Bin& B);
+
 
 #endif
