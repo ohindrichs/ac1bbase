@@ -117,6 +117,7 @@ class Analyse : public BASEIO::BaseIO
 	TriggerSelection* GetTriggerSelection(string id);
 	//simple trigger information use Add/GetTriggerSelection instead.
 	bool GetHLTriggerResult(UInt_t index);
+	int GetPrescaleColumn();
 	Int_t GetHLTriggerIndex(string triggername);
 	Int_t GetHLTPrescale(UInt_t triggerindex);
 	Int_t GetNumHLTriggers();

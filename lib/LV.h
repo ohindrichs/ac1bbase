@@ -22,5 +22,6 @@ template < typename TA > class LV : public TA, public TLorentzVector
 };
 
 typedef LV< SubJet > SJet;
+typedef LVp< IOL1Object > L1Object;
 
 #endif

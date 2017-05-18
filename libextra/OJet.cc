@@ -8,11 +8,19 @@
 OJet::OJet(IOPFJet jet) : Jet(jet), genp_(0), mcflavour(0), genjet(-2)
 {}
 
+bool OJet::IDLeptonVeto() const
+{
+if(ID() && ElectronEnergy()/e() < 0.9 && MuonEnergy()/e() < 0.8){return true;}
+
+return false;
+
+}
+
 bool OJet::ID() const
 {
 	if(NumChargedHadrons() + NumNeutralHadrons() + NumPhotons() + NumElectrons() + NumMuons() + NumForwardEMs() + NumForwardHads() <= 1) {return false;}
-	if(NeutralHadronEnergy()/e() >= 0.99){return false;}
-	if(PhotonEnergy()/e() >= 0.99){return false;}
+	if(NeutralHadronEnergy()/e() >= 0.90){return false;}
+	if(PhotonEnergy()/e() >= 0.90){return false;}
 	if(TMath::Abs(Eta()) < 2.4)
 	{
 		if(ElectronEnergy()/e() >= 0.99){return false;}

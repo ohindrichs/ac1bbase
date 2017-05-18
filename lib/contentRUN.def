@@ -1,6 +1,8 @@
 BeginClass: IORunInfo
 i: RunNumber
 MemberClass IOString: HLTNames
+MemberClass L1SeedInfo: L1Seed[2000]
+MemberClass IOString: L1Names
 MemberClass IOString: HLTNamesMuMatched
 MemberClass IOString: HLTNamesElMatched
 MemberClass IOString: HLTNamesTauMatched
@@ -11,9 +13,13 @@ EndClass
 Branch IORunInfo: IORunInfo[1]
 
 BeginClass: IOString
-B: str[100000]
+B: str[150000]
 EndClass
 
 BeginClass: PrescaleRow
 I: PS[40]
+EndClass
+
+BeginClass: L1SeedInfo
+I: Seed[40]
 EndClass

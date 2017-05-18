@@ -1,6 +1,7 @@
 BeginClass: IOEventInfo
 i: EventNumber, LumiSectionNumber, RunNumber, TimeUnix, TimeMuSec
-b: TriggerHLT[150]
+b: TriggerHLT[300]
+b: TriggerL1[100]
 F: Rho 
 EndClass
 Branch IOEventInfo: IOEventInfo[1]
@@ -55,6 +56,7 @@ I: NumChargedHadrons, NumNeutralHadrons, NumPhotons, NumElectrons, NumMuons, Num
 F: DR, MPhiPhi, MPhiEta, MEtaEta
 F: EnergyCorrection
 F: BTagCSVv2, BTagJP, BTagMVA
+F: KMean3
 MemberClass SubJet: SubJets[60]
 EndClass
 Branch IOPFJet: IOPFAK4Jet[200]
@@ -86,6 +88,13 @@ MemberClass IOSuperCluster: SC
 EndClass
 Branch IOPhoton: IOPhoton[200]
 
+BeginClass: IOL1Object
+F: px, py, pz
+B: BX, Iso, Qual
+EndClass
+Branch IOL1Object: L1EGamma[200]
+Branch IOL1Object: L1Muon[200]
+
 BeginClass: GenInfo
 F: Weights[1000], x1, x2, RenScale, FacScale
 I: PDGID1, PDGID2
@@ -104,6 +113,7 @@ Branch AllGenParticle: AllGenParticle[10000]
 BeginClass: SelectedGenParticle
 F: px, py, pz, e
 I: PDGID, Status, Info, IndirectMother, Mother
+F: IsoR3
 EndClass
 Branch SelectedGenParticle: SelectedGenParticle[10000]
 Branch SelectedGenParticle: PLObject[200]
@@ -115,17 +125,11 @@ Branch IOGenJet: IOGenAK4Jet[200]
 
 BeginClass: PFIsolation
 F: Charged, Neutral, Photon, ChargedPU
-#I: NumCharged, NumNeutral, NumHadron, NumPhoton
 EndClass
 
 BeginClass: DetIsolation
 F: Track, ECal, HCal
-#I: NumTrack, NumECal, NumHCal
 EndClass
-
-#BeginClass: IOPosition
-#D: x, y, z
-#EndClass
 
 BeginClass: IOSuperCluster
 F: x, y, z

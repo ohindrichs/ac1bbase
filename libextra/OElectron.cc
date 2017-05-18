@@ -7,7 +7,7 @@
 using namespace TMath;
 
 
-OElectron::OElectron(IOElectron el) : Electron(el), genp_(0)
+OElectron::OElectron(IOElectron el) : Electron(el), genp_(nullptr), l1matchp_(nullptr)
 {}
 
 
@@ -113,4 +113,35 @@ void OElectron::SetGen(GenBasicParticle* genp)
 {
 genp_ = genp;
 }
+
+
+L1Object* OElectron::L1Match()
+{
+	if(l1matchp_ != nullptr) return l1matchp_;
+	double dr = 0.15;
+	for(size_t n = 0 ; n < GLAN->NumL1EGammas() ; ++n)
+	{
+		L1Object l1match(GLAN->GetL1EGamma(n));
+		if(DeltaR(l1match) < dr)
+		{
+			dr = DeltaR(l1match);	
+			l1matchp_ = new L1Object(l1match);
+		}
+
+	}
+	return l1matchp_;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
