@@ -62,7 +62,7 @@ bool OPhoton::ID(Int_t idtyp) const
 	if(idtyp == 1)
 	{
 		if(!Clean()) return(false);
-		if(EHCalTowerOverECalD1() + EHCalTowerOverECalD1() > 0.05) return(false);
+		if(HadOverEM() > 0.05) return(false);
 		if(HasPromptElectron()) return(false);
 		if(IsEB())
 		{
