@@ -39,7 +39,7 @@ vector<string> dir_content(const string& dirname, unsigned char select)
 	struct dirent* dirinfo;
 	while((dirinfo = readdir(dirhandle)) != 0)
 	{
-		if(dirinfo->d_type & select)
+		//if(dirinfo->d_type & select)
 		{
 			string filename(dirinfo->d_name);
 			filenames.push_back(filename);

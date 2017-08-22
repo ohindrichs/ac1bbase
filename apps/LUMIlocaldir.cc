@@ -45,6 +45,7 @@ int main(int argc, char** argv)
 	TH1D* mc_pum = nullptr;
 	for(vector<string>::iterator it = filenames.begin() ; it != filenames.end() ; ++it)
 	{
+		cout << (*it) << endl;
 		if(it->find(".root") == string::npos || it->find("LUMI_INFO") != string::npos) {continue;}
 		string fullfilename(localdir + "/" + *it);
 		ana.AddLumiFile(fullfilename, true);

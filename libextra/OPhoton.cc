@@ -1,9 +1,27 @@
 #include "OPhoton.h"
 #include "Analyse.h"
-#include "SuperCluster.h"
 
 OPhoton::OPhoton(Photon ph) : Photon(ph), genp_(0)
 {}
+
+double OPhoton::PFIsolationDB() const
+{
+	return (PFR3().Charged() + Max(PFR3().Neutral() + PFR3().Photon() - 0.5*PFR3().ChargedPU(), 0.))/Pt();
+}
+
+double OPhoton::CorPFIsolation() const
+{
+	//double eta = Abs(SuperCluster(SC()).Eta());
+	double eta = Abs(Eta());
+    double effarea = 0.2393;
+    if(eta < 1.){ effarea = 0.1703;}
+    else if(eta < 1.479){ effarea = 0.1715;}
+    else if(eta < 2.){ effarea = 0.1213;}
+    else if(eta < 2.2){ effarea = 0.1230;}
+    else if(eta < 2.3){ effarea = 0.1635;}
+    else if(eta < 2.4){ effarea = 0.1937;}
+	return((PFR3().Charged() + Max(PFR3().Neutral() + PFR3().Photon() - GLAN->Rho()*effarea, 0.))/Pt());
+}
 
 double OPhoton::EAcharged() const
 {
