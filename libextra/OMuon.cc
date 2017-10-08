@@ -43,6 +43,7 @@ bool OMuon::IsMatched() const
 double OMuon::PFIsolationDB() const
 {
 	return (PFR4().Charged() + Max(PFR4().Neutral() + PFR4().Photon() - 0.5*PFR4().ChargedPU(), 0.))/Pt();
+	//return (PFR4().Charged()-PFR4NoB().Charged() + Max(PFR4().Neutral()-PFR4NoB().Neutral() + PFR4().Photon()-PFR4NoB().Photon() - 0.5*(PFR4().ChargedPU()-PFR4NoB().ChargedPU()), 0.))/Pt();
 }
 
 bool OMuon::IsISO(IDS idtyp) const

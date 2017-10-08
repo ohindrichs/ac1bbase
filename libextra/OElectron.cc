@@ -23,6 +23,7 @@ double OElectron::CorPFIsolation2015() const
     else if(eta < 2.3){ effarea = 0.1635;}
     else if(eta < 2.4){ effarea = 0.1937;}
 	return((PFR3().Charged() + Max(PFR3().Neutral() + PFR3().Photon() - GLAN->Rho()*effarea, 0.))/Pt());
+	//return((PFR3().Charged()-PFR3NoB().Charged() + Max(PFR3().Neutral()-PFR3NoB().Neutral() + PFR3().Photon()-PFR3NoB().Photon() - GLAN->Rho()*effarea, 0.))/Pt());
 }
 
 bool OElectron::Clean() const

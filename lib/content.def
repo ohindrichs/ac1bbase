@@ -37,7 +37,7 @@ I: VertexNumber, NumChambers, NumChambersWithSegments, NumValidMuonHits, NumMatc
 i: TriggerMatching
 i: Info
 MemberClass IOTrack: InnerTrack[1] 
-MemberClass PFIsolation: PFR4
+MemberClass PFIsolation: PFR4, PFR4NoB
 MemberClass DetIsolation: DetR3
 EndClass
 Branch IOMuon: IOMuon[200]
@@ -46,18 +46,19 @@ BeginClass: SubJet
 F: px, py, pz, e
 I: np
 F: pucorr
+F: MaxFraction
 EndClass
 
 BeginClass: IOPFJet
 F: px, py, pz, e, Area, Mass
 i: TriggerMatching
-F: ChargedHadronEnergy, NeutralHadronEnergy, PhotonEnergy, ElectronEnergy, MuonEnergy, ForwardEM, ForwardHad
+F: ChargedHadronEnergy, NeutralHadronEnergy, PhotonEnergy, ElectronEnergy, MuonEnergy, ForwardEM, ForwardHad, MaxChargedFraction, MaxFraction
 I: NumChargedHadrons, NumNeutralHadrons, NumPhotons, NumElectrons, NumMuons, NumForwardEMs, NumForwardHads
 F: DR, MPhiPhi, MPhiEta, MEtaEta
 F: EnergyCorrection
 F: BTagCSVv2, BTagJP, BTagMVA
-F: KMean3
 MemberClass SubJet: SubJets[60]
+F: Taus[60]
 EndClass
 Branch IOPFJet: IOPFAK4Jet[200]
 Branch IOPFJet: IOPFAK8Jet[200]
@@ -71,7 +72,7 @@ F: E1x5, E2x5, E5x5, R9
 F: SigmaIEtaIEta, SigmaIPhiIPhi, SigmaIEtaIPhi, Full5x5SigmaIEtaIEta
 F: EHCalTowerOverECalD1, EHCalTowerOverECalD2
 i: Info
-MemberClass PFIsolation: PFR3
+MemberClass PFIsolation: PFR3, PFR3NoB
 MemberClass IOSuperCluster: SC
 EndClass
 Branch IOElectron: IOElectron[200]
@@ -82,6 +83,7 @@ i: TriggerMatching
 F: SigmaIEtaIEta, HadOverEM
 i: Info
 i: HitMap[4500]
+MemberClass IOTrkCluster: trkClusters[2000]
 MemberClass PFIsolation: PFR3
 MemberClass IOSuperCluster: SC
 EndClass
@@ -134,6 +136,10 @@ BeginClass: IOSuperCluster
 F: x, y, z
 F: Energy, RawEnergy
 F: PhiWidth, EtaWidth
+EndClass
+
+BeginClass: IOTrkCluster
+F: x, y, z, charge
 EndClass
 
 BeginClass: IOString
