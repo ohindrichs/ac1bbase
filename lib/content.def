@@ -59,6 +59,7 @@ F: EnergyCorrection
 F: BTagCSVv2, BTagJP, BTagMVA
 MemberClass SubJet: SubJets[60]
 F: Taus[60]
+i: MatchedMuons[1], MatchedElectrons[1]
 EndClass
 Branch IOPFJet: IOPFAK4Jet[200]
 Branch IOPFJet: IOPFAK8Jet[200]

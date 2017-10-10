@@ -147,11 +147,12 @@ class CLASS:
 		classcode += '{\n'
 		classcode += '\tif(baseio->IsWritable())\n'
 		classcode += '\t{\n'
+		classcode += '\t\tdata_->Resize(number_+1);\n'
 		for typ, des in self.datavecs.iteritems():
 			for mem in des:
 				classcode += '\t\tif(number_ == 0) {data_->' + mem[0] + '_num_[number_] = 0;}\n'
 				classcode += '\t\telse {data_->' + mem[0] + '_num_[number_] = data_->' + mem[0] + '_num_[number_-1];}\n'
-		classcode += '\t\tdata_->count_ = number_+1;\n'
+		#OLD classcode += '\t\tdata_->count_[0] = number_+1;\n'
 		classcode += '\t}\n'
 		classcode += '}\n\n'
 		#Getters	
@@ -203,12 +204,6 @@ class CLASS:
 				for mem in des:
 					classcode += 'void ' + self.name + '::' + mem + '('+typ+' _'+mem+')\n'
 					classcode += '{\n'
-					classcode += '\tif(number_ >= data_->size_)\n'
-					classcode += '\t{\n'
-					CLASS.ERRORNUM+=1
-					classcode += '\t\tbaseio->SetError('+str(CLASS.ERRORNUM)+');//ERROR'+str(CLASS.ERRORNUM)+'\n'
-					classcode += '\t\treturn;\n'
-					classcode += '\t}\n'
 					classcode += '\tdata_->' + mem + '_[number_] = _'+mem+';\n'
 					classcode += '}\n\n'
 		for typ, des in self.datavecs.iteritems():
@@ -218,20 +213,10 @@ class CLASS:
 					classcode += 'void ' + self.name + '::' + mem[0] + '('+typ+' _'+mem[0]+', UInt_t n)\n'
 					classcode += '{\n'
 					classcode += '\tif(number_ != 0){n = data_->' + mem[0] + '_num_[number_-1] +n;}\n'
-					classcode += '\tif(n >= data_->' + mem[0] + '_countmax_)\n'
-					classcode += '\t{\n'
-					CLASS.ERRORNUM+=1
-					classcode += '\t\tbaseio->SetError('+str(CLASS.ERRORNUM)+');//ERROR'+str(CLASS.ERRORNUM)+'\n'
-					classcode += '\t\treturn;\n'
-					classcode += '\t}\n'
-					classcode += '\tif(n != data_->' + mem[0] + '_count_)\n'
-					classcode += '\t{\n'
-					classcode += '\t\tcerr << "Index already filled" << endl;\n'
-					classcode += '\t\treturn;\n'
-					classcode += '\t}\n'
+					classcode += '\tdata_->' + mem[0] + '_.Resize(n+1);\n'
 					classcode += '\tdata_->' + mem[0] + '_[n] = _' + mem[0] +';\n'
 					classcode += '\tdata_->' + mem[0] + '_num_[number_]++;\n'
-					classcode += '\tdata_->' + mem[0] + '_count_++;\n'
+					classcode += '\tdata_->' + mem[0] + '_count_[0]++;\n'
 					classcode += '}\n\n'
 		return classcode
 
@@ -255,12 +240,12 @@ class CLASS:
 		classdef += '\t\tstatic BaseIO* baseio;\n'
 		classdef += '\t\tUInt_t size_;\n'
 		classdef += '\t\tstd::string prefix_;\n'
-		classdef += '\t\t' + 'UInt_t count_;\n'
+		classdef += '\t\t' + 'MBranch<UInt_t> count_;\n'
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
 				for mem in des:
-					classdef += '\t\t' + typ + '* ' + mem + '_;\n'
+					classdef += '\t\tMBranch<' + typ + '> ' + mem + '_;\n'
 			else:
 				typ = 'Data_' + typ
 				for mem in des:
@@ -269,19 +254,19 @@ class CLASS:
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
 				for mem in des:
-					classdef += '\t\t' + 'UInt_t '+mem[0]+'_count_;\n'
-					classdef += '\t\t' + 'UInt_t '+mem[0]+'_countmax_;\n'
-					classdef += '\t\t' + 'UInt_t*' + ' ' + mem[0] + '_num_;\n'
-					classdef += '\t\t' + typ + '* ' + mem[0] + '_;\n'
+					classdef += '\t\t' + 'MBranch<UInt_t> '+mem[0]+'_count_;\n'
+					classdef += '\t\t' + 'MBranch<UInt_t>' + ' ' + mem[0] + '_num_;\n'
+					classdef += '\t\tMBranch<' + typ + '> ' + mem[0] + '_;\n'
 			else:
 				typ = 'Data_' + typ
 				for mem in des:
-					classdef += '\t\t' + 'UInt_t*' + ' ' + mem[0] + '_num_;\n'
+					classdef += '\t\t' + 'MBranch<UInt_t>' + ' ' + mem[0] + '_num_;\n'
 					classdef += '\t\t' + typ + '* ' + mem[0] + '_' + ';\n'
 		classdef += '\tpublic:\n'
 		classdef += '\t\tvoid Fill();\n'
 		classdef += '\t\t' + 'Data_' + self.name + '(UInt_t size, std::string prefix);\n'
 		classdef += '\t\t' + '~Data_' + self.name + '();\n'
+		classdef += '\t\tvoid Resize(size_t newsize);\n'
 		classdef += '\t\tvoid SetUpWrite(TTree* tree);\n'
 		classdef += '\t\tvoid SetUpRead(TTree* tree);\n'
 		classdef += '\t\tvoid Load(TTree* tree, bool load);\n'
@@ -300,56 +285,42 @@ class CLASS:
 #
 		classcode += 'BaseIO* Data_'+self.name+'::baseio = 0;\n'
 		classcode += 'Data_'+self.name+'::Data_'+self.name + '(UInt_t size, std::string prefix = "") : \nsize_(size),\nprefix_(prefix)\n'
+		classcode += ', count_(prefix_ + "_count")\n'
 		for typ, des in self.datamember.iteritems():
-			if typ not in CLASS.TYPS:
+			if typ in CLASS.TYPS:
+				for mem in des:
+					classcode += ', ' + mem + '_(prefix_+"_' + mem + '")\n'
+			else:
 				for mem in des:
 					classcode += ', ' +  mem + '_(new Data_'+typ+'(size_, prefix_ + "_'+mem+'"))\n'
 		for typ, des in self.datavecs.iteritems():
-			if typ not in CLASS.TYPS:
+			if typ in CLASS.TYPS:
 				for mem in des:
-					classcode += ', ' +  mem[0] + '_(new Data_'+typ+'(size_*'+str(mem[1])+', prefix_ + "_'+mem[0]+'"))\n'
+					classcode += ', ' + mem[0] + '_count_(prefix_ + "_'+ mem[0]+'_count")\n'
+					classcode += ', ' + mem[0] + '_num_(prefix_ + "_'+mem[0]+'_num")\n'
+					classcode += ', ' + mem[0] + '_(prefix_ + "_'+ mem[0]+'")\n'
+			else:
+				for mem in des:
+					classcode += ', ' + mem[0] + '_num_(prefix_ + "_'+mem[0]+'_num")\n'
+					classcode += ', ' + mem[0] + '_(new Data_'+typ+'(size_*'+str(mem[1])+', prefix_ + "_'+mem[0]+'"))\n'
 		classcode += '{\n'
-		for typ, des in self.datamember.iteritems():
-			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
-				for mem in des:
-					classcode += '\t' + mem + '_ = new ' + ntyp + '[size_];\n'
-		for typ, des in self.datavecs.iteritems():
-			if typ in CLASS.TYPS:
-				ntyp = CLASS.TYPS[typ]
-				for mem in des:
-					classcode += '\t' + mem[0] + '_num_ = new UInt_t[size_];\n'
-					classcode += '\t' + mem[0] + '_ = new ' + ntyp + '[size_*'+str(mem[1])+'];\n'
-					classcode += '\t' + mem[0]+'_countmax_ = size_*'+str(mem[1])+';\n'
-		for typ, des in self.datavecs.iteritems():
-			if typ not in CLASS.TYPS:
-				for mem in des:
-					classcode += '\t' + mem[0] + '_num_ = new UInt_t[size_];\n'
 		classcode += '}\n\n'
 		#destructor
 		classcode += 'Data_'+self.name+'::~Data_'+self.name + '()\n'
 		classcode += '{\n'
 		for typ, des in self.datamember.iteritems():
-			if typ in CLASS.TYPS:
-				for mem in des:
-					classcode += '\tdelete[] ' + mem + '_;\n'
-			else:
+			if typ not in CLASS.TYPS:
 				for mem in des:
 					classcode += '\tdelete ' + mem + '_;\n'
 		for typ, des in self.datavecs.iteritems():
-			if typ in CLASS.TYPS:
-				for mem in des:
-					classcode += '\tdelete[] ' + mem[0] + '_;\n'
-					classcode += '\tdelete[] ' + mem[0] + '_num_;\n'
-			else:
+			if typ not in CLASS.TYPS:
 				for mem in des:
 					classcode += '\tdelete ' + mem[0] + '_;\n'
-					classcode += '\tdelete[] ' + mem[0] + '_num_;\n'
 		classcode += '}\n\n'
 		#Fill
 		classcode += 'void Data_' + self.name + '::Fill()\n'
 		classcode += '{\n'
-		classcode += '\tcount_ = 0;\n'
+		classcode += '\tcount_[0] = 0;\n'
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
@@ -357,7 +328,7 @@ class CLASS:
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
-					classcode += '\t' + mem[0] + '_count_ = 0;\n'
+					classcode += '\t' + mem[0] + '_count_[0] = 0;\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
@@ -366,11 +337,11 @@ class CLASS:
 		#SetUp Tree Writing
 		classcode += 'void Data_'+self.name+'::SetUpWrite(TTree* tree)\n'
 		classcode += '{\n'
-		classcode += '\ttree->Branch((prefix_ + "_count").c_str(), &count_, (prefix_ + "_count/i").c_str());\n'
+		classcode += '\tcount_.SetupWrite(tree, "", "i");\n'
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->Branch((prefix_ + "_' +mem+'").c_str(), ' + mem + '_, (prefix_ + "_' + mem + '[" + prefix_ + "_count]/'+typ+ '").c_str());\n'
+					classcode += '\t' +  mem + '_.SetupWrite(tree, prefix_ + "_count", "'+typ+'");\n'
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
@@ -378,23 +349,23 @@ class CLASS:
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'_count").c_str(), &' + mem[0] + '_count_, (prefix_ + "_' + mem[0] + '_count/i").c_str());\n'
-					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_, (prefix_ + "_' + mem[0] + '_num[" + prefix_ + "_count]/i").c_str());\n'
-					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'").c_str(), ' + mem[0] + '_, (prefix_ + "_' + mem[0] + '[" + prefix_ + "_' +mem[0]+'_count]/'+typ+ '").c_str());\n'
+					classcode += '\t' + mem[0]+'_count_.SetupWrite(tree, "", "i");\n'
+					classcode += '\t' + mem[0]+'_num_.SetupWrite(tree, prefix_ + "_count", "i");\n'
+					classcode += '\t' + mem[0] + '_.SetupWrite(tree, prefix_ + "_'+mem[0]+'_num", "'+typ+'");\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->Branch((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_, (prefix_ + "_' + mem[0] + '_num[" + prefix_ + "_count]/i").c_str());\n'
+					classcode += '\t' + mem[0] + '_num_.SetupWrite(tree, prefix_ + "_count", "i");\n'
 					classcode += '\t' + mem[0] +'_->SetUpWrite(tree);\n'
 		classcode += '}\n\n'
 		#SetUp Tree Reading
 		classcode += 'void Data_'+self.name+'::SetUpRead(TTree* tree)\n'
 		classcode += '{\n'
-		classcode += '\ttree->SetBranchAddress((prefix_ + "_count").c_str(), &count_);\n'
+		classcode += '\tcount_.SetupRead(tree);\n'
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem+'").c_str(), ' + mem + '_);\n'
+					classcode += '\t' + mem + '_.SetupRead(tree);\n'
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
@@ -402,23 +373,47 @@ class CLASS:
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'_count").c_str(), &' + mem[0] + '_count_);\n'
-					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_);\n'
-					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'").c_str(), ' + mem[0] + '_);\n'
+					classcode += '\t' + mem[0]+'_count_.SetupRead(tree);\n'
+					classcode += '\t' + mem[0]+'_num_.SetupRead(tree);\n'
+					classcode += '\t' + mem[0]+'_.SetupRead(tree);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->SetBranchAddress((prefix_ + "_' +mem[0]+'_num").c_str(), ' + mem[0] + '_num_);\n'
+					classcode += '\t'+ mem[0] + '_num_.SetupRead(tree);\n'
 					classcode += '\t' + mem[0] +'_->SetUpRead(tree);\n'
+		classcode += '}\n\n'
+		#Resizing
+		classcode += 'void Data_'+self.name+'::Resize(size_t newsize)\n'
+		classcode += '{\n'
+		classcode += '\tcount_[0] = newsize;\n'
+		for typ, des in self.datamember.iteritems():
+			if typ in CLASS.TYPS:
+				for mem in des:
+					classcode += '\t' +  mem + '_.Resize(newsize);\n'
+		for typ, des in self.datamember.iteritems():
+			if typ not in CLASS.TYPS:
+				for mem in des:
+					classcode += '\t' + mem +'_->Resize(newsize);\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ in CLASS.TYPS:
+				for mem in des:
+					#classcode += '\t' + mem[0]+'_count_.SetupWrite(tree, "", "i");\n'
+					classcode += '\t' + mem[0]+'_num_.Resize(newsize);\n'
+					#classcode += '\t' + mem[0] + '_.SetupWrite(tree, prefix_ + "_'+mem[0]+'_num", "'+typ+'");\n'
+		for typ, des in self.datavecs.iteritems():
+			if typ not in CLASS.TYPS:
+				for mem in des:
+					classcode += '\t' + mem[0] + '_num_.Resize(newsize);\n'
+					#classcode += '\t' + mem[0] +'_->SetUpWrite(tree);\n'
 		classcode += '}\n\n'
 		#SetUp Load
 		classcode += 'void Data_'+self.name+'::Load(TTree* tree, bool load)\n'
 		classcode += '{\n'
-		classcode += '\ttree->SetBranchStatus((prefix_ + "_count").c_str(), load);\n'
+		classcode += '\tcount_.Load(load);\n'
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem+'").c_str(), load);\n'
+					classcode += '\t' +mem+'_.Load(load);\n'
 		for typ, des in self.datamember.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
@@ -426,13 +421,13 @@ class CLASS:
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'_count").c_str(), load);\n'
-					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'_num").c_str(), load);\n'
-					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'").c_str(), load);\n'
+					classcode += '\t' + mem[0] + '_count_.Load(load);\n'
+					classcode += '\t' + mem[0] + '_num_.Load(load);\n'
+					classcode += '\t' +mem[0]+'_.Load(load);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
-					classcode += '\ttree->SetBranchStatus((prefix_ + "_' +mem[0]+'_num").c_str(), load);\n'
+					classcode += '\t' +mem[0]+'_num_.Load(load);\n'
 					classcode += '\t' + mem[0] +'_->Load(tree, load);\n'
 		classcode += '}\n\n'
 
@@ -486,6 +481,7 @@ classdef += '#ifndef CLASS_'+sys.argv[2]+'\n'
 classdef += '#define CLASS_'+sys.argv[2]+'\n'
 classdef += '#include "TTree.h"\n'
 classdef += '#include "TFile.h"\n'
+classdef += '#include "MBranch.h"\n'
 classdef += '#include <string>\n'
 classdef += '#include <iostream>\n'
 classdef += 'using namespace std;\n'
@@ -576,8 +572,6 @@ classcode += '\tif(writable_)\n'
 classcode += '\t{\n'
 classcode += '\t\tfile->cd();\n'
 classcode += '\t\ttree_ = new TTree(treename_.c_str(), treename_.c_str(), 1);\n'
-classcode += '\t\ttree_->Branch("ERROR_COUNT", &errorcount_, "ERROR_COUNT/i");\n'
-classcode += '\t\ttree_->Branch("ERROR", error_, "ERROR[ERROR_COUNT]/I");\n'
 for n,L in branches.iteritems():
 	for c in L:
 		classcode += '\t\t' + c[0] + '_container_.SetUpWrite(tree_);\n' 	
@@ -607,7 +601,7 @@ for n,L in branches.iteritems():
 	for c in L:
 		classcode += 'UInt_t BaseIO::Num' + c[0] + 's()\n' 	
 		classcode += '{\n'
-		classcode += '\treturn ' + c[0] + '_container_.count_;\n'
+		classcode += '\treturn ' + c[0] + '_container_.count_[0];\n'
 		classcode += '}\n'
 		classcode += n+' BaseIO::Get' + c[0] + '(UInt_t n)\n' 	
 		classcode += '{\n'
