@@ -101,6 +101,7 @@ class CLASS:
 		classdef += '\t\t'+ self.name + '(Data_' + self.name + '* data, UInt_t number);\n'
 		classdef += '\t\t'+ self.name + '(const '+self.name+'& _' + self.name.lower() +');\n'
 		classdef += '\t\tvoid Init();\n'
+		classdef += '\t\tUInt_t Num() const {return number_;}\n'
 		#Getters
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
@@ -145,7 +146,7 @@ class CLASS:
 		classcode += '}\n\n'
 		classcode += 'void ' + self.name+'::Init()\n'
 		classcode += '{\n'
-		classcode += '\tif(baseio->IsWritable())\n'
+		classcode += '\tif(baseio->IsWritable() && number_ >= data_->count_[0])\n'
 		classcode += '\t{\n'
 		classcode += '\t\tdata_->Resize(number_+1);\n'
 		for typ, des in self.datavecs.iteritems():

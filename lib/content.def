@@ -36,9 +36,10 @@ F: px, py, pz, PtUnc, ChiQ, NDOF, ECalEnergy, HCalEnergy
 I: VertexNumber, NumChambers, NumChambersWithSegments, NumValidMuonHits, NumMatchedStations
 i: TriggerMatching
 i: Info
+F: IsoFar, IsoNear, IsoMax
 MemberClass IOTrack: InnerTrack[1] 
-MemberClass PFIsolation: PFR4, PFR4NoB
-MemberClass DetIsolation: DetR3
+MemberClass PFIsolation: PFR4
+#MemberClass DetIsolation: DetR3
 EndClass
 Branch IOMuon: IOMuon[200]
 
@@ -69,11 +70,13 @@ F: px, py, pz
 i: TriggerMatching
 MemberClass IOTrack: GSFTrack
 F: DeltaEtaSCTrack, DeltaPhiSCTrack, ESCOverETrack, ECalEnergy
-F: E1x5, E2x5, E5x5, R9
-F: SigmaIEtaIEta, SigmaIPhiIPhi, SigmaIEtaIPhi, Full5x5SigmaIEtaIEta
-F: EHCalTowerOverECalD1, EHCalTowerOverECalD2
+#F: E1x5, E2x5, E5x5, R9
+#F: SigmaIEtaIEta, SigmaIPhiIPhi, SigmaIEtaIPhi, Full5x5SigmaIEtaIEta
+F: SigmaIEtaIEta
+F: EHCalTowerOverECal
+F: IsoFar, IsoNear, IsoMax
 i: Info
-MemberClass PFIsolation: PFR3, PFR3NoB
+MemberClass PFIsolation: PFR3
 MemberClass IOSuperCluster: SC
 EndClass
 Branch IOElectron: IOElectron[200]

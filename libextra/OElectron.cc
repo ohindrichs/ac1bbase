@@ -49,10 +49,10 @@ bool OElectron::ID(IDS idtyp, bool iso) const
 	{
 		if(IsEB())
 		{
-			if(Full5x5SigmaIEtaIEta() > 0.00998){return(false);}
+			if(SigmaIEtaIEta() > 0.00998){return(false);}
 			if(Abs(DeltaEtaSCTrack()) > 0.00308){return(false);}
 			if(Abs(DeltaPhiSCTrack()) > 0.0816){return(false);}
-			if(EHCalTowerOverECalD1() + EHCalTowerOverECalD2() > 0.0414){return(false);}
+			if(EHCalTowerOverECal() > 0.0414){return(false);}
 			if(iso && CorPFIsolation2015() > 0.0588){return(false);}
 			if(Abs((1. - ESCOverETrack())/ECalEnergy()) > 0.0129){return(false);}
 			if(GSFTrack().NMissingInnerHits() > 1){return(false);}
@@ -63,10 +63,10 @@ bool OElectron::ID(IDS idtyp, bool iso) const
 		}
 		if(IsEE())
 		{   
-			if(Full5x5SigmaIEtaIEta() > 0.0292){return(false);}
+			if(SigmaIEtaIEta() > 0.0292){return(false);}
 			if(Abs(DeltaEtaSCTrack()) > 0.00605){return(false);}
 			if(Abs(DeltaPhiSCTrack()) > 0.0394){return(false);}
-			if(EHCalTowerOverECalD1() + EHCalTowerOverECalD2() > 0.0641){return(false);}
+			if(EHCalTowerOverECal() > 0.0641){return(false);}
 			if(iso && CorPFIsolation2015() > 0.0571){return(false);}
 			if(Abs((1. - ESCOverETrack())/ECalEnergy()) > 0.0129){return(false);}
 			if(GSFTrack().NMissingInnerHits() > 1){return(false);}
@@ -80,10 +80,10 @@ bool OElectron::ID(IDS idtyp, bool iso) const
 	{
 		if(IsEB())
 		{
-			if(Full5x5SigmaIEtaIEta() > 0.011){return(false);}
+			if(SigmaIEtaIEta() > 0.011){return(false);}
 			if(Abs(DeltaEtaSCTrack()) > 0.00477){return(false);}
 			if(Abs(DeltaPhiSCTrack()) > 0.222){return(false);}
-			if(EHCalTowerOverECalD1() + EHCalTowerOverECalD2() > 0.298){return(false);}
+			if(EHCalTowerOverECal() > 0.298){return(false);}
 			if(iso && CorPFIsolation2015() > 0.0994){return(false);}
 			if(Abs((1. - ESCOverETrack())/ECalEnergy()) > 0.241){return(false);}
 			if(GSFTrack().NMissingInnerHits() > 1){return(false);}
@@ -94,10 +94,10 @@ bool OElectron::ID(IDS idtyp, bool iso) const
 		}
 		if(IsEE())
 		{   
-			if(Full5x5SigmaIEtaIEta() > 0.0314){return(false);}
+			if(SigmaIEtaIEta() > 0.0314){return(false);}
 			if(Abs(DeltaEtaSCTrack()) > 0.00868){return(false);}
 			if(Abs(DeltaPhiSCTrack()) > 0.213){return(false);}
-			if(EHCalTowerOverECalD1() + EHCalTowerOverECalD2() > 0.101){return(false);}
+			if(EHCalTowerOverECal() > 0.101){return(false);}
 			if(iso && CorPFIsolation2015() > 0.107){return(false);}
 			if(Abs((1. - ESCOverETrack())/ECalEnergy()) > 0.14){return(false);}
 			if(GSFTrack().NMissingInnerHits() > 1){return(false);}
