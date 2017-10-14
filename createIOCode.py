@@ -106,14 +106,23 @@ class CLASS:
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
-			for mem in des:
-				classdef += '\t\t' + typ + ' ' + mem + '() const;\n'
+				for mem in des:
+					classdef += '\t\t' + typ + '& ' + mem + '();\n'
+					classdef += '\t\tconst ' + typ + '& ' + mem + '() const;\n'
+			else:
+				for mem in des:
+					classdef += '\t\t' + typ + ' ' + mem + '() const;\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
-			for mem in des:
-				classdef += '\t\t' + typ + ' ' + mem[0] + '(UInt_t n) const;\n'
-				classdef += '\t\t' + 'UInt_t' + ' Num_' + mem[0] + '() const;\n'
+				for mem in des:
+					classdef += '\t\t' + typ + '& ' + mem[0] + '(UInt_t n);\n'
+					classdef += '\t\tconst ' + typ + '& ' + mem[0] + '(UInt_t n) const;\n'
+					classdef += '\t\t' + 'UInt_t' + ' Num_' + mem[0] + '() const;\n'
+			else:
+				for mem in des:
+					classdef += '\t\t' + typ + ' ' + mem[0] + '(UInt_t n) const;\n'
+					classdef += '\t\t' + 'UInt_t' + ' Num_' + mem[0] + '() const;\n'
 		#Setters
 		for typ, des in self.datamember.iteritems():
 			if typ in CLASS.TYPS:
@@ -161,7 +170,11 @@ class CLASS:
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
 				for mem in des:
-					classcode += typ + ' ' + self.name + '::' + mem + '() const\n'
+					classcode += typ + '& ' + self.name + '::' + mem + '()\n'
+					classcode += '{\n'
+					classcode += '\treturn data_->' + mem +'_[number_];\n' 
+					classcode += '}\n\n'
+					classcode += 'const ' +typ + '& ' + self.name + '::' + mem + '() const\n'
 					classcode += '{\n'
 					classcode += '\treturn data_->' + mem +'_[number_];\n' 
 					classcode += '}\n\n'
@@ -180,7 +193,11 @@ class CLASS:
 					classcode += '{\n'
 					classcode += '\treturn number_ == 0 ? data_->' + mem[0] +'_num_[number_] : data_->' + mem[0] +'_num_[number_] - data_->' + mem[0] +'_num_[number_-1];\n' 
 					classcode += '}\n\n'
-					classcode += typ + ' ' + self.name + '::' +  mem[0] + '(UInt_t n) const\n'
+					classcode += typ + '& ' + self.name + '::' +  mem[0] + '(UInt_t n)\n'
+					classcode += '{\n'
+					classcode += '\treturn number_ == 0 ? data_->' + mem[0] +'_[n] : data_->' + mem[0] +'_[data_->' + mem[0] +'_num_[number_-1]  + n];\n' 
+					classcode += '}\n\n'
+					classcode += 'const '+ typ + '& ' + self.name + '::' +  mem[0] + '(UInt_t n) const\n'
 					classcode += '{\n'
 					classcode += '\treturn number_ == 0 ? data_->' + mem[0] +'_[n] : data_->' + mem[0] +'_[data_->' + mem[0] +'_num_[number_-1]  + n];\n' 
 					classcode += '}\n\n'
