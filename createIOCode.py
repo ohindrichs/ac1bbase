@@ -107,7 +107,6 @@ class CLASS:
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
 				for mem in des:
-					classdef += '\t\t' + typ + '& ' + mem + '();\n'
 					classdef += '\t\tconst ' + typ + '& ' + mem + '() const;\n'
 			else:
 				for mem in des:
@@ -116,7 +115,6 @@ class CLASS:
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
 				for mem in des:
-					classdef += '\t\t' + typ + '& ' + mem[0] + '(UInt_t n);\n'
 					classdef += '\t\tconst ' + typ + '& ' + mem[0] + '(UInt_t n) const;\n'
 					classdef += '\t\t' + 'UInt_t' + ' Num_' + mem[0] + '() const;\n'
 			else:
@@ -170,10 +168,6 @@ class CLASS:
 			if typ in CLASS.TYPS:
 				typ = CLASS.TYPS[typ]
 				for mem in des:
-					classcode += typ + '& ' + self.name + '::' + mem + '()\n'
-					classcode += '{\n'
-					classcode += '\treturn data_->' + mem +'_[number_];\n' 
-					classcode += '}\n\n'
 					classcode += 'const ' +typ + '& ' + self.name + '::' + mem + '() const\n'
 					classcode += '{\n'
 					classcode += '\treturn data_->' + mem +'_[number_];\n' 
@@ -192,10 +186,6 @@ class CLASS:
 					classcode += 'UInt_t ' + self.name + '::Num_' + mem[0] + '() const\n'
 					classcode += '{\n'
 					classcode += '\treturn number_ == 0 ? data_->' + mem[0] +'_num_[number_] : data_->' + mem[0] +'_num_[number_] - data_->' + mem[0] +'_num_[number_-1];\n' 
-					classcode += '}\n\n'
-					classcode += typ + '& ' + self.name + '::' +  mem[0] + '(UInt_t n)\n'
-					classcode += '{\n'
-					classcode += '\treturn number_ == 0 ? data_->' + mem[0] +'_[n] : data_->' + mem[0] +'_[data_->' + mem[0] +'_num_[number_-1]  + n];\n' 
 					classcode += '}\n\n'
 					classcode += 'const '+ typ + '& ' + self.name + '::' +  mem[0] + '(UInt_t n) const\n'
 					classcode += '{\n'
@@ -369,7 +359,7 @@ class CLASS:
 				for mem in des:
 					classcode += '\t' + mem[0]+'_count_.SetupWrite(tree, "", "i");\n'
 					classcode += '\t' + mem[0]+'_num_.SetupWrite(tree, prefix_ + "_count", "i");\n'
-					classcode += '\t' + mem[0] + '_.SetupWrite(tree, prefix_ + "_'+mem[0]+'_num", "'+typ+'");\n'
+					classcode += '\t' + mem[0] + '_.SetupWrite(tree, prefix_ + "_'+mem[0]+'_count", "'+typ+'");\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ not in CLASS.TYPS:
 				for mem in des:
@@ -408,10 +398,10 @@ class CLASS:
 			if typ in CLASS.TYPS:
 				for mem in des:
 					classcode += '\t' +  mem + '_.Resize(newsize);\n'
-		for typ, des in self.datamember.iteritems():
-			if typ not in CLASS.TYPS:
-				for mem in des:
-					classcode += '\t' + mem +'_->Resize(newsize);\n'
+		#for typ, des in self.datamember.iteritems():
+		#	if typ not in CLASS.TYPS:
+		#		for mem in des:
+		#			classcode += '\t' + mem +'_->Resize(newsize);\n'
 		for typ, des in self.datavecs.iteritems():
 			if typ in CLASS.TYPS:
 				for mem in des:

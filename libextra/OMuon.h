@@ -15,6 +15,9 @@ class OMuon : public Muon
 		enum IDS {ID_NONE, TIGHT_15, LOOSE_15};
 		OMuon(IOMuon mu);
 		double PFIsolationDB() const;
+		double IsoFarAll() const {return IsoFar().Charged()+IsoFar().Photon()+IsoFar().Neutral();}
+		double IsoNearAll() const {return IsoNear().Charged()+IsoNear().Photon()+IsoNear().Neutral();}
+		double IsoCentralAll() const {return IsoCentral().Charged()+IsoCentral().Photon()+IsoCentral().Neutral();}
 		bool IsGoodSA() const;
 		bool IsGoodTRK() const;
 		bool IsMatched() const;

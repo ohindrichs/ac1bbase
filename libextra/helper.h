@@ -27,7 +27,27 @@ string FNnoext(string filename);
 
 vector<string> dir_content(const string& dirname, unsigned char select = DT_REG|DT_DIR|DT_LNK);
 
-vector<string> string_split(const string& in, const vector<string>& splits);
+vector<string> string_split(const string& in, const vector<string>& splits = {" "});
+
+// trim from start
+static inline std::string &ltrim(std::string &s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+				std::not1(std::ptr_fun<int, int>(std::isspace))));
+	return s;
+}
+
+// trim from end
+static inline std::string &rtrim(std::string &s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(),
+				std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	return s;
+}
+
+// trim from both ends
+static inline std::string &trim(std::string &s) {
+	return ltrim(rtrim(s));
+}
+
 
 double ProbToSigma(double prob);
 double SigmaToProb(double sigma);
@@ -41,6 +61,7 @@ class TH1DCollection
 		map<string, TH1D*> hmap;
 	public:
 		TH1DCollection(string _prefix);
+		TH1DCollection() {}
 		TH1D* AddHist(string name, Int_t bins, Double_t min, Double_t max, string xlabel, string ylabel);
 		TH1D* AddHist(string name, vector<Double_t>& bins, string xlabel, string ylabel);
 
@@ -55,6 +76,7 @@ class TH2DCollection
 		map<string, TH2D*> hmap;
 	public:
 		TH2DCollection(string _prefix);
+		TH2DCollection() {}
 		TH2D* AddHist(string name, Int_t xbins, Double_t xmin, Double_t xmax, Int_t ybins, Double_t ymin, Double_t ymax, string xlabel, string ylabel);
 		TH2D* AddHist(string name, Int_t xbins, Double_t xmin, Double_t xmax, const vector<Double_t>& ybins, string xlabel, string ylabel);
 		TH2D* AddHist(string name, const vector<Double_t>& xbins, Int_t ybins, Double_t ymin, Double_t ymax, string xlabel, string ylabel);

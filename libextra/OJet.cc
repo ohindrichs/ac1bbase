@@ -16,6 +16,13 @@ return false;
 
 }
 
+TLorentzVector OJet::ApplySF(double sf)
+{
+	TLorentzVector corvec((sf-1.)*Px(), (sf-1.)*Py(), (sf-1.)*Pz(), (sf-1.)*E());
+	SetPxPyPzE(sf*Px(), sf*Py(), sf*Pz(), sf*E());
+	return corvec;
+}
+
 bool OJet::ID() const
 {
 	if(NumChargedHadrons() + NumNeutralHadrons() + NumPhotons() + NumElectrons() + NumMuons() + NumForwardEMs() + NumForwardHads() <= 1) {return false;}

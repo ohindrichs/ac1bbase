@@ -353,6 +353,7 @@ void Analyse::WriteLumiFile(string filename, string mode)
 		}
 	}
 	cout << numevents << " out of " << orignumevents << " in dataset." << endl;
+	cout << "Using: " << numevents << " " << orignumevents << endl;
 	file->Write();
 	file->Close();
 }

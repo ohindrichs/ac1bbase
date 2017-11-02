@@ -14,10 +14,13 @@ class OJet : public Jet
 		double mcpt;
 		int genjet;
 		void MatchGenJet();
+
+		double jec = 1.;
 	public:
 		OJet(IOPFJet jet);
 		bool Clean(const vector<OMuon*>& muons, const vector<OElectron*>& electrons, const vector<OPhoton*>& photons, double dr = 0.4) const;
 		bool ID() const;
+		TLorentzVector ApplySF(double sf);
 		bool IDLeptonVeto() const;
 		GenBasicParticle* GenParticle() const {return(genp_);}
 		void SetGen(GenBasicParticle* genp);
